@@ -374,9 +374,13 @@ namespace LibDescent.Data
             if (_fileInfo.version >= 19)
             {
                 int numPofNames = reader.ReadInt16();
-                for (int i = 0; i < numPofNames; i++)
+                // Check for special values used by editors that don't support POF file names
+                if (numPofNames != 0x614d && numPofNames != 0x5547)
                 {
-                    pofFileNames.Add(ReadString(reader, 13, false));
+                    for (int i = 0; i < numPofNames; i++)
+                    {
+                        pofFileNames.Add(ReadString(reader, 13, false));
+                    }
                 }
             }
 
@@ -878,6 +882,44 @@ namespace LibDescent.Data
                     _level.DynamicLights.Add(dynamicLight);
                     side.DynamicLight = dynamicLight;
                 }
+            }
+        }
+    }
+
+    public class LevelFactory
+    {
+        public static ILevel CreateFromStream(Stream stream)
+        {
+            int levelVersion;
+            var streamStartPosition = stream.Position;
+
+            // First figure out what kind of level this is
+            using (var reader = new BinaryReader(stream, Encoding.ASCII, leaveOpen: true))
+            {
+                int signature = reader.ReadInt32();
+                const int expectedSignature = 'P' * 0x1000000 + 'L' * 0x10000 + 'V' * 0x100 + 'L';
+                if (signature != expectedSignature)
+                {
+                    throw new InvalidDataException("Level signature is invalid.");
+                }
+                levelVersion = reader.ReadInt32();
+            }
+
+            // Rewind
+            stream.Position = streamStartPosition;
+
+            // Now do the actual load
+            if (levelVersion == 1)
+            {
+                return new D1LevelReader(stream).Load();
+            }
+            else if (levelVersion >= 2 && levelVersion <= 8)
+            {
+                return new D2LevelReader(stream).Load();
+            }
+            else
+            {
+                throw new InvalidDataException($"Unrecognized level version {levelVersion}.");
             }
         }
     }
