@@ -3,11 +3,11 @@ Microsoft Visual Studio Solution File, Format Version 12.00
 # Visual Studio Version 16
 VisualStudioVersion = 16.0.29728.190
 MinimumVisualStudioVersion = 10.0.40219.1
-Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "LibDescent.Data", "LibDescent\Data\LibDescent.Data.csproj", "{5806C452-B742-4928-8E99-C7C8ED717C29}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "LibDescent.Data", "Data\LibDescent.Data.csproj", "{5806C452-B742-4928-8E99-C7C8ED717C29}"
 EndProject
-Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "LibDescent.Edit", "LibDescent\Edit\LibDescent.Edit.csproj", "{44EDABD3-EBC0-4F4F-9F8E-D11572594BF9}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "LibDescent.Edit", "Edit\LibDescent.Edit.csproj", "{44EDABD3-EBC0-4F4F-9F8E-D11572594BF9}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "LibDescent.Tests", "LibDescent\Tests\LibDescent.Tests.csproj", "{6A24EB14-3339-4FCA-890A-EDD30DEBCBBC}"
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "LibDescent.Tests", "Tests\LibDescent.Tests.csproj", "{6A24EB14-3339-4FCA-890A-EDD30DEBCBBC}"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
