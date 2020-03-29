@@ -1,0 +1,35 @@
+<Project Sdk="Microsoft.NET.Sdk">
+
+  <PropertyGroup>
+    <TargetFramework>netcoreapp2.1</TargetFramework>
+
+    <IsPackable>false</IsPackable>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <None Remove="DefaultSegment.xml" />
+    <None Remove="test.blk" />
+    <None Remove="test.blx" />
+    <None Remove="test.rdl" />
+    <None Remove="test.rl2" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <EmbeddedResource Include="DefaultSegment.xml" />
+    <EmbeddedResource Include="test.blk" />
+    <EmbeddedResource Include="test.blx" />
+    <EmbeddedResource Include="test.rdl" />
+    <EmbeddedResource Include="test.rl2" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <PackageReference Include="nunit" Version="3.12.0" />
+    <PackageReference Include="NUnit3TestAdapter" Version="3.15.1" />
+    <PackageReference Include="Microsoft.NET.Test.Sdk" Version="16.4.0" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <ProjectReference Include="..\Data\LibDescent.Data.csproj" />
+  </ItemGroup>
+
+</Project>

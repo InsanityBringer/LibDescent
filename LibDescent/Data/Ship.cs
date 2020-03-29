@@ -1,0 +1,70 @@
+﻿/*
+    Copyright (c) 2019 SaladBadger
+
+    Permission is hereby granted, free of charge, to any person obtaining a copy
+    of this software and associated documentation files (the "Software"), to deal
+    in the Software without restriction, including without limitation the rights
+    to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
+    copies of the Software, and to permit persons to whom the Software is
+    furnished to do so, subject to the following conditions:
+
+    The above copyright notice and this permission notice shall be included in all
+    copies or substantial portions of the Software.
+
+    THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
+    IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
+    FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
+    AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
+    LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
+    OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
+    SOFTWARE.
+*/
+
+namespace LibDescent.Data
+{
+    public class Ship
+    {
+        public int model_num;
+        public int expl_vclip_num;
+        public Fix mass, drag;
+        public Fix max_thrust, reverse_thrust, brakes;		//low_thrust
+        public Fix wiggle;
+        public Fix max_rotthrust;
+        public FixVector[] gun_points = new FixVector[8];
+        public int markerModel;
+
+        public void UpdateShip(int field, int data)
+        {
+            switch (field)
+            {
+                case 1:
+                    model_num = data;
+                    break;
+                case 2:
+                    expl_vclip_num = data;
+                    break;
+                case 3:
+                    mass = Fix.FromRawValue(data);
+                    break;
+                case 4:
+                    drag = Fix.FromRawValue(data);
+                    break;
+                case 5:
+                    max_thrust = Fix.FromRawValue(data);
+                    break;
+                case 6:
+                    reverse_thrust = Fix.FromRawValue(data);
+                    break;
+                case 7:
+                    brakes = Fix.FromRawValue(data);
+                    break;
+                case 8:
+                    wiggle = Fix.FromRawValue(data);
+                    break;
+                case 9:
+                    max_rotthrust = Fix.FromRawValue(data);
+                    break;
+            }
+        }
+    }
+}
