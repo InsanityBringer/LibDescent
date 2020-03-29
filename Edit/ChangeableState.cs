@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Reflection;
 using System.Runtime.CompilerServices;
+using System.Threading;
 
 namespace LibDescent.Edit
 {
@@ -20,9 +21,10 @@ namespace LibDescent.Edit
     public abstract class ChangeableState
     {
         private object _stateLock = new object();
-        private readonly Dictionary<string, bool> _propCache = new Dictionary<string, bool>();
+        private readonly Dictionary<string, bool> _propSubscribeCache = new Dictionary<string, bool>();
         private readonly Dictionary<string, SubstateListener> _substates = new Dictionary<string, SubstateListener>();
         private PausedStateDirtySet _pausedStateDirtySet = null;
+        private bool reentrant = false;
 
         /// <summary>
         /// Called after a property has been changed. The new value is provided as a convenience.
@@ -30,58 +32,54 @@ namespace LibDescent.Edit
         public event PropertyChangeEventHandler PropertyChanged;
 
         /// <summary>
-        /// Called before a property has been changed. The new value is provided as a convenience.
+        /// Called before a property has been changed. The new value is provided as a convenience. This
+        /// event might not be called for read-only events.
         /// </summary>
         public event BeforePropertyChangeEventHandler BeforePropertyChanged;
 
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         private bool ShouldUpdatePropertyAsSubstate(PropertyInfo prop)
         {
-            return prop != null && typeof(ChangeableState).IsAssignableFrom(prop.PropertyType) && !Attribute.IsDefined(prop, typeof(NoSubstateAutoSubscribeAttribute));
+            return prop != null && !Attribute.IsDefined(prop, typeof(NoSubstateAutoSubscribeAttribute));
         }
 
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        private bool ShouldUpdatePropertyAsSubstateCached(string propertyName)
+        private bool ShouldUpdatePropertyAsSubstate(string propertyName)
         {
-            return _propCache.ContainsKey(propertyName)
-                ? _propCache[propertyName]
-                : _propCache[propertyName] = ShouldUpdatePropertyAsSubstate(this.GetType().GetProperty(propertyName));
+            if (propertyName.Contains("."))
+                return false; // never subscribe to sub-sub-states, as the events will be passed up anyway
+            return _propSubscribeCache.ContainsKey(propertyName)
+                ? _propSubscribeCache[propertyName]
+                : _propSubscribeCache[propertyName] = ShouldUpdatePropertyAsSubstate(this.GetType().GetProperty(propertyName));
         }
 
         private void OnPropertyChanged(string propertyName, object newValue)
         {
-            lock (_stateLock)
+            bool lockTaken = false;
+            try
             {
-                bool shouldUpdateSubstate = ShouldUpdatePropertyAsSubstateCached(propertyName);
+                Monitor.Enter(_stateLock, ref lockTaken);
+
+                if (reentrant) return; // prevent re-entry from substate update => prevents infinite loops
+                reentrant = true;
+
+                bool shouldUpdateSubstate = newValue is ChangeableState && ShouldUpdatePropertyAsSubstate(propertyName);
+                if (_substates.ContainsKey(propertyName)) // discard old substate regardless
+                {
+                    SubstateListener substate = _substates[propertyName];
+                    substate.State.PropertyChanged -= substate.Handler;
+                    _substates.Remove(propertyName);
+                }
+
                 if (_pausedStateDirtySet != null) // paused?
                 {
-                    if (_substates.ContainsKey(propertyName)) // discard old substate
-                    {
-                        SubstateListener substate = _substates[propertyName];
-                        substate.State.PropertyChanged -= substate.Handler;
-                        _substates.Remove(propertyName);
-                    }
                     _pausedStateDirtySet[propertyName] = newValue;
                     return;
                 }
 
                 if (shouldUpdateSubstate)
-                    OnSubstateChanged(propertyName, newValue as ChangeableState);
-                PropertyChanged?.Invoke(this, new PropertyChangeEventArgs(propertyName, newValue));
-            }
-        }
-
-        private void OnSubstateChanged(string propertyName, ChangeableState newSubstate)
-        {
-            lock (_stateLock)
-            {
-                if (_substates.ContainsKey(propertyName))
                 {
-                    SubstateListener substate = _substates[propertyName];
-                    substate.State.PropertyChanged -= substate.Handler;
-                }
-                if (newSubstate != null)
-                {
+                    ChangeableState newSubstate = (ChangeableState)newValue;
                     PropertyChangeEventHandler newHandler = (object sender, PropertyChangeEventArgs e) =>
                     {
                         this.OnPropertyChanged(propertyName + "." + e.PropertyName, e.NewValue);
@@ -89,10 +87,12 @@ namespace LibDescent.Edit
                     _substates[propertyName] = new SubstateListener(newSubstate, newHandler);
                     newSubstate.PropertyChanged += newHandler;
                 }
-                else
-                {
-                    _substates.Remove(propertyName);
-                }
+                PropertyChanged?.Invoke(this, new PropertyChangeEventArgs(propertyName, newValue));
+            }
+            finally
+            {
+                reentrant = false;
+                if (lockTaken) Monitor.Exit(_stateLock);
             }
         }
 
@@ -229,7 +229,8 @@ namespace LibDescent.Edit
     /// If added to a property with a data type that inherits from ChangeableState,
     /// the substate will not be automatically subscribed to from the parent object,
     /// which prevents property change events from automatically passing from the
-    /// property to the parent.
+    /// property to the parent. This should be used in case there are cyclic
+    /// references to prevent an infinite loop.
     /// </summary>
     public class NoSubstateAutoSubscribeAttribute : Attribute
     {
