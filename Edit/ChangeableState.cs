@@ -56,12 +56,13 @@ namespace LibDescent.Edit
         private void OnPropertyChanged(string propertyName, object newValue)
         {
             bool lockTaken = false;
+            bool iAmReEntrant = false;
             try
             {
                 Monitor.Enter(_stateLock, ref lockTaken);
 
                 if (reentrant) return; // prevent re-entry from substate update => prevents infinite loops
-                reentrant = true;
+                reentrant = iAmReEntrant = true;
 
                 bool shouldUpdateSubstate = newValue is ChangeableState && ShouldUpdatePropertyAsSubstate(propertyName);
                 if (_substates.ContainsKey(propertyName)) // discard old substate regardless
@@ -91,7 +92,7 @@ namespace LibDescent.Edit
             }
             finally
             {
-                reentrant = false;
+                reentrant &= !iAmReEntrant;
                 if (lockTaken) Monitor.Exit(_stateLock);
             }
         }
