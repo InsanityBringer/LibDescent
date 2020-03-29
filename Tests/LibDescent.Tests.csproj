@@ -8,6 +8,7 @@
 
   <ItemGroup>
     <None Remove="DefaultSegment.xml" />
+    <None Remove="fusfrens.rdl" />
     <None Remove="test.blk" />
     <None Remove="test.blx" />
     <None Remove="test.rdl" />
@@ -16,6 +17,7 @@
 
   <ItemGroup>
     <EmbeddedResource Include="DefaultSegment.xml" />
+    <EmbeddedResource Include="fusfrens.rdl" />
     <EmbeddedResource Include="test.blk" />
     <EmbeddedResource Include="test.blx" />
     <EmbeddedResource Include="test.rdl" />

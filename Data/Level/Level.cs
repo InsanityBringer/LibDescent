@@ -35,6 +35,8 @@ namespace LibDescent.Data
         IReadOnlyList<ITrigger> Triggers { get; }
         List<Side> ReactorTriggerTargets { get; }
         List<MatCenter> MatCenters { get; }
+
+        void WriteToStream(Stream stream);
     }
 
     internal class DescentLevelCommon
