@@ -33,7 +33,8 @@ namespace LibDescent.Edit
 
         /// <summary>
         /// Called before a property has been changed. The new value is provided as a convenience. This
-        /// event might not be called for read-only events.
+        /// event might not be called for read-only events. The old value may be equal by value or refrence
+        /// to the new value.
         /// </summary>
         public event BeforePropertyChangeEventHandler BeforePropertyChanged;
 
@@ -56,13 +57,13 @@ namespace LibDescent.Edit
         private void OnPropertyChanged(string propertyName, object newValue)
         {
             bool lockTaken = false;
-            bool iAmReEntrant = false;
+            bool iAmEntrant = false;
             try
             {
                 Monitor.Enter(_stateLock, ref lockTaken);
 
                 if (reentrant) return; // prevent re-entry from substate update => prevents infinite loops
-                reentrant = iAmReEntrant = true;
+                reentrant = iAmEntrant = true;
 
                 bool shouldUpdateSubstate = newValue is ChangeableState && ShouldUpdatePropertyAsSubstate(propertyName);
                 if (_substates.ContainsKey(propertyName)) // discard old substate regardless
@@ -92,7 +93,7 @@ namespace LibDescent.Edit
             }
             finally
             {
-                reentrant &= !iAmReEntrant;
+                reentrant &= !iAmEntrant;
                 if (lockTaken) Monitor.Exit(_stateLock);
             }
         }
@@ -142,7 +143,8 @@ namespace LibDescent.Edit
         /// <param name="variable">The variable to assign to.</param>
         /// <param name="newValue">The new value to assign.</param>
         /// <param name="property">The property name. This should be the
-        /// plain property name (i.e. no nesting or dots).</param>
+        /// plain property name (i.e. no nesting or dots) and must be a valid
+        /// property name for the object (a property with the name must exist).</param>
         /// <returns></returns>
         protected bool AssignChangedRename<T>(ref T variable, T newValue, string property)
         {
@@ -182,7 +184,8 @@ namespace LibDescent.Edit
         /// <param name="variable">The variable to assign to.</param>
         /// <param name="newValue">The new value to assign.</param>
         /// <param name="property">The property name. This should be the
-        /// plain property name (i.e. no nesting or dots).</param>
+        /// plain property name (i.e. no nesting or dots) and must be a valid
+        /// property name for the object (a property with the name must exist).</param>
         /// <returns></returns>
         protected void AssignAlwaysRename<T>(ref T variable, T newValue, string property)
         {
