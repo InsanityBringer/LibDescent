@@ -1,11 +1,6 @@
-﻿using LibDescent.Edit;
-using System;
-using System.Collections.Generic;
-using System.Linq;
+﻿using System;
 using System.Reflection;
 using System.Runtime.CompilerServices;
-using System.Text;
-using System.Threading.Tasks;
 
 namespace LibDescent.Edit
 {
@@ -13,7 +8,7 @@ namespace LibDescent.Edit
     using PropertySetterDelegate = Action<object>;
 
     internal delegate object GetPropertyValueUncachedDelegate(object root, string property);
-    
+
     /// <summary>
     /// An event listener for ChangeableStates that will automatically pass events
     /// to event handlers registered through it, and will also pass events down if an
