@@ -406,7 +406,7 @@ namespace LibDescent.Edit
                 stringBuilder.AppendFormat("lightcast={0} ", weapon.light);
                 if (weapon.damage_radius != 0)
                     stringBuilder.AppendFormat("damage_radius={0} ", weapon.damage_radius);
-                if (weapon.multi_damage_scale.GetRawValue() != 65536)
+                if (weapon.multi_damage_scale.Value != 65536)
                     stringBuilder.AppendFormat("multi_damage_scale={0} ", weapon.multi_damage_scale);
                 stringBuilder.AppendFormat("fire_count={0} ", weapon.fire_count);
                 stringBuilder.AppendFormat("flash_vclip={0} ", weapon.flash_vclip);
@@ -451,9 +451,9 @@ namespace LibDescent.Edit
                 stringBuilder.AppendFormat("name=\"{0}\"\t", powerupsbm[i]);
                 stringBuilder.AppendFormat("vclip_num={0}\t", powerup.vclip_num);
                 stringBuilder.AppendFormat("hit_sound={0}\t", powerup.hit_sound);
-                if (powerup.size.GetRawValue() != (3 * 65536))
+                if (powerup.size.Value != (3 * 65536))
                     stringBuilder.AppendFormat("size={0}\t", powerup.size);
-                if (powerup.size.GetRawValue() != 21845)
+                if (powerup.size.Value != 21845)
                     stringBuilder.AppendFormat("light={0}", powerup.light);
                 stringBuilder.Append("\n");
             }

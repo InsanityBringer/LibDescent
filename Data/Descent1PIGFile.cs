@@ -257,8 +257,8 @@ namespace LibDescent.Data
                 Powerup powerup = new Powerup();
                 powerup.vclip_num = br.ReadInt32();
                 powerup.hit_sound = br.ReadInt32();
-                powerup.size = Fix.FromRawValue(br.ReadInt32());
-                powerup.light = Fix.FromRawValue(br.ReadInt32());
+                powerup.size = new Fix(br.ReadInt32());
+                powerup.light = new Fix(br.ReadInt32());
                 Powerups[i] = powerup;
             }
             numModels = br.ReadInt32();
@@ -300,13 +300,13 @@ namespace LibDescent.Data
             PlayerShip = new Ship();
             PlayerShip.model_num = br.ReadInt32();
             PlayerShip.expl_vclip_num = br.ReadInt32();
-            PlayerShip.mass = Fix.FromRawValue(br.ReadInt32());
-            PlayerShip.drag = Fix.FromRawValue(br.ReadInt32());
-            PlayerShip.max_thrust = Fix.FromRawValue(br.ReadInt32());
-            PlayerShip.reverse_thrust = Fix.FromRawValue(br.ReadInt32());
-            PlayerShip.brakes = Fix.FromRawValue(br.ReadInt32());
-            PlayerShip.wiggle = Fix.FromRawValue(br.ReadInt32());
-            PlayerShip.max_rotthrust = Fix.FromRawValue(br.ReadInt32());
+            PlayerShip.mass = new Fix(br.ReadInt32());
+            PlayerShip.drag = new Fix(br.ReadInt32());
+            PlayerShip.max_thrust = new Fix(br.ReadInt32());
+            PlayerShip.reverse_thrust = new Fix(br.ReadInt32());
+            PlayerShip.brakes = new Fix(br.ReadInt32());
+            PlayerShip.wiggle = new Fix(br.ReadInt32());
+            PlayerShip.max_rotthrust = new Fix(br.ReadInt32());
             for (int x = 0; x < 8; x++)
             {
                 PlayerShip.gun_points[x] = FixVector.FromRawValues(br.ReadInt32(), br.ReadInt32(), br.ReadInt32());
@@ -331,7 +331,7 @@ namespace LibDescent.Data
             }
             for (int i = 0; i < 100; i++)
             {
-                ObjectTypes[i].strength = Fix.FromRawValue(br.ReadInt32());
+                ObjectTypes[i].strength = new Fix(br.ReadInt32());
                 //Console.WriteLine("type: {0}({3})\nid: {1}\nstr: {2}", ObjectTypes[i].type, ObjectTypes[i].id, ObjectTypes[i].strength, (int)ObjectTypes[i].type);
             }
             FirstMultiBitmapNum = br.ReadInt32();

@@ -96,7 +96,7 @@ namespace LibDescent.Data
                     segment.Vertices[vertexNum] = new LevelVertex(vertexLocation);
                 }
 
-                segment.Light = Fix.FromRawValue(BlockCommon.ReadValue<int>(reader, "static_light"));
+                segment.Light = new Fix(BlockCommon.ReadValue<int>(reader, "static_light"));
                 segment.Function = SegFunction.None;
                 segment.MatCenter = null;
             }
@@ -358,8 +358,8 @@ namespace LibDescent.Data
                         (uint mask, int timer, int delay) = BlockCommon.ReadExtendedVariableLight(reader);
                         var light = new AnimatedLight(side);
                         light.Mask = mask;
-                        light.TimeToNextTick = Fix.FromRawValue(timer);
-                        light.TickLength = Fix.FromRawValue(delay);
+                        light.TimeToNextTick = new Fix(timer);
+                        light.TickLength = new Fix(delay);
                         block.AnimatedLights.Add(light);
                         side.AnimatedLight = light;
                     }
@@ -441,7 +441,7 @@ namespace LibDescent.Data
                     segment.Vertices[vertexNum] = vertices[fileVertexNum];
                 }
 
-                segment.Light = Fix.FromRawValue(BlockCommon.ReadValue<int>(reader, "static_light"));
+                segment.Light = new Fix(BlockCommon.ReadValue<int>(reader, "static_light"));
                 segment.Function = (SegFunction)BlockCommon.ReadValue<byte>(reader, "special");
 
                 var matcenNum = BlockCommon.ReadValue<sbyte>(reader, "matcen_num");

@@ -78,44 +78,44 @@ namespace LibDescent.Edit
                     break;
                 case 16:
                     value = Util.Clamp(value, int.MinValue, int.MaxValue, ref clamped);
-                    robot.lighting = Fix.FromRawValue(value);
+                    robot.lighting = new Fix(value);
                     break;
                 case 17:
                     value = Util.Clamp(value, int.MinValue, int.MaxValue, ref clamped);
-                    robot.strength = Fix.FromRawValue(value);
+                    robot.strength = new Fix(value);
                     break;
                 case 18:
                     value = Util.Clamp(value, int.MinValue, int.MaxValue, ref clamped);
-                    robot.mass = Fix.FromRawValue(value);
+                    robot.mass = new Fix(value);
                     break;
                 case 19:
                     value = Util.Clamp(value, int.MinValue, int.MaxValue, ref clamped);
-                    robot.drag = Fix.FromRawValue(value);
+                    robot.drag = new Fix(value);
                     break;
                 case 20:
                     value = (int)(Math.Cos(value * Math.PI / 180.0D) * 65536.0);
                     value = Util.Clamp(value, int.MinValue, int.MaxValue, ref clamped);
-                    robot.field_of_view[curAI] = Fix.FromRawValue(value);
+                    robot.field_of_view[curAI] = new Fix(value);
                     break;
                 case 21:
                     value = Util.Clamp(value, int.MinValue, int.MaxValue, ref clamped);
-                    robot.firing_wait[curAI] = Fix.FromRawValue(value);
+                    robot.firing_wait[curAI] = new Fix(value);
                     break;
                 case 22:
                     value = Util.Clamp(value, int.MinValue, int.MaxValue, ref clamped);
-                    robot.firing_wait2[curAI] = Fix.FromRawValue(value);
+                    robot.firing_wait2[curAI] = new Fix(value);
                     break;
                 case 23:
                     value = Util.Clamp(value, int.MinValue, int.MaxValue, ref clamped);
-                    robot.turn_time[curAI] = Fix.FromRawValue(value);
+                    robot.turn_time[curAI] = new Fix(value);
                     break;
                 case 24:
                     value = Util.Clamp(value, int.MinValue, int.MaxValue, ref clamped);
-                    robot.max_speed[curAI] = Fix.FromRawValue(value);
+                    robot.max_speed[curAI] = new Fix(value);
                     break;
                 case 25:
                     value = Util.Clamp(value, int.MinValue, int.MaxValue, ref clamped);
-                    robot.circle_distance[curAI] = Fix.FromRawValue(value);
+                    robot.circle_distance[curAI] = new Fix(value);
                     break;
                 case 26:
                     value = Util.Clamp(value, sbyte.MinValue, sbyte.MaxValue, ref clamped);

@@ -152,7 +152,7 @@ namespace LibDescent.Tests
             Assert.AreEqual(RenderType.Polyobj, level.Objects[21].renderType);
             Assert.AreEqual(new FixVector(120, -20, -105), level.Objects[21].position);
             Assert.AreEqual(expectedOrientation, level.Objects[21].orientation);
-            Assert.AreEqual((Fix)120, Fix.FromRawValue(level.Objects[21].shields));
+            Assert.AreEqual((Fix)120, new Fix(level.Objects[21].shields));
             Assert.AreEqual(2, level.Objects[21].containsType); // robot
             Assert.AreEqual(4, level.Objects[21].containsCount);
             Assert.AreEqual(50, level.Objects[21].containsId); // sidearm modula
@@ -311,16 +311,16 @@ namespace LibDescent.Tests
 
             // Check that some of the lights are reading values properly
             Assert.That(level.DynamicLights[0].LightDeltas[0].vertexDeltas, Is.EqualTo(new Fix[] {
-                Fix.FromRawValue(38912),
-                Fix.FromRawValue(12288),
-                Fix.FromRawValue(12288),
-                Fix.FromRawValue(38912)
+                new Fix(38912),
+                new Fix(12288),
+                new Fix(12288),
+                new Fix(38912)
                 }));
             Assert.That(level.DynamicLights[3].LightDeltas[25].vertexDeltas, Is.EqualTo(new Fix[] {
-                Fix.FromRawValue(38912),
-                Fix.FromRawValue(38912),
-                Fix.FromRawValue(38912),
-                Fix.FromRawValue(38912)
+                new Fix(38912),
+                new Fix(38912),
+                new Fix(38912),
+                new Fix(38912)
                 }));
         }
 

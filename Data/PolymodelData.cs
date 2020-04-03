@@ -64,9 +64,9 @@ namespace LibDescent.Data
                         for (int x = 0; x < pointc; x++)
                         {
                             FixVector point = new FixVector();
-                            point.x = Fix.FromRawValue(br.ReadInt32());
-                            point.y = Fix.FromRawValue(br.ReadInt32());
-                            point.z = Fix.FromRawValue(br.ReadInt32());
+                            point.x = new Fix(br.ReadInt32());
+                            point.y = new Fix(br.ReadInt32());
+                            point.z = new Fix(br.ReadInt32());
 
                             mins.x = Math.Min(mins.x, point.x);
                             mins.y = Math.Min(mins.y, point.y);
@@ -84,9 +84,9 @@ namespace LibDescent.Data
                         for (int x = 0; x < pointc; x++)
                         {
                             FixVector point = new FixVector();
-                            point.x = Fix.FromRawValue(br.ReadInt32());
-                            point.y = Fix.FromRawValue(br.ReadInt32());
-                            point.z = Fix.FromRawValue(br.ReadInt32());
+                            point.x = new Fix(br.ReadInt32());
+                            point.y = new Fix(br.ReadInt32());
+                            point.z = new Fix(br.ReadInt32());
 
                             mins.x = Math.Min(mins.x, point.x);
                             mins.y = Math.Min(mins.y, point.y);

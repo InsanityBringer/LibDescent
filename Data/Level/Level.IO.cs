@@ -182,7 +182,7 @@ namespace LibDescent.Data
 
                 if (_levelVersion <= 5)
                 {
-                    segment.Light = Fix.FromRawValue(reader.ReadUInt16() << 4);
+                    segment.Light = new Fix(reader.ReadUInt16() << 4);
                 }
 
                 ReadSegmentWalls(reader, segment);
@@ -274,7 +274,7 @@ namespace LibDescent.Data
             if (_levelVersion > 5)
             {
                 segment.Flags = reader.ReadByte();
-                segment.Light = Fix.FromRawValue(reader.ReadInt32());
+                segment.Light = new Fix(reader.ReadInt32());
             }
         }
 
@@ -407,7 +407,7 @@ namespace LibDescent.Data
                         var side = Level.Segments[segmentNum].Sides[sideNum];
 
                         Wall wall = new Wall(side);
-                        wall.HitPoints = Fix.FromRawValue(reader.ReadInt32());
+                        wall.HitPoints = new Fix(reader.ReadInt32());
                         _ = reader.ReadInt32(); // opposite wall - will recalculate
                         wall.Type = (WallType)reader.ReadByte();
                         wall.Flags = (WallFlags)reader.ReadByte();
@@ -686,7 +686,7 @@ namespace LibDescent.Data
             var trigger = new D1Trigger();
             trigger.Type = (TriggerType)reader.ReadByte();
             trigger.Flags = (D1TriggerFlags)reader.ReadUInt16();
-            trigger.Value = Fix.FromRawValue(reader.ReadInt32());
+            trigger.Value = new Fix(reader.ReadInt32());
             trigger.Time = reader.ReadInt32();
             _ = reader.ReadByte(); // link_num - does nothing
             var numLinks = reader.ReadInt16();
@@ -775,8 +775,8 @@ namespace LibDescent.Data
                         segmentNum: reader.ReadInt16(),
                         sideNum: reader.ReadInt16(),
                         mask: reader.ReadUInt32(),
-                        timer: Fix.FromRawValue(reader.ReadInt32()),
-                        delay: Fix.FromRawValue(reader.ReadInt32())
+                        timer: new Fix(reader.ReadInt32()),
+                        delay: new Fix(reader.ReadInt32())
                         ));
                 }
             }
@@ -825,7 +825,7 @@ namespace LibDescent.Data
             trigger.Flags = (D2TriggerFlags)reader.ReadByte();
             var numLinks = reader.ReadSByte();
             reader.ReadByte(); //padding byte
-            trigger.Value = Fix.FromRawValue(reader.ReadInt32());
+            trigger.Value = new Fix(reader.ReadInt32());
             trigger.Time = reader.ReadInt32();
 
             var targets = ReadFixedLengthTargetList(reader, D2Trigger.MaxWallsPerLink);
@@ -857,10 +857,10 @@ namespace LibDescent.Data
                     var lightDelta = new LightDelta(Level.Segments[segmentNum].Sides[sideNum]);
                     _ = reader.ReadByte(); // dummy - probably used for dword alignment
                     // Vertex deltas scaled by 2048 - see DL_SCALE in segment.h
-                    lightDelta.vertexDeltas[0] = Fix.FromRawValue(reader.ReadByte() * 2048);
-                    lightDelta.vertexDeltas[1] = Fix.FromRawValue(reader.ReadByte() * 2048);
-                    lightDelta.vertexDeltas[2] = Fix.FromRawValue(reader.ReadByte() * 2048);
-                    lightDelta.vertexDeltas[3] = Fix.FromRawValue(reader.ReadByte() * 2048);
+                    lightDelta.vertexDeltas[0] = new Fix(reader.ReadByte() * 2048);
+                    lightDelta.vertexDeltas[1] = new Fix(reader.ReadByte() * 2048);
+                    lightDelta.vertexDeltas[2] = new Fix(reader.ReadByte() * 2048);
+                    lightDelta.vertexDeltas[3] = new Fix(reader.ReadByte() * 2048);
                     _lightDeltas.Add(lightDelta);
                 }
             }
