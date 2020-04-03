@@ -1032,7 +1032,7 @@ namespace LibDescent.Data
 
                 if (LevelVersion <= 5)
                 {
-                    writer.Write((ushort)(segment.Light.GetRawValue() >> 4));
+                    writer.Write((ushort)(segment.Light.value >> 4));
                 }
 
                 WriteSegmentWalls(writer, segment);
@@ -1103,7 +1103,7 @@ namespace LibDescent.Data
             if (LevelVersion > 5)
             {
                 writer.Write(segment.Flags);
-                writer.Write(segment.Light.GetRawValue());
+                writer.Write(segment.Light.value);
             }
         }
 
@@ -1255,7 +1255,7 @@ namespace LibDescent.Data
                 {
                     writer.Write(Level.Segments.IndexOf(wall.Side.Segment));
                     writer.Write(wall.Side.SideNum);
-                    writer.Write(wall.HitPoints.GetRawValue());
+                    writer.Write(wall.HitPoints.value);
                     writer.Write(wall.OppositeWall != null ? Level.Walls.IndexOf(wall.OppositeWall) : -1);
                     writer.Write((byte)wall.Type);
                     writer.Write((byte)wall.Flags);
@@ -1352,8 +1352,8 @@ namespace LibDescent.Data
                 {
                     writer.Write(robotFlags[1]);
                 }
-                writer.Write(matcen.HitPoints.GetRawValue());
-                writer.Write(matcen.Interval.GetRawValue());
+                writer.Write(matcen.HitPoints.value);
+                writer.Write(matcen.Interval.value);
                 writer.Write((short)Level.Segments.IndexOf(matcen.Segment));
                 writer.Write((short)_fuelcens.IndexOf(matcen.Segment));
             }
@@ -1521,9 +1521,9 @@ namespace LibDescent.Data
 
         protected static void WriteFixVector(BinaryWriter writer, FixVector vector)
         {
-            writer.Write(vector.x.GetRawValue());
-            writer.Write(vector.y.GetRawValue());
-            writer.Write(vector.z.GetRawValue());
+            writer.Write(vector.x.value);
+            writer.Write(vector.y.value);
+            writer.Write(vector.z.value);
         }
 
         protected static void WriteFixAngles(BinaryWriter writer, FixAngles angles)
@@ -1570,7 +1570,7 @@ namespace LibDescent.Data
             var d1trigger = (D1Trigger)trigger;
             writer.Write((byte)d1trigger.Type);
             writer.Write((ushort)d1trigger.Flags);
-            writer.Write(((Fix)d1trigger.Value).GetRawValue());
+            writer.Write(((Fix)d1trigger.Value).value);
             writer.Write(d1trigger.Time);
             writer.Write((byte)0); // link_num
             writer.Write((short)d1trigger.Targets.Count);
@@ -1635,8 +1635,8 @@ namespace LibDescent.Data
                 writer.Write((short)Level.Segments.IndexOf(light.Side.Segment));
                 writer.Write((short)light.Side.SideNum);
                 writer.Write(light.Mask);
-                writer.Write(light.TimeToNextTick.GetRawValue());
-                writer.Write(light.TickLength.GetRawValue());
+                writer.Write(light.TimeToNextTick.value);
+                writer.Write(light.TickLength.value);
             }
 
             writer.Write(Level.Segments.IndexOf(_level.SecretReturnSegment));
@@ -1652,7 +1652,7 @@ namespace LibDescent.Data
             writer.Write((byte)d2trigger.Flags);
             writer.Write((sbyte)d2trigger.Targets.Count);
             writer.Write((byte)0); // padding byte
-            writer.Write(((Fix)d2trigger.Value).GetRawValue());
+            writer.Write(((Fix)d2trigger.Value).value);
             writer.Write(d2trigger.Time);
             for (int i = 0; i < D2Trigger.MaxWallsPerLink; i++)
             {
@@ -1714,10 +1714,10 @@ namespace LibDescent.Data
                 writer.Write((short)Level.Segments.IndexOf(lightDelta.targetSide.Segment));
                 writer.Write((byte)lightDelta.targetSide.SideNum);
                 writer.Write((byte)0);
-                writer.Write((byte)(lightDelta.vertexDeltas[0].GetRawValue() / 2048));
-                writer.Write((byte)(lightDelta.vertexDeltas[1].GetRawValue() / 2048));
-                writer.Write((byte)(lightDelta.vertexDeltas[2].GetRawValue() / 2048));
-                writer.Write((byte)(lightDelta.vertexDeltas[3].GetRawValue() / 2048));
+                writer.Write((byte)(lightDelta.vertexDeltas[0].value / 2048));
+                writer.Write((byte)(lightDelta.vertexDeltas[1].value / 2048));
+                writer.Write((byte)(lightDelta.vertexDeltas[2].value / 2048));
+                writer.Write((byte)(lightDelta.vertexDeltas[3].value / 2048));
             }
             fileInfo.deltaLightsSize = (lightDeltas.Count > 0) ?
                 (int)writer.BaseStream.Position - fileInfo.deltaLightsOffset : 0;

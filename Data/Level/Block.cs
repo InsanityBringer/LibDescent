@@ -254,10 +254,10 @@ namespace LibDescent.Data
                 foreach (var vertex in segment.Vertices)
                 {
                     writer.WriteLine($"  vms_vector {Array.IndexOf(segment.Vertices, vertex)}" +
-                        $" {vertex.Location.x.GetRawValue()} {vertex.Location.y.GetRawValue()} {vertex.Location.z.GetRawValue()}");
+                        $" {vertex.Location.x.value} {vertex.Location.y.value} {vertex.Location.z.value}");
                 }
 
-                writer.WriteLine($"  static_light {segment.Light.GetRawValue()}");
+                writer.WriteLine($"  static_light {segment.Light.value}");
             }
 
             writer.Flush();

@@ -44,7 +44,7 @@ namespace LibDescent.Data
 
         public (short u, short v, ushort l) ToRawValues()
         {
-            return ((short)(u.GetRawValue() >> 5), (short)(v.GetRawValue() >> 5), (ushort)(l.GetRawValue() >> 1));
+            return ((short)(u.value >> 5), (short)(v.value >> 5), (ushort)(l.value >> 1));
         }
 
         public (double u, double v, double l) ToDoubles()

@@ -102,7 +102,11 @@ namespace LibDescent.Data
 
         public double Dot(FixVector other)
         {
-            return this.x * other.x + this.y * other.y + this.z * other.z;
+            // optimized to avoid intermediate fix conversions
+            // must divide by 2^16 at the end since we were dealing with fixes
+            return ((((long)this.x.value * other.x.value) >> 16)
+                  + (((long)this.y.value * other.y.value) >> 16)
+                  + (((long)this.z.value * other.z.value) >> 16)) * (1.0 / (1 << 16));
         }
 
         public FixVector Cross(FixVector other)

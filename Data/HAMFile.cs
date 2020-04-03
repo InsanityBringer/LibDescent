@@ -462,8 +462,8 @@ namespace LibDescent.Data
                 Powerup powerup = Powerups[x];
                 bw.Write(powerup.vclip_num);
                 bw.Write(powerup.hit_sound);
-                bw.Write(powerup.size.GetRawValue());
-                bw.Write(powerup.light.GetRawValue());
+                bw.Write(powerup.size.value);
+                bw.Write(powerup.light.value);
             }
             bw.Write(Models.Count);
             for (int x = 0; x < Models.Count; x++)
@@ -537,15 +537,15 @@ namespace LibDescent.Data
                 bw.Write(reactor.n_guns);
                 for (int y = 0; y < 8; y++)
                 {
-                    bw.Write(reactor.gun_points[y].x.GetRawValue());
-                    bw.Write(reactor.gun_points[y].y.GetRawValue());
-                    bw.Write(reactor.gun_points[y].z.GetRawValue());
+                    bw.Write(reactor.gun_points[y].x.value);
+                    bw.Write(reactor.gun_points[y].y.value);
+                    bw.Write(reactor.gun_points[y].z.value);
                 }
                 for (int y = 0; y < 8; y++)
                 {
-                    bw.Write(reactor.gun_dirs[y].x.GetRawValue());
-                    bw.Write(reactor.gun_dirs[y].y.GetRawValue());
-                    bw.Write(reactor.gun_dirs[y].z.GetRawValue());
+                    bw.Write(reactor.gun_dirs[y].x.value);
+                    bw.Write(reactor.gun_dirs[y].y.value);
+                    bw.Write(reactor.gun_dirs[y].z.value);
                 }
             }
             bw.Write(PlayerShip.markerModel);

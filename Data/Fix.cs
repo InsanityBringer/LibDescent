@@ -20,68 +20,84 @@
     SOFTWARE.
 */
 
+using System;
+using System.Runtime.CompilerServices;
+
 namespace LibDescent.Data
 {
-    // implements 16.16 fixed-point numbers as used by Descent -- Parabolicus
     public struct Fix
     {
-        private int value;
+        /// <summary>
+        /// The internal value of the fixed-point number as an integer.
+        /// Corresponds to the fixed-point value * 2^16 (65536).
+        /// </summary>
+        internal int value;
 
         public static explicit operator int(Fix f)
             => f.value / 65536;
-        public static implicit operator Fix(int i)
-            => FromRawValue(checked(i * 65536));
         public static implicit operator float(Fix f)
             => f.value / 65536.0f;
-        public static implicit operator Fix(float d)
-            => FromRawValue(checked((int)(d * 65536.0f)));
         public static implicit operator double(Fix f)
             => f.value / 65536.0;
+
+        public static implicit operator Fix(int i)
+            => new Fix() { value = checked(i * 65536) };
+        public static implicit operator Fix(float d)
+            => new Fix() { value = checked((int)(d * 65536.0f)) };
         public static implicit operator Fix(double d)
-            => FromRawValue(checked((int)(d * 65536.0)));
+            => new Fix() { value = checked((int)(d * 65536.0)) };
 
         public static Fix operator +(Fix a)
-            => FromRawValue(a.value);
+            => new Fix() { value = a.value };
         public static Fix operator -(Fix a)
-            => FromRawValue(-a.value);
-        public static Fix operator +(Fix a, Fix b)
-            => FromRawValue(checked(a.value + b.value));
-        public static Fix operator -(Fix a, Fix b)
-            => FromRawValue(checked(a.value - b.value));
+            => new Fix() { value = -a.value };
 
+        public static Fix operator +(Fix a, Fix b)
+        {
+            Fix result = new Fix(); result.value = a.value + b.value;
+            return result;
+        }
+        public static Fix operator -(Fix a, Fix b)
+        {
+            Fix result = new Fix(); result.value = checked(a.value - b.value);
+            return result;
+        }
         public static Fix operator *(Fix a, Fix b)
         {
-            long product = (long)a.value * (long)b.value;
-            return FromRawValue(checked((int)(product >> 16)));
+            Fix result = new Fix(); result.value = checked((int)(((long)a.value * (long)b.value) >> 16));
+            return result;
         }
         public static Fix operator /(Fix a, Fix b)
         {
-            long quotient = ((long)a.value << 16) / (long)b.value;
-            return FromRawValue((int)quotient);
+            Fix result = new Fix(); result.value = (int)(((long)a.value << 16) / (long)b.value);
+            return result;
         }
 
-        public static Fix operator <<(Fix a, int shift) => FromRawValue(checked(a.value << shift));
-        public static Fix operator >>(Fix a, int shift) => FromRawValue(a.value >> shift);
+        public static Fix operator <<(Fix a, int shift) => new Fix() { value = checked(a.value << shift) };
+        public static Fix operator >>(Fix a, int shift) => new Fix() { value = a.value >> shift };
         public static bool operator ==(Fix a, Fix b) => a.value == b.value;
         public static bool operator !=(Fix a, Fix b) => a.value != b.value;
+        public static bool operator <(Fix a, Fix b) => a.value < b.value;
+        public static bool operator <=(Fix a, Fix b) => a.value <= b.value;
+        public static bool operator >(Fix a, Fix b) => a.value > b.value;
+        public static bool operator >=(Fix a, Fix b) => a.value >= b.value;
 
         public override string ToString()
         {
             return ((double)this).ToString("0.####", System.Globalization.CultureInfo.InvariantCulture);
         }
 
-        public int GetRawValue()
-        {
-            return value;
-        }
-
+        [MethodImpl(MethodImplOptions.AggressiveInlining)] // inline if at all possible
         public static Fix FromRawValue(int value)
         {
-            return new Fix
-            {
-                value = value
-            };
+            // fastest way to create new struct
+            Fix f = new Fix();
+            f.value = value;
+            return f;
         }
+
+        [MethodImpl(MethodImplOptions.AggressiveInlining)] // inline if at all possible
+        public int GetRawValue() => this.value;
 
         public override bool Equals(object obj)
         {
