@@ -713,6 +713,9 @@ namespace LibDescent.Data
 
     internal class D2LevelReader : DescentLevelReader
     {
+        // Standard D2 = 7, Vertigo = 8, XL = up to 27
+        public const int MaximumSupportedLevelVersion = 27;
+
         private readonly D2Level _level = new D2Level();
         private List<(short segmentNum, short sideNum, uint mask, Fix timer, Fix delay)> _flickeringLights =
             new List<(short, short, uint, Fix, Fix)>();
@@ -847,7 +850,7 @@ namespace LibDescent.Data
         {
             // Delta lights (D2)
             // Reading this first to make lights easier to link up
-            if (_fileInfo.deltaLightsOffset != 0)
+            if (_fileInfo.deltaLightsOffset != -1)
             {
                 reader.BaseStream.Seek(_fileInfo.deltaLightsOffset, SeekOrigin.Begin);
                 for (int i = 0; i < _fileInfo.deltaLightsCount; i++)

@@ -21,6 +21,9 @@
 */
 
 using System;
+using System.IO;
+using System.Linq;
+using System.Text;
 
 namespace LibDescent.Data
 {
@@ -61,22 +64,43 @@ namespace LibDescent.Data
             this.offset = offset;
         }
 
+        public HOGLump(string name, byte[] data)
+        {
+            this.name = name;
+            size = data.Length;
+            offset = -1;
+            this.data = data;
+            type = IdentifyLump(name, data);
+        }
+
         public static LumpType IdentifyLump(string name, byte[] data)
         {
+            if (IsLevel(data)) return LumpType.Level;
+            if (IsHAM(data)) return LumpType.HAMFile;
+            if (IsHXM(data)) return LumpType.HXMFile;
+            if (IsVHAM(data)) return LumpType.VHAMFile;
             if (IsILBM(data)) return LumpType.LBMImage;
             if (IsPCX(data)) return LumpType.PCXImage;
             if (IsFont(data)) return LumpType.Font;
+            // Midi - missing
             if (IsHMP(data)) return LumpType.HMP;
             if (IsOPLBank(data)) return LumpType.OPLBank;
             if (IsPalette(data)) return LumpType.Palette;
+            string ext = (name.IndexOf('.') >= 0) ? name.Substring(name.IndexOf('.')) : "";
+            if (ext.Equals(".raw", StringComparison.OrdinalIgnoreCase)) return LumpType.RawSound;
             if (IsText(data))
             {
-                string ext = name.Substring(name.IndexOf('.'));
                 if (ext.Equals(".txb", StringComparison.OrdinalIgnoreCase) || ext.Equals(".bin", StringComparison.OrdinalIgnoreCase)) //stupid hacks
                     return LumpType.EncodedText;
                 return LumpType.Text;
             }
             return LumpType.Unknown;
+        }
+
+        private static bool CheckSignature(string expectedSignature, byte[] data, int signatureOffset = 0)
+        {
+            var signature = new ArraySegment<byte>(data, signatureOffset, expectedSignature.Length).ToArray();
+            return Encoding.ASCII.GetString(signature).CompareTo(expectedSignature) == 0;
         }
 
         //This should be very low priority
@@ -169,6 +193,53 @@ namespace LibDescent.Data
                 return true;
             }
             return false;
+        }
+
+        public static bool IsLevel(byte[] data)
+        {
+            if (data.Length < 4) return false;
+            if (!CheckSignature("LVLP", data)) return false;
+
+            // Some basic validation
+            // (we could just load the level and see if it succeeds but that's expensive)
+            try
+            {
+                var reader = new BinaryReader(new MemoryStream(data));
+                reader.BaseStream.Position = 4;
+                var levelVersion = reader.ReadInt32();
+                var mineDataOffset = reader.ReadInt32();
+                var gameDataOffset = reader.ReadInt32();
+                if (levelVersion < 0 || levelVersion > D2LevelReader.MaximumSupportedLevelVersion) return false;
+                if (mineDataOffset == 0) return false;
+                if (gameDataOffset == 0) return false;
+            }
+            catch (Exception)
+            {
+                return false;
+            }
+            return true;
+        }
+
+        public static bool IsHAM(byte[] data)
+        {
+            if (data.Length < 4) return false;
+            return CheckSignature("HAM!", data) && !IsText(data);
+            // Supposed to have version checks here, need to confirm valid versions though.
+        }
+
+        public static bool IsHXM(byte[] data)
+        {
+            if (data.Length < 4) return false;
+            // No, this is not a typo. At least not mine. Sigh.
+            return CheckSignature("HMX!", data) && !IsText(data);
+            // TODO add version checks
+        }
+
+        public static bool IsVHAM(byte[] data)
+        {
+            if (data.Length < 4) return false;
+            return CheckSignature("MAHX", data) && !IsText(data);
+            // TODO add version checks
         }
     }
 }
