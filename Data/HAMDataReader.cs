@@ -32,8 +32,8 @@ namespace LibDescent.Data
             TMAPInfo mapinfo = new TMAPInfo();
             mapinfo.Flags = br.ReadByte();
             br.ReadBytes(3);
-            mapinfo.Lighting = Fix.FromRawValue(br.ReadInt32());
-            mapinfo.Damage = Fix.FromRawValue(br.ReadInt32());
+            mapinfo.Lighting = new Fix(br.ReadInt32());
+            mapinfo.Damage = new Fix(br.ReadInt32());
             mapinfo.EClipNum = br.ReadInt16();
             mapinfo.DestroyedID = br.ReadInt16();
             mapinfo.SlideU = br.ReadInt16();
@@ -48,8 +48,8 @@ namespace LibDescent.Data
             byte[] temp = br.ReadBytes(13);
             Array.Copy(temp, mapinfo.filename, 13);
             mapinfo.Flags = br.ReadByte();
-            mapinfo.Lighting = Fix.FromRawValue(br.ReadInt32());
-            mapinfo.Damage = Fix.FromRawValue(br.ReadInt32());
+            mapinfo.Lighting = new Fix(br.ReadInt32());
+            mapinfo.Damage = new Fix(br.ReadInt32());
             mapinfo.EClipNum = (short)br.ReadInt32();
 
             return mapinfo;
@@ -58,16 +58,16 @@ namespace LibDescent.Data
         public VClip ReadVClip(BinaryReader br)
         {
             VClip clip = new VClip();
-            clip.PlayTime = Fix.FromRawValue(br.ReadInt32());
+            clip.PlayTime = new Fix(br.ReadInt32());
             clip.NumFrames = br.ReadInt32();
-            clip.FrameTime = Fix.FromRawValue(br.ReadInt32());
+            clip.FrameTime = new Fix(br.ReadInt32());
             clip.Flags = br.ReadInt32();
             clip.SoundNum = br.ReadInt16();
             for (int f = 0; f < 30; f++)
             {
                 clip.Frames[f] = br.ReadUInt16();
             }
-            clip.LightValue = Fix.FromRawValue(br.ReadInt32());
+            clip.LightValue = new Fix(br.ReadInt32());
 
             return clip;
         }
@@ -75,16 +75,16 @@ namespace LibDescent.Data
         public EClip ReadEClip(BinaryReader br)
         {
             EClip clip = new EClip();
-            clip.vc.PlayTime = Fix.FromRawValue(br.ReadInt32());
+            clip.vc.PlayTime = new Fix(br.ReadInt32());
             clip.vc.NumFrames = br.ReadInt32();
-            clip.vc.FrameTime = Fix.FromRawValue(br.ReadInt32());
+            clip.vc.FrameTime = new Fix(br.ReadInt32());
             clip.vc.Flags = br.ReadInt32();
             clip.vc.SoundNum = br.ReadInt16();
             for (int f = 0; f < 30; f++)
             {
                 clip.vc.Frames[f] = br.ReadUInt16();
             }
-            clip.vc.LightValue = Fix.FromRawValue(br.ReadInt32());
+            clip.vc.LightValue = new Fix(br.ReadInt32());
             clip.TimeLeft = br.ReadInt32();
             clip.FrameCount = br.ReadInt32();
             clip.ChangingWallTexture = br.ReadInt16();
@@ -94,7 +94,7 @@ namespace LibDescent.Data
             clip.DestroyedBitmapNum = br.ReadInt32();
             clip.ExplosionVClip = br.ReadInt32();
             clip.ExplosionEClip = br.ReadInt32();
-            clip.ExplosionSize = Fix.FromRawValue(br.ReadInt32());
+            clip.ExplosionSize = new Fix(br.ReadInt32());
             clip.SoundNum = br.ReadInt32();
             clip.SegNum = br.ReadInt32();
             clip.SideNum = br.ReadInt32();
@@ -105,7 +105,7 @@ namespace LibDescent.Data
         public WClip ReadWClip(BinaryReader br)
         {
             WClip clip = new WClip();
-            clip.PlayTime = Fix.FromRawValue(br.ReadInt32());
+            clip.PlayTime = new Fix(br.ReadInt32());
             clip.NumFrames = br.ReadInt16();
             for (int f = 0; f < 50; f++)
             {
@@ -126,7 +126,7 @@ namespace LibDescent.Data
         public WClip ReadWClipDescent1(BinaryReader br)
         {
             WClip clip = new WClip();
-            clip.PlayTime = Fix.FromRawValue(br.ReadInt32());
+            clip.PlayTime = new Fix(br.ReadInt32());
             clip.NumFrames = br.ReadInt16();
             for (int f = 0; f < 20; f++)
             {
@@ -177,34 +177,34 @@ namespace LibDescent.Data
             robot.DeathExplosionRadius = br.ReadByte();
             robot.EnergyDrain = br.ReadByte();
             
-            robot.Lighting = Fix.FromRawValue(br.ReadInt32());
-            robot.Strength = Fix.FromRawValue(br.ReadInt32());
+            robot.Lighting = new Fix(br.ReadInt32());
+            robot.Strength = new Fix(br.ReadInt32());
             
-            robot.Mass = Fix.FromRawValue(br.ReadInt32());
-            robot.Drag = Fix.FromRawValue(br.ReadInt32());
+            robot.Mass = new Fix(br.ReadInt32());
+            robot.Drag = new Fix(br.ReadInt32());
             for (int s = 0; s < Robot.NUM_DIFFICULTY_LEVELS; s++)
             {
-                robot.FieldOfView[s] = Fix.FromRawValue(br.ReadInt32());
+                robot.FieldOfView[s] = new Fix(br.ReadInt32());
             }
             for (int s = 0; s < Robot.NUM_DIFFICULTY_LEVELS; s++)
             {
-                robot.FiringWait[s] = Fix.FromRawValue(br.ReadInt32());
+                robot.FiringWait[s] = new Fix(br.ReadInt32());
             }
             for (int s = 0; s < Robot.NUM_DIFFICULTY_LEVELS; s++)
             {
-                robot.FiringWaitSecondary[s] = Fix.FromRawValue(br.ReadInt32());
+                robot.FiringWaitSecondary[s] = new Fix(br.ReadInt32());
             }
             for (int s = 0; s < Robot.NUM_DIFFICULTY_LEVELS; s++)
             {
-                robot.TurnTime[s] = Fix.FromRawValue(br.ReadInt32());
+                robot.TurnTime[s] = new Fix(br.ReadInt32());
             }
             for (int s = 0; s < Robot.NUM_DIFFICULTY_LEVELS; s++)
             {
-                robot.MaxSpeed[s] = Fix.FromRawValue(br.ReadInt32());
+                robot.MaxSpeed[s] = new Fix(br.ReadInt32());
             }
             for (int s = 0; s < Robot.NUM_DIFFICULTY_LEVELS; s++)
             {
-                robot.CircleDistance[s] = Fix.FromRawValue(br.ReadInt32());
+                robot.CircleDistance[s] = new Fix(br.ReadInt32());
             }
             for (int s = 0; s < Robot.NUM_DIFFICULTY_LEVELS; s++)
             {
@@ -282,38 +282,38 @@ namespace LibDescent.Data
 
             robot.ScoreValue = (short)br.ReadInt32();
 
-            robot.Lighting = Fix.FromRawValue(br.ReadInt32());
-            robot.Strength = Fix.FromRawValue(br.ReadInt32());
+            robot.Lighting = new Fix(br.ReadInt32());
+            robot.Strength = new Fix(br.ReadInt32());
 
-            robot.Mass = Fix.FromRawValue(br.ReadInt32());
-            robot.Drag = Fix.FromRawValue(br.ReadInt32());
+            robot.Mass = new Fix(br.ReadInt32());
+            robot.Drag = new Fix(br.ReadInt32());
             for (int s = 0; s < Robot.NUM_DIFFICULTY_LEVELS; s++)
             {
-                robot.FieldOfView[s] = Fix.FromRawValue(br.ReadInt32());
+                robot.FieldOfView[s] = new Fix(br.ReadInt32());
             }
             for (int s = 0; s < Robot.NUM_DIFFICULTY_LEVELS; s++)
             {
-                robot.FiringWait[s] = Fix.FromRawValue(br.ReadInt32());
+                robot.FiringWait[s] = new Fix(br.ReadInt32());
             }
             for (int s = 0; s < Robot.NUM_DIFFICULTY_LEVELS; s++)
             {
-                robot.TurnTime[s] = Fix.FromRawValue(br.ReadInt32());
+                robot.TurnTime[s] = new Fix(br.ReadInt32());
             }
             for (int s = 0; s < Robot.NUM_DIFFICULTY_LEVELS; s++)
             {
-                robot.FirePower[s] = Fix.FromRawValue(br.ReadInt32());
+                robot.FirePower[s] = new Fix(br.ReadInt32());
             }
             for (int s = 0; s < Robot.NUM_DIFFICULTY_LEVELS; s++)
             {
-                robot.Shield[s] = Fix.FromRawValue(br.ReadInt32());
+                robot.Shield[s] = new Fix(br.ReadInt32());
             }
             for (int s = 0; s < Robot.NUM_DIFFICULTY_LEVELS; s++)
             {
-                robot.MaxSpeed[s] = Fix.FromRawValue(br.ReadInt32());
+                robot.MaxSpeed[s] = new Fix(br.ReadInt32());
             }
             for (int s = 0; s < Robot.NUM_DIFFICULTY_LEVELS; s++)
             {
-                robot.CircleDistance[s] = Fix.FromRawValue(br.ReadInt32());
+                robot.CircleDistance[s] = new Fix(br.ReadInt32());
             }
             for (int s = 0; s < Robot.NUM_DIFFICULTY_LEVELS; s++)
             {
@@ -377,31 +377,31 @@ namespace LibDescent.Data
 
             weapon.Children = br.ReadSByte();
  
-            weapon.EnergyUsage = Fix.FromRawValue(br.ReadInt32());
-            weapon.FireWait = Fix.FromRawValue(br.ReadInt32());
+            weapon.EnergyUsage = new Fix(br.ReadInt32());
+            weapon.FireWait = new Fix(br.ReadInt32());
 
-            weapon.MultiDamageScale = Fix.FromRawValue(br.ReadInt32());
+            weapon.MultiDamageScale = new Fix(br.ReadInt32());
 
             weapon.Bitmap = br.ReadUInt16();
             
-            weapon.BlobSize = Fix.FromRawValue(br.ReadInt32());
-            weapon.FlashSize = Fix.FromRawValue(br.ReadInt32());
-            weapon.ImpactSize = Fix.FromRawValue(br.ReadInt32());
+            weapon.BlobSize = new Fix(br.ReadInt32());
+            weapon.FlashSize = new Fix(br.ReadInt32());
+            weapon.ImpactSize = new Fix(br.ReadInt32());
             for (int s = 0; s < 5; s++)
             {
-                weapon.Strength[s] = Fix.FromRawValue(br.ReadInt32());
+                weapon.Strength[s] = new Fix(br.ReadInt32());
             }
             for (int s = 0; s < 5; s++)
             {
-                weapon.Speed[s] = Fix.FromRawValue(br.ReadInt32());
+                weapon.Speed[s] = new Fix(br.ReadInt32());
             }
-            weapon.Mass = Fix.FromRawValue(br.ReadInt32());
-            weapon.Drag = Fix.FromRawValue(br.ReadInt32());
-            weapon.Thrust = Fix.FromRawValue(br.ReadInt32());
-            weapon.POLenToWidthRatio = Fix.FromRawValue(br.ReadInt32());
-            weapon.Light = Fix.FromRawValue(br.ReadInt32());
-            weapon.Lifetime = Fix.FromRawValue(br.ReadInt32());
-            weapon.DamageRadius = Fix.FromRawValue(br.ReadInt32());
+            weapon.Mass = new Fix(br.ReadInt32());
+            weapon.Drag = new Fix(br.ReadInt32());
+            weapon.Thrust = new Fix(br.ReadInt32());
+            weapon.POLenToWidthRatio = new Fix(br.ReadInt32());
+            weapon.Light = new Fix(br.ReadInt32());
+            weapon.Lifetime = new Fix(br.ReadInt32());
+            weapon.DamageRadius = new Fix(br.ReadInt32());
 
             weapon.CockpitPicture = br.ReadUInt16();
             weapon.HiresCockpitPicture = br.ReadUInt16();
@@ -443,31 +443,31 @@ namespace LibDescent.Data
 
             weapon.Children = 0;
 
-            weapon.EnergyUsage = Fix.FromRawValue(br.ReadInt32());
-            weapon.FireWait = Fix.FromRawValue(br.ReadInt32());
+            weapon.EnergyUsage = new Fix(br.ReadInt32());
+            weapon.FireWait = new Fix(br.ReadInt32());
 
             weapon.MultiDamageScale = 1;
 
             weapon.Bitmap = br.ReadUInt16();
 
-            weapon.BlobSize = Fix.FromRawValue(br.ReadInt32());
-            weapon.FlashSize = Fix.FromRawValue(br.ReadInt32());
-            weapon.ImpactSize = Fix.FromRawValue(br.ReadInt32());
+            weapon.BlobSize = new Fix(br.ReadInt32());
+            weapon.FlashSize = new Fix(br.ReadInt32());
+            weapon.ImpactSize = new Fix(br.ReadInt32());
             for (int s = 0; s < 5; s++)
             {
-                weapon.Strength[s] = Fix.FromRawValue(br.ReadInt32());
+                weapon.Strength[s] = new Fix(br.ReadInt32());
             }
             for (int s = 0; s < 5; s++)
             {
-                weapon.Speed[s] = Fix.FromRawValue(br.ReadInt32());
+                weapon.Speed[s] = new Fix(br.ReadInt32());
             }
-            weapon.Mass = Fix.FromRawValue(br.ReadInt32());
-            weapon.Drag = Fix.FromRawValue(br.ReadInt32());
-            weapon.Thrust = Fix.FromRawValue(br.ReadInt32());
-            weapon.POLenToWidthRatio = Fix.FromRawValue(br.ReadInt32());
-            weapon.Light = Fix.FromRawValue(br.ReadInt32());
-            weapon.Lifetime = Fix.FromRawValue(br.ReadInt32());
-            weapon.DamageRadius = Fix.FromRawValue(br.ReadInt32());
+            weapon.Mass = new Fix(br.ReadInt32());
+            weapon.Drag = new Fix(br.ReadInt32());
+            weapon.Thrust = new Fix(br.ReadInt32());
+            weapon.POLenToWidthRatio = new Fix(br.ReadInt32());
+            weapon.Light = new Fix(br.ReadInt32());
+            weapon.Lifetime = new Fix(br.ReadInt32());
+            weapon.DamageRadius = new Fix(br.ReadInt32());
 
             weapon.CockpitPicture = br.ReadUInt16();
             weapon.HiresCockpitPicture = weapon.CockpitPicture;
@@ -502,33 +502,33 @@ namespace LibDescent.Data
             weapon.HomingFlag = br.ReadByte() != 0 ? true : false;
             br.ReadBytes(3);
 
-            weapon.EnergyUsage = Fix.FromRawValue(br.ReadInt32());
-            weapon.FireWait = Fix.FromRawValue(br.ReadInt32());
+            weapon.EnergyUsage = new Fix(br.ReadInt32());
+            weapon.FireWait = new Fix(br.ReadInt32());
 
             weapon.MultiDamageScale = 1;
 
             weapon.Bitmap = br.ReadUInt16();
 
-            weapon.BlobSize = Fix.FromRawValue(br.ReadInt32());
-            weapon.FlashSize = Fix.FromRawValue(br.ReadInt32());
-            weapon.ImpactSize = Fix.FromRawValue(br.ReadInt32());
+            weapon.BlobSize = new Fix(br.ReadInt32());
+            weapon.FlashSize = new Fix(br.ReadInt32());
+            weapon.ImpactSize = new Fix(br.ReadInt32());
 
             for (int s = 0; s < 5; s++)
             {
-                weapon.Strength[s] = Fix.FromRawValue(br.ReadInt32());
+                weapon.Strength[s] = new Fix(br.ReadInt32());
             }
             for (int s = 0; s < 5; s++)
             {
-                weapon.Speed[s] = Fix.FromRawValue(br.ReadInt32());
+                weapon.Speed[s] = new Fix(br.ReadInt32());
             }
 
-            weapon.Mass = Fix.FromRawValue(br.ReadInt32());
-            weapon.Drag = Fix.FromRawValue(br.ReadInt32());
-            weapon.Thrust = Fix.FromRawValue(br.ReadInt32());
-            weapon.POLenToWidthRatio = Fix.FromRawValue(br.ReadInt32());
-            weapon.Light = Fix.FromRawValue(br.ReadInt32());
-            weapon.Lifetime = Fix.FromRawValue(br.ReadInt32());
-            weapon.DamageRadius = Fix.FromRawValue(br.ReadInt32());
+            weapon.Mass = new Fix(br.ReadInt32());
+            weapon.Drag = new Fix(br.ReadInt32());
+            weapon.Thrust = new Fix(br.ReadInt32());
+            weapon.POLenToWidthRatio = new Fix(br.ReadInt32());
+            weapon.Light = new Fix(br.ReadInt32());
+            weapon.Lifetime = new Fix(br.ReadInt32());
+            weapon.DamageRadius = new Fix(br.ReadInt32());
 
             weapon.CockpitPicture = br.ReadUInt16();
             weapon.HiresCockpitPicture = weapon.CockpitPicture;
@@ -548,25 +548,25 @@ namespace LibDescent.Data
             }
             for (int s = 0; s < Polymodel.MAX_SUBMODELS; s++)
             {
-                model.Submodels[s].Offset.x = Fix.FromRawValue(br.ReadInt32());
-                model.Submodels[s].Offset.y = Fix.FromRawValue(br.ReadInt32());
-                model.Submodels[s].Offset.z = Fix.FromRawValue(br.ReadInt32());
+                model.Submodels[s].Offset.x = new Fix(br.ReadInt32());
+                model.Submodels[s].Offset.y = new Fix(br.ReadInt32());
+                model.Submodels[s].Offset.z = new Fix(br.ReadInt32());
             }
             for (int s = 0; s < Polymodel.MAX_SUBMODELS; s++)
             {
-                model.Submodels[s].Normal.x = Fix.FromRawValue(br.ReadInt32());
-                model.Submodels[s].Normal.y = Fix.FromRawValue(br.ReadInt32());
-                model.Submodels[s].Normal.z = Fix.FromRawValue(br.ReadInt32());
+                model.Submodels[s].Normal.x = new Fix(br.ReadInt32());
+                model.Submodels[s].Normal.y = new Fix(br.ReadInt32());
+                model.Submodels[s].Normal.z = new Fix(br.ReadInt32());
             }
             for (int s = 0; s < Polymodel.MAX_SUBMODELS; s++)
             {
-                model.Submodels[s].Point.x = Fix.FromRawValue(br.ReadInt32());
-                model.Submodels[s].Point.y = Fix.FromRawValue(br.ReadInt32());
-                model.Submodels[s].Point.z = Fix.FromRawValue(br.ReadInt32());
+                model.Submodels[s].Point.x = new Fix(br.ReadInt32());
+                model.Submodels[s].Point.y = new Fix(br.ReadInt32());
+                model.Submodels[s].Point.z = new Fix(br.ReadInt32());
             }
             for (int s = 0; s < Polymodel.MAX_SUBMODELS; s++)
             {
-                model.Submodels[s].Radius = Fix.FromRawValue(br.ReadInt32());
+                model.Submodels[s].Radius = new Fix(br.ReadInt32());
             }
             for (int s = 0; s < Polymodel.MAX_SUBMODELS; s++)
             {
@@ -577,19 +577,19 @@ namespace LibDescent.Data
             }
             for (int s = 0; s < Polymodel.MAX_SUBMODELS; s++)
             {
-                model.Submodels[s].Mins.x = Fix.FromRawValue(br.ReadInt32());
-                model.Submodels[s].Mins.y = Fix.FromRawValue(br.ReadInt32());
-                model.Submodels[s].Mins.z = Fix.FromRawValue(br.ReadInt32());
+                model.Submodels[s].Mins.x = new Fix(br.ReadInt32());
+                model.Submodels[s].Mins.y = new Fix(br.ReadInt32());
+                model.Submodels[s].Mins.z = new Fix(br.ReadInt32());
             }
             for (int s = 0; s < Polymodel.MAX_SUBMODELS; s++)
             {
-                model.Submodels[s].Maxs.x = Fix.FromRawValue(br.ReadInt32());
-                model.Submodels[s].Maxs.y = Fix.FromRawValue(br.ReadInt32());
-                model.Submodels[s].Maxs.z = Fix.FromRawValue(br.ReadInt32());
+                model.Submodels[s].Maxs.x = new Fix(br.ReadInt32());
+                model.Submodels[s].Maxs.y = new Fix(br.ReadInt32());
+                model.Submodels[s].Maxs.z = new Fix(br.ReadInt32());
             }
-            model.Mins = new FixVector(Fix.FromRawValue(br.ReadInt32()), Fix.FromRawValue(br.ReadInt32()), Fix.FromRawValue(br.ReadInt32()));
-            model.Maxs = new FixVector(Fix.FromRawValue(br.ReadInt32()), Fix.FromRawValue(br.ReadInt32()), Fix.FromRawValue(br.ReadInt32()));
-            model.Radius = Fix.FromRawValue(br.ReadInt32());
+            model.Mins = new FixVector(new Fix(br.ReadInt32()), new Fix(br.ReadInt32()), new Fix(br.ReadInt32()));
+            model.Maxs = new FixVector(new Fix(br.ReadInt32()), new Fix(br.ReadInt32()), new Fix(br.ReadInt32()));
+            model.Radius = new Fix(br.ReadInt32());
             model.NumTextures = br.ReadByte();
             model.FirstTexture = br.ReadUInt16();
             model.SimplerModels = br.ReadByte();

@@ -80,25 +80,25 @@ namespace LibDescent.Data
                     DeathVClipNum = data;
                     break;
                 case 3:
-                    Mass = Fix.FromRawValue(data);
+                    Mass = new Fix(data);
                     break;
                 case 4:
-                    Drag = Fix.FromRawValue(data);
+                    Drag = new Fix(data);
                     break;
                 case 5:
-                    MaxThrust = Fix.FromRawValue(data);
+                    MaxThrust = new Fix(data);
                     break;
                 case 6:
-                    ReverseThrust = Fix.FromRawValue(data);
+                    ReverseThrust = new Fix(data);
                     break;
                 case 7:
-                    Brakes = Fix.FromRawValue(data);
+                    Brakes = new Fix(data);
                     break;
                 case 8:
-                    Wiggle = Fix.FromRawValue(data);
+                    Wiggle = new Fix(data);
                     break;
                 case 9:
-                    MaxRotationThrust = Fix.FromRawValue(data);
+                    MaxRotationThrust = new Fix(data);
                     break;
             }
         }
