@@ -213,7 +213,7 @@ namespace LibDescent.Data
                 if (mineDataOffset == 0) return false;
                 if (gameDataOffset == 0) return false;
             }
-            catch (Exception)
+            catch (Exception ex) when (ex is EndOfStreamException || ex is IOException)
             {
                 return false;
             }

@@ -119,8 +119,10 @@ namespace LibDescent.Tests
 
             // Method 1 - set up lump manually
             var file1Data = TestUtils.GetArrayFromResourceStream("test.rdl");
-            var hogLump = new HOGLump("test.rdl", file1Data.Length, 0);
-            hogLump.data = file1Data;
+            var hogLump = new HOGLump("test.rdl", file1Data.Length, 0)
+            {
+                data = file1Data
+            };
             hogFile.AddLump(hogLump);
             Assert.AreEqual(4, hogFile.NumLumps);
             Assert.AreEqual(3, hogFile.GetLumpNum("test.rdl"));

@@ -40,11 +40,11 @@ namespace LibDescent.Data
         /// <summary>
         /// A list of all the HOG lumps.
         /// </summary>
-        private List<HOGLump> lumps = new List<HOGLump>();
+        private readonly List<HOGLump> lumps = new List<HOGLump>();
         /// <summary>
         /// A map that allows look-up of HOG lumps based on filename.
         /// </summary>
-        private Dictionary<string, int> lumpNameDirectory = new Dictionary<string, int>();
+        private readonly Dictionary<string, int> lumpNameDirectory = new Dictionary<string, int>();
 
         /// <summary>
         /// The amount of lumps in the current HOG file.
@@ -270,8 +270,7 @@ namespace LibDescent.Data
         /// <returns>The number of the lump if it exists, or -1 if it does not exist.</returns>
         public int GetLumpNum(string filename)
         {
-            int index;
-            if (!lumpNameDirectory.TryGetValue(filename.ToLower(), out index))
+            if (!lumpNameDirectory.TryGetValue(filename.ToLower(), out int index))
             {
                 return -1;
             }
