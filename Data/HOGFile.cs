@@ -44,7 +44,7 @@ namespace LibDescent.Data
         /// <summary>
         /// A map that allows look-up of HOG lumps based on filename.
         /// </summary>
-        private readonly Dictionary<string, int> lumpNameDirectory = new Dictionary<string, int>();
+        private Dictionary<string, int> lumpNameMap = null;
 
         /// <summary>
         /// The amount of lumps in the current HOG file.
@@ -169,12 +169,19 @@ namespace LibDescent.Data
                 {
                     data = GetLumpData(i);
                     lumps[i].type = HOGLump.IdentifyLump(lumps[i].name, data);
+                }
+            }
+        }
 
-                    // In case of duplicates, first entry takes precedence
-                    if (!lumpNameDirectory.ContainsKey(lumps[i].name))
-                    {
-                        lumpNameDirectory[lumps[i].name] = i;
-                    }
+        private void RebuildLumpNameMap()
+        {
+            lumpNameMap = new Dictionary<string, int>();
+            for (int i = 0; i < NumLumps; i++)
+            {
+                // In case of duplicates, first entry takes precedence
+                if (!lumpNameMap.ContainsKey(lumps[i].name))
+                {
+                    lumpNameMap[lumps[i].name] = i;
                 }
             }
         }
@@ -270,7 +277,11 @@ namespace LibDescent.Data
         /// <returns>The number of the lump if it exists, or -1 if it does not exist.</returns>
         public int GetLumpNum(string filename)
         {
-            if (!lumpNameDirectory.TryGetValue(filename.ToLower(), out int index))
+            if (lumpNameMap == null)
+            {
+                RebuildLumpNameMap();
+            }
+            if (!lumpNameMap.TryGetValue(filename.ToLower(), out int index))
             {
                 return -1;
             }
@@ -352,9 +363,9 @@ namespace LibDescent.Data
         public void AddLump(HOGLump lump)
         {
             lumps.Add(lump);
-            if (!lumpNameDirectory.ContainsKey(lump.name))
+            if (lumpNameMap != null && !lumpNameMap.ContainsKey(lump.name))
             {
-                lumpNameDirectory[lump.name] = lumps.Count - 1;
+                lumpNameMap[lump.name] = lumps.Count - 1;
             }
         }
 
@@ -389,14 +400,9 @@ namespace LibDescent.Data
             lumps.RemoveAt(id);
 
             // We need to rebuild lumpNameDirectory because the indices may have all changed
-            lumpNameDirectory.Clear();
-            for (int i = 0; i < NumLumps; i++)
-            {
-                if (!lumpNameDirectory.ContainsKey(lumps[i].name))
-                {
-                    lumpNameDirectory[lumps[i].name] = i;
-                }
-            }
+            // Do this on-demand (makes multiple deletions faster, especially if the index
+            // isn't being used)
+            lumpNameMap = null;
         }
 
         /// <summary>
