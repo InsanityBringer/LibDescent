@@ -51,7 +51,7 @@ namespace LibDescent.Data
         {
             MemoryStream ms = new MemoryStream(InterpreterData);
             BinaryReader br = new BinaryReader(ms);
-            br.BaseStream.Seek(host.submodels[num].Pointer, SeekOrigin.Begin);
+            br.BaseStream.Seek(host.Submodels[num].Pointer, SeekOrigin.Begin);
             short opcode = br.ReadInt16();
             FixVector mins = FixVector.FromRawValues(int.MaxValue, int.MaxValue, int.MaxValue);
             FixVector maxs = FixVector.FromRawValues(int.MinValue, int.MinValue, int.MinValue);
@@ -101,23 +101,8 @@ namespace LibDescent.Data
             br.Close();
             br.Dispose();
 
-            host.submodels[num].Mins = mins;
-            host.submodels[num].Maxs = maxs;
-        }
-
-        public void BuildPolymodelData(int num, Polymodel host, string traceto)
-        {
-            Console.WriteLine("BuildPolymodelData: STUB");
-        }
-
-        private void WriteLevel(StreamWriter sw)
-        {
-            Console.WriteLine("WriteLevel: STUB");
-        }
-
-        public void ExecuteInstruction(BinaryReader br, FixVector positionOffset, StreamWriter sw, Polymodel host, int modelnum)
-        {
-            Console.WriteLine("ExecuteInstruction: STUB");
+            host.Submodels[num].Mins = mins;
+            host.Submodels[num].Maxs = maxs;
         }
     }
 }

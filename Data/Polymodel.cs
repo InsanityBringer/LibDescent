@@ -70,6 +70,8 @@ namespace LibDescent.Data
         /// </summary>
         public List<Submodel> Children = new List<Submodel>();
 
+        public int SubmodelProperty { get; set; }
+
         public int ID;
     }
 
@@ -90,54 +92,54 @@ namespace LibDescent.Data
         /// <summary>
         /// Number of submodels for this object.
         /// </summary>
-        public int n_models;
+        public int NumSubmodels { get; set; }
         /// <summary>
         /// Length of this object's interpreter data.
         /// </summary>
-        public int model_data_size;
+        public int ModelIDTASize { get; set; }
         /// <summary>
         /// Placeholder field, in the game code is replaced with a pointer to the interpreter data.
         /// </summary>
-        public int model_data; 
+        public int ModelIDTAPointer { get; set; }
         /// <summary>
         /// List of this object's submodels.
         /// </summary>
-        public List<Submodel> submodels = new List<Submodel>();
+        public List<Submodel> Submodels { get; } = new List<Submodel>();
         /// <summary>
         /// Minimum point of the object's overall bounding box.
         /// </summary>
-        public FixVector mins = new FixVector();
+        public FixVector Mins { get; set; }
         /// <summary>
         /// Maximum point of the object's overall bounding box.
         /// </summary>
-        public FixVector maxs = new FixVector();
+        public FixVector Maxs { get; set; }
         /// <summary>
         /// Radius of the object, in map units.
         /// </summary>
-        public Fix rad;
+        public Fix Radius { get; set; }
         /// <summary>
         /// Number of textures this object uses.
         /// </summary>
-        public byte n_textures;
+        public byte NumTextures { get; set; }
         /// <summary>
         /// Offset into the Object Bitmap Pointers table where this object's textures start.
         /// </summary>
-        public ushort first_texture;
+        public ushort FirstTexture { get; set; }
         /// <summary>
         /// ID of alternate model with less detail (0 if none, model_num+1 else)
         /// </summary>
-        public byte simpler_model;
+        public byte SimplerModels { get; set; }
         /// <summary>
         /// The interpreter data for this model.
         /// </summary>
-        public PolymodelData data;
+        public PolymodelData Data { get; set; }
 
         //[ISB] Nonstandard editor data begins here
         /// <summary>
         /// List of the object's textures, read from the ObjBitmaps and ObjBitmapPointers tables.
         /// </summary>
-        public List<string> textureList = new List<string>();
-        public bool useTexList = false;
+        public List<string> TextureList { get; } = new List<string>();
+        public bool UseTextureList { get; set; } = false;
 
         /// <summary>
         /// ID of alternate model shown when this object is generating debris.
@@ -191,7 +193,7 @@ namespace LibDescent.Data
         {
             for (int i = 0; i < numSubobjects; i++)
             {
-                submodels.Add(new Submodel());
+                Submodels.Add(new Submodel());
             }
         }
         public Polymodel() : this(0) { }
@@ -201,9 +203,9 @@ namespace LibDescent.Data
         /// </summary>
         public void ExpandSubmodels()
         {
-            while (submodels.Count < MAX_SUBMODELS)
+            while (Submodels.Count < MAX_SUBMODELS)
             {
-                submodels.Add(new Submodel());
+                Submodels.Add(new Submodel());
             }
             for (int x = numGuns; x < MAX_GUNS; x++)
             {

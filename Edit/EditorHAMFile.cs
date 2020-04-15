@@ -194,7 +194,7 @@ namespace LibDescent.Edit
                 case HAMType.Model:
                     Polymodel model = new Polymodel();
                     PolymodelData data = new PolymodelData(0);
-                    model.data = data;
+                    model.Data = data;
                     model.ExpandSubmodels();
                     model.ID = Models.Count;
                     Models.Add(model);
@@ -426,105 +426,105 @@ namespace LibDescent.Edit
         {
             foreach (TMAPInfo info in TMapInfo)
             {
-                if (info.eclip_num < -1 || info.eclip_num >= EClips.Count)
-                    info.eclip_num = -1;
+                if (info.EClipNum < -1 || info.EClipNum >= EClips.Count)
+                    info.EClipNum = -1;
             }
             foreach (VClip clip in VClips)
             {
-                if (clip.sound_num < -1 || clip.sound_num >= Sounds.Count)
-                    clip.sound_num = -1;
+                if (clip.SoundNum < -1 || clip.SoundNum >= Sounds.Count)
+                    clip.SoundNum = -1;
             }
             foreach (EClip clip in EClips)
             {
-                if (clip.sound_num < -1 || clip.sound_num >= Sounds.Count)
-                    clip.sound_num = -1;
-                if (clip.dest_eclip < -1 || clip.dest_eclip >= EClips.Count)
-                    clip.dest_eclip = -1;
-                if (clip.dest_vclip < -1 || clip.dest_vclip >= VClips.Count)
-                    clip.dest_vclip = -1;
-                if (clip.crit_clip < -1 || clip.crit_clip >= EClips.Count)
-                    clip.crit_clip = -1;
+                if (clip.SoundNum < -1 || clip.SoundNum >= Sounds.Count)
+                    clip.SoundNum = -1;
+                if (clip.ExplosionEClip < -1 || clip.ExplosionEClip >= EClips.Count)
+                    clip.ExplosionEClip = -1;
+                if (clip.ExplosionVClip < -1 || clip.ExplosionVClip >= VClips.Count)
+                    clip.ExplosionVClip = -1;
+                if (clip.CriticalClip < -1 || clip.CriticalClip >= EClips.Count)
+                    clip.CriticalClip = -1;
             }
             foreach (WClip clip in WClips)
             {
-                if (clip.open_sound < -1 || clip.open_sound >= Sounds.Count)
-                    clip.open_sound = -1;
-                if (clip.close_sound < -1 || clip.close_sound >= Sounds.Count)
-                    clip.close_sound = -1;
+                if (clip.OpenSound < -1 || clip.OpenSound >= Sounds.Count)
+                    clip.OpenSound = -1;
+                if (clip.CloseSound < -1 || clip.CloseSound >= Sounds.Count)
+                    clip.CloseSound = -1;
                 for (int i = 0; i < 50; i++)
                 {
-                    if (clip.frames[i] >= Textures.Count)
-                        clip.frames[i] = 0;
+                    if (clip.Frames[i] >= Textures.Count)
+                        clip.Frames[i] = 0;
                 }
             }
             foreach (Robot robot in Robots)
             {
-                if (robot.exp1_sound_num < -1 || robot.exp1_sound_num >= Sounds.Count)
-                    robot.exp1_sound_num = -1;
-                if (robot.exp1_vclip_num < -1 || robot.exp1_vclip_num >= VClips.Count)
-                    robot.exp1_vclip_num = -1;
-                if (robot.exp2_sound_num < -1 || robot.exp2_sound_num >= Sounds.Count)
-                    robot.exp2_sound_num = -1;
-                if (robot.exp2_vclip_num < -1 || robot.exp2_vclip_num >= VClips.Count)
-                    robot.exp2_vclip_num = -1;
-                if (robot.weapon_type < 0 || robot.weapon_type >= Weapons.Count)
-                    robot.weapon_type = 10; //10 is close enough to the "default weapon" tbh
-                if (robot.weapon_type2 < -1 || robot.weapon_type2 >= Weapons.Count)
-                    robot.weapon_type2 = -1;
-                if (robot.contains_type != 2 && robot.contains_type != 7)
+                if (robot.HitSoundNum < -1 || robot.HitSoundNum >= Sounds.Count)
+                    robot.HitSoundNum = -1;
+                if (robot.HitVClipNum < -1 || robot.HitVClipNum >= VClips.Count)
+                    robot.HitVClipNum = -1;
+                if (robot.DeathSoundNum < -1 || robot.DeathSoundNum >= Sounds.Count)
+                    robot.DeathSoundNum = -1;
+                if (robot.DeathVClipNum < -1 || robot.DeathVClipNum >= VClips.Count)
+                    robot.DeathVClipNum = -1;
+                if (robot.WeaponType < 0 || robot.WeaponType >= Weapons.Count)
+                    robot.WeaponType = 10; //10 is close enough to the "default weapon" tbh
+                if (robot.WeaponTypeSecondary < -1 || robot.WeaponTypeSecondary >= Weapons.Count)
+                    robot.WeaponTypeSecondary = -1;
+                if (robot.ContainsType != 2 && robot.ContainsType != 7)
                 {
-                    robot.contains_type = 7; //Makes them drop extra lives
-                    robot.contains_id = 0;
+                    robot.ContainsType = 7; //Makes them drop extra lives
+                    robot.ContainsID = 0;
                 }
-                else if (robot.contains_type == 2)
+                else if (robot.ContainsType == 2)
                 {
-                    if (robot.contains_id < 0 || robot.contains_id > Robots.Count)
-                        robot.contains_id = 0;
+                    if (robot.ContainsID < 0 || robot.ContainsID > Robots.Count)
+                        robot.ContainsID = 0;
                 }
                 else
                 {
-                    if (robot.contains_id < 0 || robot.contains_id > Powerups.Count)
-                        robot.contains_id = 0;
+                    if (robot.ContainsID < 0 || robot.ContainsID > Powerups.Count)
+                        robot.ContainsID = 0;
                 }
-                if (robot.see_sound < 0 || robot.see_sound >= Sounds.Count)
-                    robot.see_sound = 0;
-                if (robot.attack_sound < 0 || robot.attack_sound >= Sounds.Count)
-                    robot.attack_sound = 0;
-                if (robot.claw_sound < 0 || robot.claw_sound >= Sounds.Count)
-                    robot.claw_sound = 0;
-                if (robot.taunt_sound < 0 || robot.taunt_sound >= Sounds.Count)
-                    robot.taunt_sound = 0;
-                if (robot.deathroll_sound < 0 || robot.deathroll_sound >= Sounds.Count)
-                    robot.deathroll_sound = 0;
-                if (robot.behavior != 0 && (robot.behavior < 0x80 || robot.behavior > 0x86)) //0 required for demo data
-                    robot.behavior = 0x80;
-                if (robot.boss_flag < 0 || (robot.boss_flag >= 2 && robot.boss_flag < 20) || robot.boss_flag >= 28)
-                    robot.boss_flag = 0;
+                if (robot.SeeSound < 0 || robot.SeeSound >= Sounds.Count)
+                    robot.SeeSound = 0;
+                if (robot.AttackSound < 0 || robot.AttackSound >= Sounds.Count)
+                    robot.AttackSound = 0;
+                if (robot.ClawSound < 0 || robot.ClawSound >= Sounds.Count)
+                    robot.ClawSound = 0;
+                if (robot.TauntSound < 0 || robot.TauntSound >= Sounds.Count)
+                    robot.TauntSound = 0;
+                if (robot.DeathRollSound < 0 || robot.DeathRollSound >= Sounds.Count)
+                    robot.DeathRollSound = 0;
+                if (robot.Behavior != 0 && (robot.Behavior < RobotAIType.Still || robot.Behavior > RobotAIType.Follow)) //0 required for demo data
+                    robot.Behavior = RobotAIType.Still;
+                if (robot.BossFlag < 0 || (robot.BossFlag >= RobotBossType.Descent1Level27 && robot.BossFlag < RobotBossType.RedFatty) || robot.BossFlag >= RobotBossType.VertigoBoss2)
+                    robot.BossFlag = 0;
             }
             foreach (Weapon weapon in Weapons)
             {
-                if (weapon.model_num < 0 || weapon.model_num >= Models.Count)
-                    weapon.model_num = 0;
-                if (weapon.model_num_inner < -1 || weapon.model_num_inner >= Models.Count)
-                    weapon.model_num_inner = -1;
-                if (weapon.flash_vclip < -1 || weapon.flash_vclip >= VClips.Count)
-                    weapon.flash_vclip = -1;
-                if (weapon.robot_hit_vclip < -1 || weapon.robot_hit_vclip >= VClips.Count)
-                    weapon.robot_hit_vclip = -1;
-                if (weapon.wall_hit_vclip < -1 || weapon.wall_hit_vclip >= VClips.Count)
-                    weapon.wall_hit_vclip = -1;
-                if (weapon.weapon_vclip < -1 || weapon.weapon_vclip >= VClips.Count)
-                    weapon.weapon_vclip = -1;
+                if (weapon.ModelNum < 0 || weapon.ModelNum >= Models.Count)
+                    weapon.ModelNum = 0;
+                if (weapon.ModelNumInner < -1 || weapon.ModelNumInner >= Models.Count)
+                    weapon.ModelNumInner = -1;
+                if (weapon.MuzzleFlashVClip < -1 || weapon.MuzzleFlashVClip >= VClips.Count)
+                    weapon.MuzzleFlashVClip = -1;
+                if (weapon.RobotHitVClip < -1 || weapon.RobotHitVClip >= VClips.Count)
+                    weapon.RobotHitVClip = -1;
+                if (weapon.WallHitVclip < -1 || weapon.WallHitVclip >= VClips.Count)
+                    weapon.WallHitVclip = -1;
+                if (weapon.WeaponVClip < -1 || weapon.WeaponVClip >= VClips.Count)
+                    weapon.WeaponVClip = -1;
 
-                if (weapon.flash_sound < -1 || weapon.flash_sound >= Sounds.Count)
-                    weapon.flash_sound = -1;
-                if (weapon.robot_hit_sound < -1 || weapon.robot_hit_sound >= Sounds.Count)
-                    weapon.robot_hit_sound = -1;
-                if (weapon.wall_hit_sound < -1 || weapon.wall_hit_sound >= Sounds.Count)
-                    weapon.wall_hit_sound = -1;
+                if (weapon.FiringSound < -1 || weapon.FiringSound >= Sounds.Count)
+                    weapon.FiringSound = -1;
+                if (weapon.RobotHitSound < -1 || weapon.RobotHitSound >= Sounds.Count)
+                    weapon.RobotHitSound = -1;
+                if (weapon.WallHitSound < -1 || weapon.WallHitSound >= Sounds.Count)
+                    weapon.WallHitSound = -1;
 
-                if (weapon.children < -1 || weapon.children >= Weapons.Count)
-                    weapon.children = -1;
+                if (weapon.Children < -1 || weapon.Children >= Weapons.Count)
+                    weapon.Children = -1;
             }
         }
         /// <summary>
@@ -533,11 +533,11 @@ namespace LibDescent.Edit
         /// <param name="ship">The ship to read the guns from.</param>
         private void BuildModelGunsFromShip(Ship ship)
         {
-            Polymodel model = Models[ship.model_num];
+            Polymodel model = Models[ship.ModelNum];
             model.numGuns = 8;
             for (int i = 0; i < 8; i++)
             {
-                model.gunPoints[i] = ship.gun_points[i];
+                model.gunPoints[i] = ship.GunPoints[i];
                 model.gunDirs[i] = FixVector.FromRawValues(65536, 0, 0);
                 model.gunSubmodels[i] = 0;
             }
@@ -549,13 +549,13 @@ namespace LibDescent.Edit
         /// <param name="reactor">The reactor to read the guns from.</param>
         private void BuildModelGunsFromReactor(Reactor reactor)
         {
-            if (reactor.model_id == -1) return;
-            Polymodel model = Models[reactor.model_id];
-            model.numGuns = reactor.n_guns;
+            if (reactor.ModelNum == -1) return;
+            Polymodel model = Models[reactor.ModelNum];
+            model.numGuns = reactor.NumGuns;
             for (int i = 0; i < 8; i++)
             {
-                model.gunPoints[i] = reactor.gun_points[i];
-                model.gunDirs[i] = reactor.gun_dirs[i];
+                model.gunPoints[i] = reactor.GunPoints[i];
+                model.gunDirs[i] = reactor.GunDirs[i];
                 model.gunSubmodels[i] = 0;
             }
         }
@@ -566,15 +566,15 @@ namespace LibDescent.Edit
         /// <param name="robot">The robot to read the guns from.</param>
         private void BuildModelAnimation(Robot robot)
         {
-            if (robot.model_num == -1) return;
-            Polymodel model = Models[robot.model_num];
+            if (robot.ModelNum == -1) return;
+            Polymodel model = Models[robot.ModelNum];
             List<FixAngles> jointlist = new List<FixAngles>();
-            model.numGuns = robot.n_guns;
+            model.numGuns = robot.NumGuns;
             for (int i = 0; i < Polymodel.MAX_GUNS; i++)
             {
-                model.gunPoints[i] = robot.gun_points[i];
+                model.gunPoints[i] = robot.GunPoints[i];
                 model.gunDirs[i] = FixVector.FromRawValues(65536, 0, 0);
-                model.gunSubmodels[i] = robot.gun_submodels[i];
+                model.gunSubmodels[i] = robot.GunSubmodels[i];
             }
             int[,] jointmapping = new int[10, 5];
             for (int m = 0; m < Polymodel.MAX_SUBMODELS; m++)
@@ -589,7 +589,7 @@ namespace LibDescent.Edit
             {
                 for (int f = 0; f < Robot.NUM_ANIMATION_STATES; f++)
                 {
-                    Robot.jointlist robotjointlist = robot.anim_states[m, f];
+                    Robot.JointList robotjointlist = robot.AnimStates[m, f];
                     basejoint = robotjointlist.offset;
                     for (int j = 0; j < robotjointlist.n_joints; j++)
                     {
@@ -633,10 +633,10 @@ namespace LibDescent.Edit
             for (int i = 0; i < EClips.Count; i++)
             {
                 clip = EClips[i];
-                if (clip.changing_object_texture != -1)
+                if (clip.ChangingObjectTexture != -1)
                 {
-                    EClipNames.Add(clip.changing_object_texture, this.EClipNames[i]);
-                    ObjBitmapMapping.Add(this.EClipNames[i], clip.changing_object_texture);
+                    EClipNames.Add(clip.ChangingObjectTexture, this.EClipNames[i]);
+                    ObjBitmapMapping.Add(this.EClipNames[i], clip.ChangingObjectTexture);
                 }
             }
             ushort bitmap; string name;
@@ -655,23 +655,23 @@ namespace LibDescent.Edit
             }
             foreach (Polymodel model in Models)
             {
-                model.useTexList = true;
+                model.UseTextureList = true;
                 int textureID, pointer;
-                for (int i = model.first_texture; i < (model.first_texture + model.n_textures); i++)
+                for (int i = model.FirstTexture; i < (model.FirstTexture + model.NumTextures); i++)
                 {
                     pointer = BaseFile.ObjBitmapPointers[i];
                     textureID = BaseFile.ObjBitmaps[pointer];
                     if (EClipNames.ContainsKey(pointer))
                     {
-                        model.textureList.Add(EClipNames[pointer]);
+                        model.TextureList.Add(EClipNames[pointer]);
                     }
                     else if (TextureNames.ContainsKey(pointer))
                     {
-                        model.textureList.Add(TextureNames[pointer]);
+                        model.TextureList.Add(TextureNames[pointer]);
                     }
                 }
                 Console.Write("Model texture list: [");
-                foreach (string texture in model.textureList)
+                foreach (string texture in model.TextureList)
                 {
                     Console.Write("{0} ", texture);
                 }
@@ -828,7 +828,7 @@ namespace LibDescent.Edit
             Joints.Clear();
             foreach (Robot robot in Robots)
             {
-                LoadAnimations(robot, Models[robot.model_num]);
+                LoadAnimations(robot, Models[robot.ModelNum]);
             }
             Console.WriteLine("Constructed {0} joints", Joints.Count);
             foreach (Reactor reactor in Reactors)
@@ -914,69 +914,69 @@ namespace LibDescent.Edit
 
         private void LoadReactorGuns(Reactor reactor)
         {
-            Polymodel model = Models[reactor.model_id];
-            reactor.n_guns = (byte)model.numGuns;
-            for (int i = 0; i < reactor.n_guns; i++)
+            Polymodel model = Models[reactor.ModelNum];
+            reactor.NumGuns = (byte)model.numGuns;
+            for (int i = 0; i < reactor.NumGuns; i++)
             {
-                reactor.gun_points[i] = model.gunPoints[i];
-                reactor.gun_dirs[i] = model.gunDirs[i];
+                reactor.GunPoints[i] = model.gunPoints[i];
+                reactor.GunDirs[i] = model.gunDirs[i];
             }
         }
 
         private void LoadShipGuns(Ship ship)
         {
-            Polymodel models = Models[ship.model_num];
+            Polymodel models = Models[ship.ModelNum];
             for (int i = 0; i < 8; i++)
             {
-                ship.gun_points[i] = models.gunPoints[i];
+                ship.GunPoints[i] = models.gunPoints[i];
             }
         }
 
         //I actually hate this game's animation system sometimes
         private void LoadAnimations(Robot robot, Polymodel model)
         {
-            robot.n_guns = (sbyte)model.numGuns;
+            robot.NumGuns = (sbyte)model.numGuns;
             for (int i = 0; i < 8; i++)
             {
-                robot.gun_points[i] = model.gunPoints[i];
-                robot.gun_submodels[i] = (byte)model.gunSubmodels[i];
+                robot.GunPoints[i] = model.gunPoints[i];
+                robot.GunSubmodels[i] = (byte)model.gunSubmodels[i];
             }
             for (int m = 0; m < 9; m++)
             {
                 for (int f = 0; f < 5; f++)
                 {
-                    robot.anim_states[m, f].n_joints = 0;
-                    robot.anim_states[m, f].offset = 0;
+                    robot.AnimStates[m, f].n_joints = 0;
+                    robot.AnimStates[m, f].offset = 0;
                 }
             }
             if (!model.isAnimated) return;
             int[] gunNums = new int[10];
 
-            for (int i = 1; i < model.n_models; i++)
+            for (int i = 1; i < model.NumSubmodels; i++)
             {
-                gunNums[i] = robot.n_guns;
+                gunNums[i] = robot.NumGuns;
             }
             gunNums[0] = -1;
 
-            for (int g = 0; g < robot.n_guns; g++)
+            for (int g = 0; g < robot.NumGuns; g++)
             {
-                int m = robot.gun_submodels[g];
+                int m = robot.GunSubmodels[g];
 
                 while (m != 0)
                 {
                     gunNums[m] = g;
-                    m = model.submodels[m].Parent;
+                    m = model.Submodels[m].Parent;
                 }
             }
 
-            for (int g = 0; g < robot.n_guns + 1; g++)
+            for (int g = 0; g < robot.NumGuns + 1; g++)
             {
                 for (int state = 0; state < 5; state++)
                 {
-                    robot.anim_states[g, state].n_joints = 0;
-                    robot.anim_states[g, state].offset = (short)NumRobotJoints;
+                    robot.AnimStates[g, state].n_joints = 0;
+                    robot.AnimStates[g, state].offset = (short)NumRobotJoints;
 
-                    for (int m = 0; m < model.n_models; m++)
+                    for (int m = 0; m < model.NumSubmodels; m++)
                     {
                         if (gunNums[m] == g)
                         {
@@ -984,7 +984,7 @@ namespace LibDescent.Edit
                             joint.jointnum = (short)m;
                             joint.angles = model.animationMatrix[m, state];
                             Joints.Add(joint);
-                            robot.anim_states[g, state].n_joints++;
+                            robot.AnimStates[g, state].n_joints++;
                             NumRobotJoints++;
                         }
                     }
@@ -1003,14 +1003,14 @@ namespace LibDescent.Edit
             Polymodel model;
             if (compatObjBitmaps)
             {
-                int lastShipmodel = PlayerShip.model_num;
-                if (Models[PlayerShip.model_num].DyingModelnum != -1)
-                    lastShipmodel = Models[PlayerShip.model_num].DyingModelnum;
+                int lastShipmodel = PlayerShip.ModelNum;
+                if (Models[PlayerShip.ModelNum].DyingModelnum != -1)
+                    lastShipmodel = Models[PlayerShip.ModelNum].DyingModelnum;
                 for (int i = 0; i < Models.Count; i++)
                 {
                     model = Models[i];
-                    model.first_texture = (ushort)lastObjectBitmapPointer;
-                    model.n_textures = (byte)model.textureList.Count;
+                    model.FirstTexture = (ushort)lastObjectBitmapPointer;
+                    model.NumTextures = (byte)model.TextureList.Count;
                     if (i == lastShipmodel)
                     {
                         //Inject multiplayer bitmaps
@@ -1021,12 +1021,12 @@ namespace LibDescent.Edit
                             lastObjectBitmap++; lastObjectBitmapPointer++;
                         }
                         //Don't load textures for the dying ship. Because reasons. 
-                        model.first_texture = Models[PlayerShip.model_num].first_texture;
-                        model.n_textures = Models[PlayerShip.model_num].n_textures;
+                        model.FirstTexture = Models[PlayerShip.ModelNum].FirstTexture;
+                        model.NumTextures = Models[PlayerShip.ModelNum].NumTextures;
                     }
                     else
                     {
-                        foreach (string textureName in model.textureList)
+                        foreach (string textureName in model.TextureList)
                         {
                             if (EClipNameMapping.ContainsKey(textureName.ToLower()) && !objectBitmapMapping.ContainsKey(textureName.ToLower()))
                             {
@@ -1050,7 +1050,7 @@ namespace LibDescent.Edit
                         }
                         //I hate hacks, but parallax couldn't keep tabs on their bitmaps.tbl file so...
                         //Descent's smart missile children are defined with model textures despite not being models so for compatibility add them in
-                        if (i == Weapons[18].model_num || i == Weapons[28].model_num) //player and robot mega missiles
+                        if (i == Weapons[18].ModelNum || i == Weapons[28].ModelNum) //player and robot mega missiles
                         {
                             ObjBitmaps.Add((ushort)(piggyFile.GetBitmapIDFromName("glow04"))); ObjBitmapPointers.Add((ushort)(ObjBitmaps.Count - 1));
                             ObjBitmaps.Add((ushort)(piggyFile.GetBitmapIDFromName("rbot046"))); ObjBitmapPointers.Add((ushort)(ObjBitmaps.Count - 1));
@@ -1064,9 +1064,9 @@ namespace LibDescent.Edit
                 for (int i = 0; i < Models.Count; i++)
                 {
                     model = Models[i];
-                    model.first_texture = (ushort)lastObjectBitmapPointer;
-                    model.n_textures = (byte)model.textureList.Count;
-                    foreach (string textureName in model.textureList)
+                    model.FirstTexture = (ushort)lastObjectBitmapPointer;
+                    model.NumTextures = (byte)model.TextureList.Count;
+                    foreach (string textureName in model.TextureList)
                     {
                         if (!objectBitmapMapping.ContainsKey(textureName.ToLower()))
                         {
@@ -1093,8 +1093,8 @@ namespace LibDescent.Edit
                 clip = EClips[i];
                 if (objectBitmapMapping.ContainsKey(EClipNames[i].ToLower()))
                 {
-                    clip.changing_object_texture = (short)objectBitmapMapping[EClipNames[i].ToLower()];
-                    ObjBitmaps[clip.changing_object_texture] = (ushort)(clip.vc.frames[0]);
+                    clip.ChangingObjectTexture = (short)objectBitmapMapping[EClipNames[i].ToLower()];
+                    ObjBitmaps[clip.ChangingObjectTexture] = (ushort)(clip.vc.Frames[0]);
                 }
             }
         }

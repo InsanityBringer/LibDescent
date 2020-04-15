@@ -24,45 +24,81 @@ namespace LibDescent.Data
 {
     public class Ship
     {
-        public int model_num;
-        public int expl_vclip_num;
-        public Fix mass, drag;
-        public Fix max_thrust, reverse_thrust, brakes;		//low_thrust
-        public Fix wiggle;
-        public Fix max_rotthrust;
-        public FixVector[] gun_points = new FixVector[8];
-        public int markerModel;
+        /// <summary>
+        /// Model number of the ship.
+        /// </summary>
+        public int ModelNum { get; set; }
+        /// <summary>
+        /// Explosion VClip when the ship is destroyed.
+        /// </summary>
+        public int DeathVClipNum { get; set; }
+        /// <summary>
+        /// Mass of the ship.
+        /// </summary>
+        public Fix Mass { get; set; }
+        /// <summary>
+        /// Drag of the ship, amount of velocity lost every 1/64th of a second.
+        /// </summary>
+        public Fix Drag { get; set; }
+        /// <summary>
+        /// Maximum amount of thrust applied to the ship every 1/64th of a second.
+        /// </summary>
+        public Fix MaxThrust { get; set; }
+        /// <summary>
+        /// (Unused)
+        /// </summary>
+        public Fix ReverseThrust { get; set; }
+        /// <summary>
+        /// (Unused)
+        /// </summary>
+        public Fix Brakes { get; set; }
+        /// <summary>
+        /// Magnitude of the ship's vertical bobbing.
+        /// </summary>
+        public Fix Wiggle { get; set; }
+        /// <summary>
+        /// Maximum amount of rotation thrust applied to the ship every 1/64th of a second.
+        /// </summary>
+        public Fix MaxRotationThrust { get; set; }
+        /// <summary>
+        /// Positions of the ship's guns.
+        /// </summary>
+        public FixVector[] GunPoints { get; } = new FixVector[8];
+        /// <summary>
+        /// Marker model dropped by this ship. 
+        /// </summary>
+        public int MarkerModel { get; set; }
 
         public void UpdateShip(int field, int data)
         {
             switch (field)
             {
                 case 1:
-                    model_num = data;
+                    ModelNum = data;
                     break;
                 case 2:
-                    expl_vclip_num = data;
+                    DeathVClipNum = data;
                     break;
                 case 3:
-                    mass = Fix.FromRawValue(data);
+                    Mass = Fix.FromRawValue(data);
                     break;
                 case 4:
-                    drag = Fix.FromRawValue(data);
+                    Drag = Fix.FromRawValue(data);
                     break;
                 case 5:
-                    max_thrust = Fix.FromRawValue(data);
+                    MaxThrust = Fix.FromRawValue(data);
                     break;
                 case 6:
-                    reverse_thrust = Fix.FromRawValue(data);
+                    ReverseThrust = Fix.FromRawValue(data);
                     break;
                 case 7:
-                    brakes = Fix.FromRawValue(data);
+                    Brakes = Fix.FromRawValue(data);
                     break;
                 case 8:
-                    wiggle = Fix.FromRawValue(data);
+                    Wiggle = Fix.FromRawValue(data);
                     break;
                 case 9:
-                    max_rotthrust = Fix.FromRawValue(data);
+                    MaxRotationThrust = Fix.FromRawValue(data);
                     break;
             }
         }

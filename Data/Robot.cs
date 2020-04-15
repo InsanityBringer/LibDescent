@@ -24,12 +24,51 @@ using System;
 
 namespace LibDescent.Data
 {
+    public enum RobotCloakType
+    {
+        None,
+        Always,
+        OnlyWhenFiring
+    }
+    public enum RobotAttackType
+    {
+        Ranged,
+        Melee
+    }
+    public enum RobotBossType
+    {
+        NoBoss,
+        Descent1Level7,
+        Descent1Level27,
+
+        RedFatty = 20,
+        WaterBoss,
+        FireBoss,
+        IceBoss,
+        Alien1Boss,
+        Alien2Boss,
+        VertigoBoss1,
+        VertigoBoss2
+        
+    }
+    public enum RobotAIType
+    {
+        Invalid,
+
+        Still = 0x80,
+        Normal,
+        Sneak,
+        Flee,
+        Station,
+        Sniper,
+        Follow
+    }
     public class Robot
     {
         public const int NUM_ANIMATION_STATES = 5;
         public const int NUM_DIFFICULTY_LEVELS = 5;
         //important crap
-        public struct jointlist
+        public struct JointList
         {
             public short n_joints;
             public short offset;
@@ -38,290 +77,296 @@ namespace LibDescent.Data
         /// <summary>
         /// which polygon model?
         /// </summary>
-        public int model_num;
+        public int ModelNum { get; set; }
         /// <summary>
         /// where each gun model is
         /// </summary>
-        public FixVector[] gun_points = new FixVector[Polymodel.MAX_GUNS];
+        public FixVector[] GunPoints { get; } = new FixVector[Polymodel.MAX_GUNS];
         /// <summary>
         /// which submodel is each gun in?
         /// </summary>
-        public byte[] gun_submodels = new byte[Polymodel.MAX_GUNS];
+        public byte[] GunSubmodels { get; } = new byte[Polymodel.MAX_GUNS];
         /// <summary>
         /// VClip shown when robot is hit.
         /// </summary>
-        public short exp1_vclip_num;
+        public short HitVClipNum { get; set; }
         /// <summary>
         /// Sound played when robot is hit.
         /// </summary>
-        public short exp1_sound_num;
+        public short HitSoundNum { get; set; }
         /// <summary>
         /// VClip shown when robot is killed.
         /// </summary>
-        public short exp2_vclip_num;
+        public short DeathVClipNum { get; set; }
         /// <summary>
         /// Sound played when robot is killed.
         /// </summary>
-        public short exp2_sound_num;
+        public short DeathSoundNum { get; set; }
         /// <summary>
         /// ID of weapon type fired.
         /// </summary>
-        public sbyte weapon_type;
+        public sbyte WeaponType { get; set; }
         /// <summary>
         /// Secondary weapon number, -1 means none, otherwise gun #0 fires this weapon.
         /// </summary>
-        public sbyte weapon_type2;
+        public sbyte WeaponTypeSecondary { get; set; }
         /// <summary>
         /// how many different gun positions
         /// </summary>
-        public sbyte n_guns;
+        public sbyte NumGuns { get; set; }
         /// <summary>
         /// ID of powerup this robot can contain.
         /// </summary>
-        public sbyte contains_id;
+        public sbyte ContainsID { get; set; }
         /// <summary>
         /// Max number of things this instance can contain.
         /// </summary>
-        public sbyte contains_count;
+        public sbyte ContainsCount { get; set; }
         /// <summary>
         /// Probability that this instance will contain something in N/16
         /// </summary>
-        public sbyte contains_prob;
+        public sbyte ContainsProbability { get; set; }
         /// <summary>
         /// Type of thing contained, robot or powerup, in bitmaps.tbl, 2=robot, 7=powerup. 
         /// </summary>
-        public sbyte contains_type; //[ISB] Should be instance of ObjectType tbh
+        public sbyte ContainsType { get; set; } //[ISB] Should be instance of ObjectType tbh
         /// <summary>
         /// !0 means commits suicide when hits you, strength thereof. 0 means no.
         /// </summary>
-        public sbyte kamikaze;
+        public sbyte Kamikaze { get; set; }
         /// <summary>
         /// Score from this robot.
         /// </summary>
-        public short score_value;
+        public short ScoreValue { get; set; }
         /// <summary>
         /// Dies with badass explosion, and strength thereof, 0 means NO.
         /// </summary>
-        public byte badass;
+        public byte DeathExplosionRadius { get; set; }
         /// <summary>
         /// Points of energy drained at each collision.
         /// </summary>
-        public byte energy_drain;
+        public byte EnergyDrain { get; set; }
         /// <summary>
-        /// should this be here or with polygon model?
+        /// (Unused) should this be here or with polygon model?
         /// </summary>
-        public Fix lighting;
+        public Fix Lighting { get; set; }
         /// <summary>
         /// Initial shields of robot
         /// </summary>
-        public Fix strength;
+        public Fix Strength { get; set; }
         /// <summary>
         /// how heavy is this thing?
         /// </summary>
-        public Fix mass;
+        public Fix Mass { get; set; }
         /// <summary>
         /// how much drag does it have?
         /// </summary>
-        public Fix drag;
+        public Fix Drag { get; set; }
         /// <summary>
         /// compare this value with forward_vector.dot.vector_to_player, if field_of_view <, then robot can see player
         /// </summary>
-        public Fix[] field_of_view = new Fix[NUM_DIFFICULTY_LEVELS];
+        public Fix[] FieldOfView { get; } = new Fix[NUM_DIFFICULTY_LEVELS];
         /// <summary>
         /// time in seconds between shots
         /// </summary>
-        public Fix[] firing_wait = new Fix[NUM_DIFFICULTY_LEVELS];
+        public Fix[] FiringWait { get; } = new Fix[NUM_DIFFICULTY_LEVELS];
         /// <summary>
         /// time in seconds between shots. For gun 2
         /// </summary>
-        public Fix[] firing_wait2 = new Fix[NUM_DIFFICULTY_LEVELS];
+        public Fix[] FiringWaitSecondary { get; } = new Fix[NUM_DIFFICULTY_LEVELS];
         /// <summary>
         /// time in seconds to rotate 360 degrees in a dimension
         /// </summary>
-        public Fix[] turn_time = new Fix[NUM_DIFFICULTY_LEVELS];
-        public Fix[] fire_power = new Fix[NUM_DIFFICULTY_LEVELS]; //Descent 1 waste data
-        public Fix[] shield = new Fix[NUM_DIFFICULTY_LEVELS]; //Retained for serialization reasons. 
+        public Fix[] TurnTime { get; } = new Fix[NUM_DIFFICULTY_LEVELS];
+        /// <summary>
+        /// (Unused) Descent 1 serialization data.
+        /// </summary>
+        public Fix[] FirePower { get; } = new Fix[NUM_DIFFICULTY_LEVELS]; //Descent 1 waste data
+        /// <summary>
+        /// (Unused) Descent 1 serialization data.
+        /// </summary>
+        public Fix[] Shield { get; } = new Fix[NUM_DIFFICULTY_LEVELS]; //Retained for serialization reasons. 
         /// <summary>
         /// maximum speed attainable by this robot
         /// </summary>
-        public Fix[] max_speed = new Fix[NUM_DIFFICULTY_LEVELS];
+        public Fix[] MaxSpeed { get; } = new Fix[NUM_DIFFICULTY_LEVELS];
         /// <summary>
         /// distance at which robot circles player
         /// </summary>
-        public Fix[] circle_distance = new Fix[NUM_DIFFICULTY_LEVELS];
+        public Fix[] CircleDistance { get; } = new Fix[NUM_DIFFICULTY_LEVELS];
         /// <summary>
         /// number of shots fired rapidly
         /// </summary>
-        public sbyte[] rapidfire_count = new sbyte[NUM_DIFFICULTY_LEVELS];
+        public sbyte[] RapidfireCount { get; } = new sbyte[NUM_DIFFICULTY_LEVELS];
         /// <summary>
         /// rate at which robot can evade shots, 0=none, 4=very fast
         /// </summary>
-        public sbyte[] evade_speed = new sbyte[NUM_DIFFICULTY_LEVELS];
+        public sbyte[] EvadeSpeed { get; } = new sbyte[NUM_DIFFICULTY_LEVELS];
         /// <summary>
         /// 0=never, 1=always, 2=except-when-firing
         /// </summary>
-        public sbyte cloak_type;
+        public RobotCloakType CloakType { get; set; } //was sbyte
         /// <summary>
         /// 0=firing, 1=charge (like green guy)
         /// </summary>
-        public sbyte attack_type;
+        public RobotAttackType AttackType { get; set; } //was sbyte
         /// <summary>
         /// sound robot makes when it first sees the player
         /// </summary>
-        public byte see_sound;
+        public byte SeeSound { get; set; }
         /// <summary>
         /// sound robot makes when it attacks the player
         /// </summary>
-        public byte attack_sound;
+        public byte AttackSound { get; set; }
         /// <summary>
         /// sound robot makes as it claws you (attack_type should be 1)
         /// </summary>
-        public byte claw_sound;
+        public byte ClawSound { get; set; }
         /// <summary>
         /// sound robot makes after you die if this code was ever actually enabled and used.
         /// </summary>
-        public byte taunt_sound;
+        public byte TauntSound { get; set; }
         /// <summary>
         /// 0 = not boss, 1 = boss.  Is that surprising?
         /// </summary>
-        public sbyte boss_flag;
+        public RobotBossType BossFlag; //was sbyte
         /// <summary>
         /// Companion robot, leads you to things.
         /// </summary>
-        public sbyte companion;
+        public bool Companion { get; set; } //was sbyte
         /// <summary>
         /// how many smart blobs are emitted when this guy dies! if this code was ever actually enabled and used.
         /// </summary>
-        public sbyte smart_blobs;
+        public sbyte SmartBlobsOnDeath { get; set; }
         /// <summary>
         /// how many smart blobs are emitted when this guy gets hit by energy weapon!
         /// </summary>
-        public sbyte energy_blobs;
+        public sbyte SmartBlobsOnHit { get; set; }
         /// <summary>
         /// !0 means this guy can steal when he collides with you!
         /// </summary>
-        public sbyte thief;
+        public bool Thief { get; set; } //was sbyte
         /// <summary>
         /// !0 means pursues player after he goes around a corner.  4 = 4/2 pursue up to 4/2 seconds after becoming invisible if up to 4 segments away
         /// </summary>
-        public sbyte pursuit;
+        public sbyte Pursuit { get; set; }
         /// <summary>
         /// Amount of light cast. 1 is default.  10 is very large.
         /// </summary>
-        public sbyte lightcast;
+        public sbyte LightCast { get; set; }
         /// <summary>
         /// 0 = dies without death roll. !0 means does death roll, larger = faster and louder
         /// </summary>
-        public sbyte death_roll;
+        public sbyte DeathRollTime { get; set; }
         /// <summary>
         /// misc properties, and by that a single flag that is literally not used in the final game. heeeh
         /// </summary>
-        public byte	flags;
+        public byte	Flags { get; set; }
         //three bytes pad
         /// <summary>
         /// if has deathroll, what sound?
         /// </summary>
-        public byte deathroll_sound;
+        public byte DeathRollSound { get; set; }
         /// <summary>
         /// apply this light to robot itself. stored as 4:4 fixed-point
         /// </summary>
-        public byte glow;
+        public byte Glow { get; set; }
         /// <summary>
         /// Default behavior.
         /// </summary>
-        public byte behavior;
+        public RobotAIType Behavior { get; set; }
         /// <summary>
         /// 255 = perfect, less = more likely to miss.  0 != random, would look stupid.  0=45 degree spread. 
         /// </summary>
-        public byte aim;
+        public byte Aim { get; set; }
 
         /// <summary>
         /// animation info
         /// </summary>
-        public jointlist[,] anim_states = new jointlist[Polymodel.MAX_GUNS+1, NUM_ANIMATION_STATES];
+        public JointList[,] AnimStates { get; } = new JointList[Polymodel.MAX_GUNS + 1, NUM_ANIMATION_STATES];
         public int baseJoint = 0; //for HXM files aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa
 
         /// <summary>
         /// debugging. Retained for serializaiton purposes. 
         /// </summary>
-        public int always_0xabcd;
+        public int Always0xABCD { get; set; }
 
         public int replacementID;
         public int ID;
 
         public Robot()
         {
-            always_0xabcd = 0xabcd;
-            contains_type = 7;
-            weapon_type2 = -1;
+            Always0xABCD = 0xABCD;
+            ContainsType = 7;
+            WeaponTypeSecondary = -1;
         }
 
         public Robot(Robot other)
         {
-            model_num = other.model_num;
-            exp1_vclip_num = other.exp1_vclip_num;
-            exp1_sound_num = other.exp1_sound_num;
-            exp2_vclip_num = other.exp2_vclip_num;
-            exp2_sound_num = other.exp2_sound_num;
+            ModelNum = other.ModelNum;
+            HitVClipNum = other.HitVClipNum;
+            HitSoundNum = other.HitSoundNum;
+            DeathVClipNum = other.DeathVClipNum;
+            DeathSoundNum = other.DeathSoundNum;
 
-            weapon_type = other.weapon_type;
-            weapon_type2 = other.weapon_type2;
+            WeaponType = other.WeaponType;
+            WeaponTypeSecondary = other.WeaponTypeSecondary;
 
-            contains_count = other.contains_count;
-            contains_id = other.contains_id;
-            contains_prob = other.contains_prob;
-            contains_type = other.contains_type;
+            ContainsCount = other.ContainsCount;
+            ContainsID = other.ContainsID;
+            ContainsProbability = other.ContainsProbability;
+            ContainsType = other.ContainsType;
 
-            kamikaze = other.kamikaze;
-            score_value = other.score_value;
-            badass = other.badass;
-            energy_drain = other.energy_drain;
+            Kamikaze = other.Kamikaze;
+            ScoreValue = other.ScoreValue;
+            DeathExplosionRadius = other.DeathExplosionRadius;
+            EnergyDrain = other.EnergyDrain;
 
-            lighting = other.lighting;
-            strength = other.strength;
+            Lighting = other.Lighting;
+            Strength = other.Strength;
 
-            mass = other.mass;
-            drag = other.drag;
+            Mass = other.Mass;
+            Drag = other.Drag;
 
             for (int i = 0; i < NUM_DIFFICULTY_LEVELS; i++)
             {
-                field_of_view[i] = other.field_of_view[i];
-                firing_wait[i] = other.firing_wait[i];
-                firing_wait2[i] = other.firing_wait2[i];
-                turn_time[i] = other.turn_time[i];
-                max_speed[i] = other.max_speed[i];
-                circle_distance[i] = other.circle_distance[i];
+                FieldOfView[i] = other.FieldOfView[i];
+                FiringWait[i] = other.FiringWait[i];
+                FiringWaitSecondary[i] = other.FiringWaitSecondary[i];
+                TurnTime[i] = other.TurnTime[i];
+                MaxSpeed[i] = other.MaxSpeed[i];
+                CircleDistance[i] = other.CircleDistance[i];
 
-                rapidfire_count[i] = other.rapidfire_count[i];
-                evade_speed[i] = other.evade_speed[i];
+                RapidfireCount[i] = other.RapidfireCount[i];
+                EvadeSpeed[i] = other.EvadeSpeed[i];
             }
 
-            cloak_type = other.cloak_type;
-            attack_type = other.attack_type;
+            CloakType = other.CloakType;
+            AttackType = other.AttackType;
 
-            see_sound = other.see_sound;
-            attack_sound = other.attack_sound;
-            claw_sound = other.claw_sound;
-            taunt_sound = other.taunt_sound;
+            SeeSound = other.SeeSound;
+            AttackSound = other.AttackSound;
+            ClawSound = other.ClawSound;
+            TauntSound = other.TauntSound;
 
-            boss_flag = other.boss_flag;
-            companion = other.companion;
-            smart_blobs = other.smart_blobs;
-            energy_blobs = other.energy_blobs;
+            BossFlag = other.BossFlag;
+            Companion = other.Companion;
+            SmartBlobsOnDeath = other.SmartBlobsOnDeath;
+            SmartBlobsOnHit = other.SmartBlobsOnHit;
 
-            thief = other.thief;
-            pursuit = other.pursuit;
-            lightcast = other.lightcast;
-            death_roll = other.death_roll;
+            Thief = other.Thief;
+            Pursuit = other.Pursuit;
+            LightCast = other.LightCast;
+            DeathRollTime = other.DeathRollTime;
 
-            flags = other.flags;
+            Flags = other.Flags;
 
-            deathroll_sound = other.deathroll_sound;
-            glow = other.glow;
-            behavior = other.behavior;
-            aim = other.aim;
+            DeathRollSound = other.DeathRollSound;
+            Glow = other.Glow;
+            Behavior = other.Behavior;
+            Aim = other.Aim;
 
-            always_0xabcd = 0xabcd;
+            Always0xABCD = 0xabcd;
         }
 
         public bool UpdateRobot(int tag, ref int value, int curAI, int curGun)
@@ -331,42 +376,42 @@ namespace LibDescent.Data
             {
                 case 1:
                     value = Util.Clamp(value, int.MinValue, int.MaxValue, ref clamped);
-                    model_num = value;
+                    ModelNum = value;
                     break;
                 case 2:
                     value = Util.Clamp(value, short.MinValue, short.MaxValue, ref clamped);
-                    exp1_vclip_num = (short)value;
+                    HitVClipNum = (short)value;
                     break;
                 case 3:
                     value = Util.Clamp(value, short.MinValue, short.MaxValue, ref clamped);
-                    exp1_sound_num = (short)value;
+                    HitSoundNum = (short)value;
                     break;
                 case 4:
                     value = Util.Clamp(value, short.MinValue, short.MaxValue, ref clamped);
-                    exp2_vclip_num = (short)value;
+                    DeathVClipNum = (short)value;
                     break;
                 case 5:
                     value = Util.Clamp(value, sbyte.MinValue, sbyte.MaxValue, ref clamped);
-                    weapon_type = (sbyte)value;
+                    WeaponType = (sbyte)value;
                     break;
                 case 6:
-                    weapon_type2 = (sbyte)(value - 1);
+                    WeaponTypeSecondary = (sbyte)(value - 1);
                     break;
                 case 7:
                     value = Util.Clamp(value, sbyte.MinValue, sbyte.MaxValue, ref clamped);
-                    n_guns = (sbyte)value;
+                    NumGuns = (sbyte)value;
                     break;
                 case 8:
                     value = Util.Clamp(value, sbyte.MinValue, sbyte.MaxValue, ref clamped);
-                    contains_id = (sbyte)value;
+                    ContainsID = (sbyte)value;
                     break;
                 case 9:
                     value = Util.Clamp(value, sbyte.MinValue, sbyte.MaxValue, ref clamped);
-                    contains_count = (sbyte)value;
+                    ContainsCount = (sbyte)value;
                     break;
                 case 10:
                     value = Util.Clamp(value, sbyte.MinValue, sbyte.MaxValue, ref clamped);
-                    contains_prob = (sbyte)value;
+                    ContainsProbability = (sbyte)value;
                     break;
                 /*case 11:
                     value = Utilites.Clamp(value, sbyte.MinValue, sbyte.MaxValue, ref clamped);
@@ -374,136 +419,136 @@ namespace LibDescent.Data
                     break;*/ //don't use doesn't update rferences
                 case 12:
                     if (value == 0)
-                        claw_sound = 255;
+                        ClawSound = 255;
                     else
-                        claw_sound = (byte)(value);
+                        ClawSound = (byte)(value);
                     break;
                 case 13:
                     value = Util.Clamp(value, short.MinValue, short.MaxValue, ref clamped);
-                    score_value = (short)value;
+                    ScoreValue = (short)value;
                     break;
                 case 14:
                     value = Util.Clamp(value, byte.MinValue, byte.MaxValue, ref clamped);
-                    badass = (byte)value;
+                    DeathExplosionRadius = (byte)value;
                     break;
                 case 15:
                     value = Util.Clamp(value, byte.MinValue, byte.MaxValue, ref clamped);
-                    energy_drain = (byte)value;
+                    EnergyDrain = (byte)value;
                     break;
                 case 16:
                     value = Util.Clamp(value, int.MinValue, int.MaxValue, ref clamped);
-                    lighting = Fix.FromRawValue(value);
+                    Lighting = Fix.FromRawValue(value);
                     break;
                 case 17:
                     value = Util.Clamp(value, int.MinValue, int.MaxValue, ref clamped);
-                    strength = Fix.FromRawValue(value);
+                    Strength = Fix.FromRawValue(value);
                     break;
                 case 18:
                     value = Util.Clamp(value, int.MinValue, int.MaxValue, ref clamped);
-                    mass = Fix.FromRawValue(value);
+                    Mass = Fix.FromRawValue(value);
                     break;
                 case 19:
                     value = Util.Clamp(value, int.MinValue, int.MaxValue, ref clamped);
-                    drag = Fix.FromRawValue(value);
+                    Drag = Fix.FromRawValue(value);
                     break;
                 case 20:
                     value = (int)(Math.Cos(value * Math.PI / 180.0D) * 65536.0);
                     value = Util.Clamp(value, int.MinValue, int.MaxValue, ref clamped);
-                    field_of_view[curAI] = Fix.FromRawValue(value);
+                    FieldOfView[curAI] = Fix.FromRawValue(value);
                     break;
                 case 21:
                     value = Util.Clamp(value, int.MinValue, int.MaxValue, ref clamped);
-                    firing_wait[curAI] = Fix.FromRawValue(value);
+                    FiringWait[curAI] = Fix.FromRawValue(value);
                     break;
                 case 22:
                     value = Util.Clamp(value, int.MinValue, int.MaxValue, ref clamped);
-                    firing_wait2[curAI] = Fix.FromRawValue(value);
+                    FiringWaitSecondary[curAI] = Fix.FromRawValue(value);
                     break;
                 case 23:
                     value = Util.Clamp(value, int.MinValue, int.MaxValue, ref clamped);
-                    turn_time[curAI] = Fix.FromRawValue(value);
+                    TurnTime[curAI] = Fix.FromRawValue(value);
                     break;
                 case 24:
                     value = Util.Clamp(value, int.MinValue, int.MaxValue, ref clamped);
-                    max_speed[curAI] = Fix.FromRawValue(value);
+                    MaxSpeed[curAI] = Fix.FromRawValue(value);
                     break;
                 case 25:
                     value = Util.Clamp(value, int.MinValue, int.MaxValue, ref clamped);
-                    circle_distance[curAI] = Fix.FromRawValue(value);
+                    CircleDistance[curAI] = Fix.FromRawValue(value);
                     break;
                 case 26:
                     value = Util.Clamp(value, sbyte.MinValue, sbyte.MaxValue, ref clamped);
-                    rapidfire_count[curAI] = (sbyte)value;
+                    RapidfireCount[curAI] = (sbyte)value;
                     break;
                 case 27:
                     value = Util.Clamp(value, sbyte.MinValue, sbyte.MaxValue, ref clamped);
-                    evade_speed[curAI] = (sbyte)value;
+                    EvadeSpeed[curAI] = (sbyte)value;
                     break;
                 case 30:
                     value = Util.Clamp(value, byte.MinValue, byte.MaxValue, ref clamped);
                     if (value == 0)
-                        see_sound = 255;
+                        SeeSound = 255;
                     else
-                        see_sound = (byte)(value);
+                        SeeSound = (byte)(value);
                     break;
                 case 31:
                     value = Util.Clamp(value, byte.MinValue, byte.MaxValue, ref clamped);
                     if (value == 0)
-                        attack_sound = 255;
+                        AttackSound = 255;
                     else
-                        attack_sound = (byte)(value);
+                        AttackSound = (byte)(value);
                     break;
                 case 33:
                     value = Util.Clamp(value, byte.MinValue, byte.MaxValue, ref clamped);
                     if (value == 0)
-                        taunt_sound = 255;
+                        TauntSound = 255;
                     else
-                        taunt_sound = (byte)(value);
+                        TauntSound = (byte)(value);
                     break;
                 case 34:
                     value = Util.Clamp(value, byte.MinValue, byte.MaxValue, ref clamped);
                     if (value == 0)
-                        deathroll_sound = 255;
+                        DeathRollSound = 255;
                     else
-                        deathroll_sound = (byte)(value);
+                        DeathRollSound = (byte)(value);
                     break;
                 case 36:
                     value = Util.Clamp(value, sbyte.MinValue, sbyte.MaxValue, ref clamped);
-                    smart_blobs = (sbyte)value;
+                    SmartBlobsOnDeath = (sbyte)value;
                     break;
                 case 37:
                     value = Util.Clamp(value, sbyte.MinValue, sbyte.MaxValue, ref clamped);
-                    energy_blobs = (sbyte)value;
+                    SmartBlobsOnHit = (sbyte)value;
                     break;
                 case 38:
                     value = Util.Clamp(value, sbyte.MinValue, sbyte.MaxValue, ref clamped);
-                    pursuit = (sbyte)value;
+                    Pursuit = (sbyte)value;
                     break;
                 case 39:
                     value = Util.Clamp(value, sbyte.MinValue, sbyte.MaxValue, ref clamped);
-                    lightcast = (sbyte)value;
+                    LightCast = (sbyte)value;
                     break;
                 case 40:
                     value = Util.Clamp(value, byte.MinValue, byte.MaxValue, ref clamped);
                     if (value == 0)
-                        exp1_sound_num = 255;
+                        HitSoundNum = 255;
                     else
-                        exp1_sound_num = (byte)(value);
+                        HitSoundNum = (byte)(value);
                     break;
                 case 41:
                     value = Util.Clamp(value, byte.MinValue, byte.MaxValue, ref clamped);
                     if (value == 0)
-                        exp2_sound_num = 255;
+                        DeathSoundNum = 255;
                     else
-                        exp2_sound_num = (byte)(value);
+                        DeathSoundNum = (byte)(value);
                     break;
                 case 43:
                     value = Util.Clamp(value, byte.MinValue, byte.MaxValue, ref clamped);
-                    glow = (byte)value;
+                    Glow = (byte)value;
                     break;
                 case 45:
                     value = Util.Clamp(value, byte.MinValue, byte.MaxValue, ref clamped);
-                    aim = (byte)value;
+                    Aim = (byte)value;
                     break;
             }
             return clamped;
@@ -512,8 +557,8 @@ namespace LibDescent.Data
         public void ClearAndUpdateDropReference(int v)
         {
             //[ISB] this doesn't really need to exist but may as well..
-            contains_type = (sbyte)v;
-            contains_id = 0;
+            ContainsType = (sbyte)v;
+            ContainsID = 0;
         }
     }
 }

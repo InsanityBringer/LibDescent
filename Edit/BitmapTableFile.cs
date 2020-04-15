@@ -113,38 +113,38 @@ namespace LibDescent.Edit
             PIGImage img;
             TMAPInfo info = null;
             stringBuilder.Append("$EFFECTS\n");
-            int endPoint = datafile.WClips[0].frames[0];
+            int endPoint = datafile.WClips[0].Frames[0];
             EClip clip;
 
             //Painful hack, needed for the file to parse properly.
             for (int i = start; i <= endPoint; i++)
             {
-                if (datafile.TMapInfo[i].eclip_num != -1)
+                if (datafile.TMapInfo[i].EClipNum != -1)
                 {
-                    clip = datafile.EClips[datafile.TMapInfo[i].eclip_num];
+                    clip = datafile.EClips[datafile.TMapInfo[i].EClipNum];
                     extra = false;
-                    if (clip.vc.play_time > 0)
+                    if (clip.vc.PlayTime > 0)
                     {
-                        stringBuilder.AppendFormat("$ECLIP clip_num={0} time={1} abm_flag=1 ", clip.ID, clip.vc.play_time);
-                        img = piggyFile.Bitmaps[clip.vc.frames[0]];
-                        if (clip.changing_wall_texture != -1)
+                        stringBuilder.AppendFormat("$ECLIP clip_num={0} time={1} abm_flag=1 ", clip.ID, clip.vc.PlayTime);
+                        img = piggyFile.Bitmaps[clip.vc.Frames[0]];
+                        if (clip.ChangingWallTexture != -1)
                         {
-                            if (clip.crit_clip != -1)
-                                stringBuilder.AppendFormat("crit_clip={0} ", clip.crit_clip);
-                            if (clip.dest_bm_num != -1)
-                                stringBuilder.AppendFormat("dest_bm={0}.bbm ", piggyFile.Bitmaps[datafile.Textures[clip.dest_bm_num]].name);
-                            if (clip.dest_vclip != 0)
-                                stringBuilder.AppendFormat("dest_vclip={0} ", clip.dest_vclip);
-                            if (clip.dest_eclip != -1)
-                                stringBuilder.AppendFormat("dest_eclip={0} ", clip.dest_eclip);
-                            if (clip.sound_num != -1)
-                                stringBuilder.AppendFormat("sound_num={0} ", clip.sound_num);
-                            if (clip.dest_size != 0)
-                                stringBuilder.AppendFormat("dest_size={0} ", clip.dest_size);
-                            info = datafile.TMapInfo[clip.changing_wall_texture];
+                            if (clip.CriticalClip != -1)
+                                stringBuilder.AppendFormat("crit_clip={0} ", clip.CriticalClip);
+                            if (clip.DestroyedBitmapNum != -1)
+                                stringBuilder.AppendFormat("dest_bm={0}.bbm ", piggyFile.Bitmaps[datafile.Textures[clip.DestroyedBitmapNum]].name);
+                            if (clip.ExplosionVClip != 0)
+                                stringBuilder.AppendFormat("dest_vclip={0} ", clip.ExplosionVClip);
+                            if (clip.ExplosionEClip != -1)
+                                stringBuilder.AppendFormat("dest_eclip={0} ", clip.ExplosionEClip);
+                            if (clip.SoundNum != -1)
+                                stringBuilder.AppendFormat("sound_num={0} ", clip.SoundNum);
+                            if (clip.ExplosionSize != 0)
+                                stringBuilder.AppendFormat("dest_size={0} ", clip.ExplosionSize);
+                            info = datafile.TMapInfo[clip.ChangingWallTexture];
                             extra = true;
                         }
-                        else if (clip.changing_object_texture != -1)
+                        else if (clip.ChangingObjectTexture != -1)
                             stringBuilder.Append("obj_eclip=1 ");
                         if ((img.flags & PIGImage.BM_FLAG_NO_LIGHTING) != 0)
                             stringBuilder.Append("vlighting=-1 ");
@@ -153,24 +153,24 @@ namespace LibDescent.Edit
 
                         if (extra)
                         {
-                            if (info.lighting > 0)
-                                stringBuilder.AppendFormat("lighting={0} ", info.lighting);
-                            if (info.damage > 0)
-                                stringBuilder.AppendFormat("damage={0} ", info.damage);
-                            if ((info.flags & TMAPInfo.TMI_VOLATILE) != 0)
+                            if (info.Lighting > 0)
+                                stringBuilder.AppendFormat("lighting={0} ", info.Lighting);
+                            if (info.Damage > 0)
+                                stringBuilder.AppendFormat("damage={0} ", info.Damage);
+                            if ((info.Flags & TMAPInfo.TMI_VOLATILE) != 0)
                                 stringBuilder.Append("volatile ");
-                            if ((info.flags & TMAPInfo.TMI_GOAL_RED) != 0)
+                            if ((info.Flags & TMAPInfo.TMI_GOAL_RED) != 0)
                                 stringBuilder.Append("goal_red ");
-                            if ((info.flags & TMAPInfo.TMI_GOAL_BLUE) != 0)
+                            if ((info.Flags & TMAPInfo.TMI_GOAL_BLUE) != 0)
                                 stringBuilder.Append("goal_blue ");
-                            if ((info.flags & TMAPInfo.TMI_WATER) != 0)
+                            if ((info.Flags & TMAPInfo.TMI_WATER) != 0)
                                 stringBuilder.Append("water ");
-                            if ((info.flags & TMAPInfo.TMI_FORCE_FIELD) != 0)
+                            if ((info.Flags & TMAPInfo.TMI_FORCE_FIELD) != 0)
                                 stringBuilder.Append("force_field ");
                             if ((img.flags & PIGImage.BM_FLAG_SUPER_TRANSPARENT) != 0)
                                 stringBuilder.Append("superx=254 ");
-                            if (info.slide_u != 0 || info.slide_v != 0)
-                                stringBuilder.AppendFormat("slide={0:F1} {1:F1} ", info.slide_u / 256.0f, info.slide_v / 256.0f);
+                            if (info.SlideU != 0 || info.SlideV != 0)
+                                stringBuilder.AppendFormat("slide={0:F1} {1:F1} ", info.SlideU / 256.0f, info.SlideV / 256.0f);
                         }
                         stringBuilder.Append("\n");
                     }
@@ -180,13 +180,13 @@ namespace LibDescent.Edit
             for (int i = 0; i < datafile.EClips.Count; i++)
             {
                 clip = datafile.EClips[i];
-                if (clip.changing_object_texture != -1)
+                if (clip.ChangingObjectTexture != -1)
                 {
                     extra = false;
-                    if (clip.vc.play_time > 0)
+                    if (clip.vc.PlayTime > 0)
                     {
-                        stringBuilder.AppendFormat("$ECLIP clip_num={0} time={1} abm_flag=1 ", clip.ID, clip.vc.play_time);
-                        img = piggyFile.Bitmaps[clip.vc.frames[0]];
+                        stringBuilder.AppendFormat("$ECLIP clip_num={0} time={1} abm_flag=1 ", clip.ID, clip.vc.PlayTime);
+                        img = piggyFile.Bitmaps[clip.vc.Frames[0]];
                         stringBuilder.Append("obj_eclip=1 ");
                         if ((img.flags & PIGImage.BM_FLAG_NO_LIGHTING) != 0)
                             stringBuilder.Append("vlighting=-1 ");
@@ -209,52 +209,52 @@ namespace LibDescent.Edit
             {
                 superx = false;
                 clip = datafile.WClips[i];
-                if (clip.play_time != 0)
+                if (clip.PlayTime != 0)
                 {
-                    info = datafile.TMapInfo[clip.frames[0]];
-                    img = piggyFile.Bitmaps[datafile.Textures[clip.frames[0]]];
-                    stringBuilder.AppendFormat("$WCLIP clip_num={0} time={1} abm_flag=1 ", i, clip.play_time);
-                    if (clip.open_sound != -1)
-                        stringBuilder.AppendFormat("open_sound={0} ", clip.open_sound);
-                    if (clip.close_sound != -1)
-                        stringBuilder.AppendFormat("close_sound={0} ", clip.close_sound);
+                    info = datafile.TMapInfo[clip.Frames[0]];
+                    img = piggyFile.Bitmaps[datafile.Textures[clip.Frames[0]]];
+                    stringBuilder.AppendFormat("$WCLIP clip_num={0} time={1} abm_flag=1 ", i, clip.PlayTime);
+                    if (clip.OpenSound != -1)
+                        stringBuilder.AppendFormat("open_sound={0} ", clip.OpenSound);
+                    if (clip.CloseSound != -1)
+                        stringBuilder.AppendFormat("close_sound={0} ", clip.CloseSound);
                     if ((img.flags & PIGImage.BM_FLAG_NO_LIGHTING) != 0)
                         stringBuilder.Append("vlighting=-1 ");
                     else
                         stringBuilder.Append("vlighting=0 ");
-                    if ((clip.flags & WClip.WCF_TMAP1) != 0)
+                    if ((clip.Flags & WClip.WCF_TMAP1) != 0)
                         stringBuilder.Append("tmap1_flag=1 ");
-                    if ((clip.flags & WClip.WCF_BLASTABLE) != 0)
+                    if ((clip.Flags & WClip.WCF_BLASTABLE) != 0)
                         stringBuilder.Append("blastable=1 ");
-                    if ((clip.flags & WClip.WCF_BLASTABLE) != 0)
+                    if ((clip.Flags & WClip.WCF_BLASTABLE) != 0)
                         stringBuilder.Append("explodes=1 ");
-                    if ((clip.flags & WClip.WCF_HIDDEN) != 0)
+                    if ((clip.Flags & WClip.WCF_HIDDEN) != 0)
                         stringBuilder.Append("hidden=1 ");
                     stringBuilder.AppendFormat("\n{0}.abm ", img.name);
-                    if (info.lighting > 0)
-                        stringBuilder.AppendFormat("lighting={0} ", info.lighting);
-                    if (info.damage > 0)
-                        stringBuilder.AppendFormat("damage={0} ", info.damage);
-                    if ((info.flags & TMAPInfo.TMI_VOLATILE) != 0)
+                    if (info.Lighting > 0)
+                        stringBuilder.AppendFormat("lighting={0} ", info.Lighting);
+                    if (info.Damage > 0)
+                        stringBuilder.AppendFormat("damage={0} ", info.Damage);
+                    if ((info.Flags & TMAPInfo.TMI_VOLATILE) != 0)
                         stringBuilder.Append("volatile ");
-                    if ((info.flags & TMAPInfo.TMI_GOAL_RED) != 0)
+                    if ((info.Flags & TMAPInfo.TMI_GOAL_RED) != 0)
                         stringBuilder.Append("goal_red ");
-                    if ((info.flags & TMAPInfo.TMI_GOAL_BLUE) != 0)
+                    if ((info.Flags & TMAPInfo.TMI_GOAL_BLUE) != 0)
                         stringBuilder.Append("goal_blue ");
-                    if ((info.flags & TMAPInfo.TMI_WATER) != 0)
+                    if ((info.Flags & TMAPInfo.TMI_WATER) != 0)
                         stringBuilder.Append("water ");
-                    if ((info.flags & TMAPInfo.TMI_FORCE_FIELD) != 0)
+                    if ((info.Flags & TMAPInfo.TMI_FORCE_FIELD) != 0)
                         stringBuilder.Append("force_field ");
-                    for (int f = 0; f < clip.num_frames; f++) //Need to scan all frames for superx
+                    for (int f = 0; f < clip.NumFrames; f++) //Need to scan all frames for superx
                     {
-                        frame = piggyFile.Bitmaps[datafile.Textures[clip.frames[f]]];
+                        frame = piggyFile.Bitmaps[datafile.Textures[clip.Frames[f]]];
                         if ((frame.flags & PIGImage.BM_FLAG_SUPER_TRANSPARENT) != 0)
                             superx = true;
                     }
                     if (superx)
                         stringBuilder.Append("superx=254 ");
-                    if (info.slide_u != 0 || info.slide_v != 0)
-                        stringBuilder.AppendFormat("slide={0:F1} {1:F1} ", info.slide_u / 256.0f, info.slide_v / 256.0f);
+                    if (info.SlideU != 0 || info.SlideV != 0)
+                        stringBuilder.AppendFormat("slide={0:F1} {1:F1} ", info.SlideU / 256.0f, info.SlideV / 256.0f);
                     stringBuilder.Append("\n");
                 }
             }
@@ -265,7 +265,7 @@ namespace LibDescent.Edit
             PIGImage img;
             TMAPInfo info;
             EClip clip;
-            int firstEClip = datafile.EClips[0].changing_wall_texture;
+            int firstEClip = datafile.EClips[0].ChangingWallTexture;
             bool extra;
             stringBuilder.Append("$TEXTURES\n");
             for (int i = 0; i < firstEClip; i++)
@@ -273,41 +273,41 @@ namespace LibDescent.Edit
                 extra = false;
                 img = piggyFile.Bitmaps[datafile.Textures[i]];
                 info = datafile.TMapInfo[i];
-                if (img.isAnimated && info.eclip_num == -1) //Probably a WClip so don't write yet. 
+                if (img.isAnimated && info.EClipNum == -1) //Probably a WClip so don't write yet. 
                     continue;
-                if (info.eclip_num == -1 && i < firstEClip)
+                if (info.EClipNum == -1 && i < firstEClip)
                 {
                     stringBuilder.AppendFormat("{0}.bbm ", img.name);
                     extra = true;
                 }
-                else if (info.eclip_num != -1)
+                else if (info.EClipNum != -1)
                 {
-                    clip = datafile.EClips[info.eclip_num];
+                    clip = datafile.EClips[info.EClipNum];
                 }
 
                 if (extra)
                 {
-                    if (info.lighting > 0)
-                        stringBuilder.AppendFormat("lighting={0} ", info.lighting);
-                    if (info.damage > 0)
-                        stringBuilder.AppendFormat("damage={0} ", info.damage);
-                    if ((info.flags & TMAPInfo.TMI_VOLATILE) != 0)
+                    if (info.Lighting > 0)
+                        stringBuilder.AppendFormat("lighting={0} ", info.Lighting);
+                    if (info.Damage > 0)
+                        stringBuilder.AppendFormat("damage={0} ", info.Damage);
+                    if ((info.Flags & TMAPInfo.TMI_VOLATILE) != 0)
                         stringBuilder.Append("volatile ");
-                    if ((info.flags & TMAPInfo.TMI_GOAL_RED) != 0)
+                    if ((info.Flags & TMAPInfo.TMI_GOAL_RED) != 0)
                         stringBuilder.Append("goal_red ");
-                    if ((info.flags & TMAPInfo.TMI_GOAL_BLUE) != 0)
+                    if ((info.Flags & TMAPInfo.TMI_GOAL_BLUE) != 0)
                         stringBuilder.Append("goal_blue ");
-                    if ((info.flags & TMAPInfo.TMI_WATER) != 0)
+                    if ((info.Flags & TMAPInfo.TMI_WATER) != 0)
                         stringBuilder.Append("water ");
-                    if ((info.flags & TMAPInfo.TMI_FORCE_FIELD) != 0)
+                    if ((info.Flags & TMAPInfo.TMI_FORCE_FIELD) != 0)
                         stringBuilder.Append("force_field ");
                     if ((img.flags & PIGImage.BM_FLAG_SUPER_TRANSPARENT) != 0)
                         stringBuilder.Append("superx=254 ");
-                    if (info.slide_u != 0 || info.slide_v != 0)
-                        stringBuilder.AppendFormat("slide={0:F1} {1:F1} ", info.slide_u / 256.0f, info.slide_v / 256.0f);
-                    if (info.destroyed != -1)
+                    if (info.SlideU != 0 || info.SlideV != 0)
+                        stringBuilder.AppendFormat("slide={0:F1} {1:F1} ", info.SlideU / 256.0f, info.SlideV / 256.0f);
+                    if (info.DestroyedID != -1)
                     {
-                        img = piggyFile.Bitmaps[datafile.Textures[info.destroyed]];
+                        img = piggyFile.Bitmaps[datafile.Textures[info.DestroyedID]];
                         stringBuilder.AppendFormat("destroyed={0}.bbm ", img.name);
                         i++;
                     }
@@ -323,7 +323,7 @@ namespace LibDescent.Edit
             int count = 0;
             foreach (EClip clip in datafile.EClips)
             {
-                if (clip.vc.play_time > 0)
+                if (clip.vc.PlayTime > 0)
                     count++;
             }
             return count;
@@ -331,97 +331,97 @@ namespace LibDescent.Edit
 
         private static void TableWriteVClip(EditorHAMFile datafile, StringBuilder stringBuilder, VClip clip, int id, PIGFile piggyFile)
         {
-            if (clip.play_time != 0)
+            if (clip.PlayTime != 0)
             {
-                stringBuilder.AppendFormat("$VCLIP clip_num={0} time={1} abm_flag=1 vlighting={2} sound_num={3} ", id, clip.play_time, clip.light_value, clip.sound_num);
-                if ((clip.flags & 1) != 0)
+                stringBuilder.AppendFormat("$VCLIP clip_num={0} time={1} abm_flag=1 vlighting={2} sound_num={3} ", id, clip.PlayTime, clip.LightValue, clip.SoundNum);
+                if ((clip.Flags & 1) != 0)
                     stringBuilder.Append("rod_flag=1");
-                stringBuilder.AppendFormat("\n{0}.abm\n", piggyFile.Bitmaps[clip.frames[0]].name);
+                stringBuilder.AppendFormat("\n{0}.abm\n", piggyFile.Bitmaps[clip.Frames[0]].name);
             }
         }
 
         private static void TableWriteWeapon(EditorHAMFile datafile, StringBuilder stringBuilder, Weapon weapon, PIGFile piggyFile, int id)
         {
-            if (weapon.render_type == 0)
+            if (weapon.RenderType == 0)
                 stringBuilder.Append("$WEAPON_UNUSED ");
             else
             {
                 stringBuilder.Append("$WEAPON ");
-                if (weapon.render_type == 1)
+                if (weapon.RenderType == WeaponRenderType.Sprite)
                 {
-                    stringBuilder.AppendFormat("blob_bmp={0}.bbm ", piggyFile.Bitmaps[weapon.bitmap].name);
+                    stringBuilder.AppendFormat("blob_bmp={0}.bbm ", piggyFile.Bitmaps[weapon.Bitmap].name);
                 }
-                else if (weapon.render_type == 2)
+                else if (weapon.RenderType == WeaponRenderType.Object)
                 {
                     stringBuilder.Append("weapon_pof=");
-                    WriteModel(datafile, stringBuilder, weapon.model_num);
-                    if (weapon.model_num_inner != -1)
+                    WriteModel(datafile, stringBuilder, weapon.ModelNum);
+                    if (weapon.ModelNumInner != -1)
                     {
                         stringBuilder.Append("weapon_pof_inner=");
-                        WriteModel(datafile, stringBuilder, weapon.model_num_inner);
+                        WriteModel(datafile, stringBuilder, weapon.ModelNumInner);
                     }
-                    stringBuilder.AppendFormat("lw_ratio={0} ", weapon.po_len_to_width_ratio);
+                    stringBuilder.AppendFormat("lw_ratio={0} ", weapon.POLenToWidthRatio);
                 }
-                else if (weapon.render_type == 3)
+                else if (weapon.RenderType == WeaponRenderType.VClip)
                 {
-                    stringBuilder.AppendFormat("weapon_vclip={0} ", weapon.weapon_vclip);
+                    stringBuilder.AppendFormat("weapon_vclip={0} ", weapon.WeaponVClip);
                 }
-                else if (weapon.render_type == 255)
+                else if (weapon.RenderType == WeaponRenderType.Invisible)
                 {
-                    stringBuilder.AppendFormat("none_bmp={0}.bbm ", piggyFile.Bitmaps[weapon.bitmap].name);
+                    stringBuilder.AppendFormat("none_bmp={0}.bbm ", piggyFile.Bitmaps[weapon.Bitmap].name);
                 }
-                stringBuilder.AppendFormat("mass={0} ", weapon.mass);
-                stringBuilder.AppendFormat("drag={0} ", weapon.drag);
-                stringBuilder.AppendFormat("thrust={0} ", weapon.thrust);
-                if (weapon.matter != 0)
+                stringBuilder.AppendFormat("mass={0} ", weapon.Mass);
+                stringBuilder.AppendFormat("drag={0} ", weapon.Drag);
+                stringBuilder.AppendFormat("thrust={0} ", weapon.Thrust);
+                if (weapon.Matter)
                     stringBuilder.Append("matter=1 ");
-                if (weapon.bounce != 0)
-                    stringBuilder.AppendFormat("bounce={0} ", weapon.bounce);
-                if (weapon.children != -1)
-                    stringBuilder.AppendFormat("children={0} ", weapon.children);
+                if (weapon.Bounce != 0)
+                    stringBuilder.AppendFormat("bounce={0} ", weapon.Bounce);
+                if (weapon.Children != -1)
+                    stringBuilder.AppendFormat("children={0} ", weapon.Children);
                 stringBuilder.Append("strength=");
                 for (int i = 0; i < 5; i++)
-                    stringBuilder.AppendFormat("{0} ", weapon.strength[i]);
+                    stringBuilder.AppendFormat("{0} ", weapon.Strength[i]);
                 stringBuilder.Append("speed=");
                 for (int i = 0; i < 5; i++)
-                    stringBuilder.AppendFormat("{0} ", weapon.speed[i]);
-                if (weapon.speedvar != 128)
-                    stringBuilder.AppendFormat("speedvar={0} ", weapon.speedvar);
-                stringBuilder.AppendFormat("blob_size={0} ", weapon.blob_size);
-                stringBuilder.AppendFormat("flash_vclip={0} ", weapon.flash_vclip);
-                stringBuilder.AppendFormat("flash_size={0} ", weapon.flash_size);
-                if (weapon.flash_sound != 0)
-                    stringBuilder.AppendFormat("flash_sound={0} ", weapon.flash_sound);
-                stringBuilder.AppendFormat("robot_hit_vclip={0} ", weapon.robot_hit_vclip);
-                stringBuilder.AppendFormat("wall_hit_vclip={0} ", weapon.wall_hit_vclip);
-                stringBuilder.AppendFormat("robot_hit_sound={0} ", weapon.robot_hit_sound);
-                stringBuilder.AppendFormat("wall_hit_sound={0} ", weapon.wall_hit_sound);
-                stringBuilder.AppendFormat("impact_size={0} ", weapon.impact_size);
-                if (weapon.afterburner_size != 0)
-                    stringBuilder.AppendFormat("afterburner_size={0:F2} ", weapon.afterburner_size / 16.0f);
-                stringBuilder.AppendFormat("energy_usage={0} ", weapon.energy_usage);
-                stringBuilder.AppendFormat("ammo_usage={0} ", weapon.ammo_usage);
-                stringBuilder.AppendFormat("fire_wait={0} ", weapon.fire_wait);
-                stringBuilder.AppendFormat("lifetime={0} ", weapon.lifetime);
-                stringBuilder.AppendFormat("lightcast={0} ", weapon.light);
-                if (weapon.damage_radius != 0)
-                    stringBuilder.AppendFormat("damage_radius={0} ", weapon.damage_radius);
-                if (weapon.multi_damage_scale.GetRawValue() != 65536)
-                    stringBuilder.AppendFormat("multi_damage_scale={0} ", weapon.multi_damage_scale);
-                stringBuilder.AppendFormat("fire_count={0} ", weapon.fire_count);
-                stringBuilder.AppendFormat("flash_vclip={0} ", weapon.flash_vclip);
-                if (weapon.persistent != 0)
+                    stringBuilder.AppendFormat("{0} ", weapon.Speed[i]);
+                if (weapon.SpeedVariance != 128)
+                    stringBuilder.AppendFormat("speedvar={0} ", weapon.SpeedVariance);
+                stringBuilder.AppendFormat("blob_size={0} ", weapon.BlobSize);
+                stringBuilder.AppendFormat("flash_vclip={0} ", weapon.MuzzleFlashVClip);
+                stringBuilder.AppendFormat("flash_size={0} ", weapon.FlashSize);
+                if (weapon.FiringSound != 0)
+                    stringBuilder.AppendFormat("flash_sound={0} ", weapon.FiringSound);
+                stringBuilder.AppendFormat("robot_hit_vclip={0} ", weapon.RobotHitVClip);
+                stringBuilder.AppendFormat("wall_hit_vclip={0} ", weapon.WallHitVclip);
+                stringBuilder.AppendFormat("robot_hit_sound={0} ", weapon.RobotHitSound);
+                stringBuilder.AppendFormat("wall_hit_sound={0} ", weapon.WallHitSound);
+                stringBuilder.AppendFormat("impact_size={0} ", weapon.ImpactSize);
+                if (weapon.AfterburnerSize != 0)
+                    stringBuilder.AppendFormat("afterburner_size={0:F2} ", weapon.AfterburnerSize / 16.0f);
+                stringBuilder.AppendFormat("energy_usage={0} ", weapon.EnergyUsage);
+                stringBuilder.AppendFormat("ammo_usage={0} ", weapon.AmmoUsage);
+                stringBuilder.AppendFormat("fire_wait={0} ", weapon.FireWait);
+                stringBuilder.AppendFormat("lifetime={0} ", weapon.Lifetime);
+                stringBuilder.AppendFormat("lightcast={0} ", weapon.Light);
+                if (weapon.DamageRadius != 0)
+                    stringBuilder.AppendFormat("damage_radius={0} ", weapon.DamageRadius);
+                if (weapon.MultiDamageScale.GetRawValue() != 65536)
+                    stringBuilder.AppendFormat("multi_damage_scale={0} ", weapon.MultiDamageScale);
+                stringBuilder.AppendFormat("fire_count={0} ", weapon.FireCount);
+                stringBuilder.AppendFormat("flash_vclip={0} ", weapon.MuzzleFlashVClip);
+                if (weapon.Persistent)
                     stringBuilder.Append("persistent=1");
-                if (weapon.homing_flag != 0)
+                if (weapon.HomingFlag)
                     stringBuilder.Append("homing=1 ");
-                if (weapon.flags != 0)
+                if (weapon.Flags != 0)
                     stringBuilder.Append("placable=1 ");
-                if (weapon.flash != 0)
-                    stringBuilder.AppendFormat("flash={0} ", weapon.flash);
-                if (weapon.picture != 0)
-                    stringBuilder.AppendFormat("picture={0}.bbm ", piggyFile.Bitmaps[weapon.picture].name);
-                if (weapon.hires_picture != 0)
-                    stringBuilder.AppendFormat("hires_picture={0}.bbm ", piggyFile.Bitmaps[weapon.hires_picture].name);
+                if (weapon.Flash != 0)
+                    stringBuilder.AppendFormat("flash={0} ", weapon.Flash);
+                if (weapon.CockpitPicture != 0)
+                    stringBuilder.AppendFormat("picture={0}.bbm ", piggyFile.Bitmaps[weapon.CockpitPicture].name);
+                if (weapon.HiresCockpitPicture != 0)
+                    stringBuilder.AppendFormat("hires_picture={0}.bbm ", piggyFile.Bitmaps[weapon.HiresCockpitPicture].name);
 
                 stringBuilder.AppendFormat(" ;{0}", datafile.WeaponNames[id]);
 
@@ -444,17 +444,17 @@ namespace LibDescent.Edit
             for (int i = 0; i < datafile.Powerups.Count; i++)
             {
                 powerup = datafile.Powerups[i];
-                if (powerup.vclip_num == 0)
+                if (powerup.VClipNum == 0)
                     stringBuilder.Append("$POWERUP_UNUSED\t");
                 else
                     stringBuilder.Append("$POWERUP\t");
                 stringBuilder.AppendFormat("name=\"{0}\"\t", powerupsbm[i]);
-                stringBuilder.AppendFormat("vclip_num={0}\t", powerup.vclip_num);
-                stringBuilder.AppendFormat("hit_sound={0}\t", powerup.hit_sound);
-                if (powerup.size.GetRawValue() != (3 * 65536))
-                    stringBuilder.AppendFormat("size={0}\t", powerup.size);
-                if (powerup.size.GetRawValue() != 21845)
-                    stringBuilder.AppendFormat("light={0}", powerup.light);
+                stringBuilder.AppendFormat("vclip_num={0}\t", powerup.VClipNum);
+                stringBuilder.AppendFormat("hit_sound={0}\t", powerup.HitSound);
+                if (powerup.Size.GetRawValue() != (3 * 65536))
+                    stringBuilder.AppendFormat("size={0}\t", powerup.Size);
+                if (powerup.Size.GetRawValue() != 21845)
+                    stringBuilder.AppendFormat("light={0}", powerup.Light);
                 stringBuilder.Append("\n");
             }
         }
@@ -534,17 +534,17 @@ namespace LibDescent.Edit
         private static void TableWritePlayerShip(EditorHAMFile datafile, StringBuilder stringBuilder, Ship ship, PIGFile pigFile)
         {
             stringBuilder.Append("$MARKER ");
-            WriteModel(datafile, stringBuilder, datafile.PlayerShip.markerModel);
+            WriteModel(datafile, stringBuilder, datafile.PlayerShip.MarkerModel);
             stringBuilder.Append("\n");
             stringBuilder.Append("$PLAYER_SHIP ");
-            stringBuilder.AppendFormat("mass={0} ", ship.mass);
-            stringBuilder.AppendFormat("drag={0} ", ship.drag );
-            stringBuilder.AppendFormat("max_thrust={0} ", ship.max_thrust);
-            stringBuilder.AppendFormat("wiggle={0} ", ship.wiggle);
-            stringBuilder.AppendFormat("max_rotthrust={0} ", ship.max_rotthrust);
-            stringBuilder.AppendFormat("expl_vclip_num={0} ", ship.expl_vclip_num);
+            stringBuilder.AppendFormat("mass={0} ", ship.Mass);
+            stringBuilder.AppendFormat("drag={0} ", ship.Drag );
+            stringBuilder.AppendFormat("max_thrust={0} ", ship.MaxThrust);
+            stringBuilder.AppendFormat("wiggle={0} ", ship.Wiggle);
+            stringBuilder.AppendFormat("max_rotthrust={0} ", ship.MaxRotationThrust);
+            stringBuilder.AppendFormat("expl_vclip_num={0} ", ship.DeathVClipNum);
             stringBuilder.Append("model=");
-            WriteModel(datafile, stringBuilder, ship.model_num);
+            WriteModel(datafile, stringBuilder, ship.ModelNum);
             stringBuilder.Append("multi_textures ");
             for (int i = 0; i < 14; i++)
             {
@@ -558,7 +558,7 @@ namespace LibDescent.Edit
         private static void TableWriteReactor(EditorHAMFile datafile, StringBuilder stringBuilder, Reactor reactor)
         {
             stringBuilder.Append("$REACTOR ");
-            WriteModel(datafile, stringBuilder, reactor.model_id);
+            WriteModel(datafile, stringBuilder, reactor.ModelNum);
             stringBuilder.Append("\n");
         }
 
@@ -567,35 +567,35 @@ namespace LibDescent.Edit
             stringBuilder.AppendFormat("$ROBOT_AI {0} ", id);
             for (int i = 0; i < 5; i++)
             {
-                stringBuilder.AppendFormat("{0} ", (int)(Math.Acos(robot.field_of_view[i]) * 180.0d / Math.PI));
+                stringBuilder.AppendFormat("{0} ", (int)(Math.Acos(robot.FieldOfView[i]) * 180.0d / Math.PI));
             }
             for (int i = 0; i < 5; i++)
             {
-                stringBuilder.AppendFormat("{0} ", robot.firing_wait[i]);
+                stringBuilder.AppendFormat("{0} ", robot.FiringWait[i]);
             }
             for (int i = 0; i < 5; i++)
             {
-                stringBuilder.AppendFormat("{0} ", robot.firing_wait2[i]);
+                stringBuilder.AppendFormat("{0} ", robot.FiringWaitSecondary[i]);
             }
             for (int i = 0; i < 5; i++)
             {
-                stringBuilder.AppendFormat("{0} ", robot.rapidfire_count[i]);
+                stringBuilder.AppendFormat("{0} ", robot.RapidfireCount[i]);
             }
             for (int i = 0; i < 5; i++)
             {
-                stringBuilder.AppendFormat("{0} ", robot.turn_time[i]);
+                stringBuilder.AppendFormat("{0} ", robot.TurnTime[i]);
             }
             for (int i = 0; i < 5; i++)
             {
-                stringBuilder.AppendFormat("{0} ", robot.max_speed[i]);
+                stringBuilder.AppendFormat("{0} ", robot.MaxSpeed[i]);
             }
             for (int i = 0; i < 5; i++)
             {
-                stringBuilder.AppendFormat("{0} ", robot.circle_distance[i]);
+                stringBuilder.AppendFormat("{0} ", robot.CircleDistance[i]);
             }
             for (int i = 0; i < 5; i++)
             {
-                stringBuilder.AppendFormat("{0} ", robot.evade_speed[i]);
+                stringBuilder.AppendFormat("{0} ", robot.EvadeSpeed[i]);
             }
             stringBuilder.AppendFormat(" ;{0}", robotsbm[id]);
             stringBuilder.Append("\n");
@@ -604,70 +604,70 @@ namespace LibDescent.Edit
         private static void TableWriteRobot(EditorHAMFile datafile, StringBuilder stringBuilder, Robot robot, int id)
         {
             stringBuilder.Append("$ROBOT ");
-            WriteModel(datafile, stringBuilder, robot.model_num);
+            WriteModel(datafile, stringBuilder, robot.ModelNum);
             stringBuilder.AppendFormat("name=\"{0}\" ", robotsbm[id]);
-            stringBuilder.AppendFormat("score_value={0} ", robot.score_value);
-            stringBuilder.AppendFormat("mass={0} ", robot.mass);
-            stringBuilder.AppendFormat("drag={0} ", robot.drag);
-            stringBuilder.AppendFormat("exp1_vclip={0} ", robot.exp1_vclip_num);
-            stringBuilder.AppendFormat("exp1_sound={0} ", robot.exp1_sound_num);
-            stringBuilder.AppendFormat("exp2_vclip={0} ", robot.exp2_vclip_num);
-            stringBuilder.AppendFormat("exp2_sound={0} ", robot.exp2_sound_num);
-            stringBuilder.AppendFormat("lighting={0} ", robot.lighting);
-            stringBuilder.AppendFormat("weapon_type={0} ", robot.weapon_type);
-            if (robot.weapon_type2 != -1)
-                stringBuilder.AppendFormat("weapon_type2={0} ", robot.weapon_type2);
-            stringBuilder.AppendFormat("strength={0} ", (int)robot.strength);
-            if (robot.contains_type == 2)
+            stringBuilder.AppendFormat("score_value={0} ", robot.ScoreValue);
+            stringBuilder.AppendFormat("mass={0} ", robot.Mass);
+            stringBuilder.AppendFormat("drag={0} ", robot.Drag);
+            stringBuilder.AppendFormat("exp1_vclip={0} ", robot.HitVClipNum);
+            stringBuilder.AppendFormat("exp1_sound={0} ", robot.HitSoundNum);
+            stringBuilder.AppendFormat("exp2_vclip={0} ", robot.DeathVClipNum);
+            stringBuilder.AppendFormat("exp2_sound={0} ", robot.DeathSoundNum);
+            stringBuilder.AppendFormat("lighting={0} ", robot.Lighting);
+            stringBuilder.AppendFormat("weapon_type={0} ", robot.WeaponType);
+            if (robot.WeaponTypeSecondary != -1)
+                stringBuilder.AppendFormat("weapon_type2={0} ", robot.WeaponTypeSecondary);
+            stringBuilder.AppendFormat("strength={0} ", (int)robot.Strength);
+            if (robot.ContainsType == 2)
                 stringBuilder.Append("contains_type=1 ");
-            stringBuilder.AppendFormat("contains_id={0} ", robot.contains_id);
-            stringBuilder.AppendFormat("contains_count={0} ", robot.contains_count);
-            stringBuilder.AppendFormat("contains_prob={0} ", robot.contains_prob);
-            if (robot.attack_type != 0)
+            stringBuilder.AppendFormat("contains_id={0} ", robot.ContainsID);
+            stringBuilder.AppendFormat("contains_count={0} ", robot.ContainsCount);
+            stringBuilder.AppendFormat("contains_prob={0} ", robot.ContainsProbability);
+            if (robot.AttackType != 0)
                 stringBuilder.Append("attack_type=1 ");
-            stringBuilder.AppendFormat("see_sound={0} ", robot.see_sound);
-            stringBuilder.AppendFormat("attack_sound={0} ", robot.attack_sound);
-            if (robot.claw_sound != 190)
-                stringBuilder.AppendFormat("claw_sound={0} ", robot.claw_sound);
-            if (robot.cloak_type != 0)
-                stringBuilder.AppendFormat("cloak_type={0} ", robot.cloak_type);
-            if (robot.glow != 0)
+            stringBuilder.AppendFormat("see_sound={0} ", robot.SeeSound);
+            stringBuilder.AppendFormat("attack_sound={0} ", robot.AttackSound);
+            if (robot.ClawSound != 190)
+                stringBuilder.AppendFormat("claw_sound={0} ", robot.ClawSound);
+            if (robot.CloakType != 0)
+                stringBuilder.AppendFormat("cloak_type={0} ", robot.CloakType);
+            if (robot.Glow != 0)
             {
-                Fix glowval = robot.glow / 16.0f;
+                Fix glowval = robot.Glow / 16.0f;
                 stringBuilder.AppendFormat("glow={0} ", glowval);
             }
-            if (robot.lightcast != 0)
-                stringBuilder.AppendFormat("lightcast={0} ", robot.lightcast);
-            if (robot.badass != 0)
-                stringBuilder.AppendFormat("badass={0} ", robot.badass);
-            if (robot.death_roll != 0)
-                stringBuilder.AppendFormat("death_roll={0} ", robot.death_roll);
-            if (robot.deathroll_sound != 185)
-                stringBuilder.AppendFormat("deathroll_sound={0} ", robot.deathroll_sound);
-            if (robot.thief != 0)
+            if (robot.LightCast != 0)
+                stringBuilder.AppendFormat("lightcast={0} ", robot.LightCast);
+            if (robot.DeathExplosionRadius != 0)
+                stringBuilder.AppendFormat("badass={0} ", robot.DeathExplosionRadius);
+            if (robot.DeathRollTime != 0)
+                stringBuilder.AppendFormat("death_roll={0} ", robot.DeathRollTime);
+            if (robot.DeathRollSound != 185)
+                stringBuilder.AppendFormat("deathroll_sound={0} ", robot.DeathRollSound);
+            if (robot.Thief)
                 stringBuilder.Append("thief=1 ");
-            if (robot.kamikaze != 0)
+            if (robot.Kamikaze != 0)
                 stringBuilder.Append("kamikaze=1 ");
-            if (robot.companion != 0)
+            if (robot.Companion)
                 stringBuilder.Append("companion=1 ");
-            if (robot.pursuit != 0)
-                stringBuilder.AppendFormat("pursuit={0} ", robot.pursuit);
-            if (robot.smart_blobs != 0)
-                stringBuilder.AppendFormat("smart_blobs={0} ", robot.smart_blobs);
-            if (robot.energy_blobs != 0)
-                stringBuilder.AppendFormat("energy_blobs={0} ", robot.energy_blobs);
-            if (robot.energy_drain != 0)
-                stringBuilder.AppendFormat("energy_drain={0} ", robot.energy_drain);
-            if (robot.boss_flag != 0)
-                stringBuilder.AppendFormat("boss={0} ", robot.boss_flag);
-            if ((robot.flags & 1) != 0)
+            if (robot.Pursuit != 0)
+                stringBuilder.AppendFormat("pursuit={0} ", robot.Pursuit);
+            if (robot.SmartBlobsOnDeath != 0)
+                stringBuilder.AppendFormat("smart_blobs={0} ", robot.SmartBlobsOnDeath);
+            if (robot.SmartBlobsOnHit != 0)
+                stringBuilder.AppendFormat("energy_blobs={0} ", robot.SmartBlobsOnHit);
+            if (robot.EnergyDrain != 0)
+                stringBuilder.AppendFormat("energy_drain={0} ", robot.EnergyDrain);
+            if (robot.BossFlag != 0)
+                stringBuilder.AppendFormat("boss={0} ", robot.BossFlag);
+            if ((robot.Flags & 1) != 0)
                 stringBuilder.Append("big_radius=1 ");
-            if (robot.aim != 255)
+            if (robot.Aim != 255)
             {
-                stringBuilder.AppendFormat("aim={0:F2} ", robot.aim / 255.0f);
+                stringBuilder.AppendFormat("aim={0:F2} ", robot.Aim / 255.0f);
             }
-            if (robot.behavior >= 0x80 && robot.behavior != 0x81)
-                stringBuilder.AppendFormat("behavior={0} ", AIBehaviors[robot.behavior - 0x80]);
+            if (robot.Behavior >= RobotAIType.Still && robot.Behavior != RobotAIType.Normal)
+                stringBuilder.AppendFormat("behavior={0} ", AIBehaviors[(int)robot.Behavior - 0x80]);
             stringBuilder.Append("\n");
         }
 
@@ -683,7 +683,7 @@ namespace LibDescent.Edit
             stringBuilder.AppendFormat("{0} ", pofNames[id]);
             if (!hack)
             {
-                foreach (string texture in model.textureList)
+                foreach (string texture in model.TextureList)
                 {
                     if (datafile.EClipNameMapping.ContainsKey(texture.ToLower()))
                     {
@@ -700,10 +700,10 @@ namespace LibDescent.Edit
                 stringBuilder.Append("dying_pof=");
                 WriteModel(datafile, stringBuilder, model.DyingModelnum, true);
             }
-            if (model.simpler_model != 0)
+            if (model.SimplerModels != 0)
             {
                 stringBuilder.Append("simple_model=");
-                WriteModel(datafile, stringBuilder, model.simpler_model - 1);
+                WriteModel(datafile, stringBuilder, model.SimplerModels - 1);
             }
             if (model.DeadModelnum != -1)
             {

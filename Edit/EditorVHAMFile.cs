@@ -92,17 +92,17 @@ namespace LibDescent.Edit
         private void BuildModelAnimation(Robot robot)
         {
             //this shouldn't happen?
-            if (robot.model_num == -1) return;
+            if (robot.ModelNum == -1) return;
             //If the robot is referring to a base HAM file model, reject it
-            if (robot.model_num < VHAMFile.N_D2_POLYGON_MODELS) return;
-            Polymodel model = Models[robot.model_num - VHAMFile.N_D2_POLYGON_MODELS];
+            if (robot.ModelNum < VHAMFile.N_D2_POLYGON_MODELS) return;
+            Polymodel model = Models[robot.ModelNum - VHAMFile.N_D2_POLYGON_MODELS];
             List<FixAngles> jointlist = new List<FixAngles>();
-            model.numGuns = robot.n_guns;
+            model.numGuns = robot.NumGuns;
             for (int i = 0; i < Polymodel.MAX_GUNS; i++)
             {
-                model.gunPoints[i] = robot.gun_points[i];
+                model.gunPoints[i] = robot.GunPoints[i];
                 model.gunDirs[i] = FixVector.FromRawValues(65536, 0, 0);
-                model.gunSubmodels[i] = robot.gun_submodels[i];
+                model.gunSubmodels[i] = robot.GunSubmodels[i];
             }
             int[,] jointmapping = new int[10, 5];
             for (int m = 0; m < Polymodel.MAX_SUBMODELS; m++)
@@ -117,7 +117,7 @@ namespace LibDescent.Edit
             {
                 for (int f = 0; f < Robot.NUM_ANIMATION_STATES; f++)
                 {
-                    Robot.jointlist robotjointlist = robot.anim_states[m, f];
+                    Robot.JointList robotjointlist = robot.AnimStates[m, f];
                     basejoint = robotjointlist.offset;
                     for (int j = 0; j < robotjointlist.n_joints; j++)
                     {
@@ -156,9 +156,9 @@ namespace LibDescent.Edit
             for (int i = 0; i < BaseHAM.EClips.Count; i++)
             {
                 clip = BaseHAM.EClips[i];
-                if (clip.changing_object_texture != -1)
+                if (clip.ChangingObjectTexture != -1)
                 {
-                    EClipNames.Add(clip.changing_object_texture, BaseHAM.EClipNames[i]);
+                    EClipNames.Add(clip.ChangingObjectTexture, BaseHAM.EClipNames[i]);
                 }
             }
             ushort bitmap; string name;
@@ -175,23 +175,23 @@ namespace LibDescent.Edit
             }
             foreach (Polymodel model in Models)
             {
-                model.useTexList = true;
+                model.UseTextureList = true;
                 int textureID, pointer;
-                for (int i = model.first_texture; i < (model.first_texture + model.n_textures); i++)
+                for (int i = model.FirstTexture; i < (model.FirstTexture + model.NumTextures); i++)
                 {
                     pointer = GetObjBitmapPointer(i);
                     textureID = GetObjBitmap(pointer);
                     if (EClipNames.ContainsKey(pointer))
                     {
-                        model.textureList.Add(EClipNames[pointer]);
+                        model.TextureList.Add(EClipNames[pointer]);
                     }
                     else if (TextureNames.ContainsKey(pointer))
                     {
-                        model.textureList.Add(TextureNames[pointer]);
+                        model.TextureList.Add(TextureNames[pointer]);
                     }
                 }
                 Console.Write("Addon model texture list: [");
-                foreach (string texture in model.textureList)
+                foreach (string texture in model.TextureList)
                 {
                     Console.Write("{0} ", texture);
                 }

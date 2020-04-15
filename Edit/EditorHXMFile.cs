@@ -89,9 +89,9 @@ namespace LibDescent.Edit
             for (int i = 0; i < BaseHAM.EClips.Count; i++)
             {
                 clip = BaseHAM.EClips[i];
-                if (clip.changing_object_texture != -1)
+                if (clip.ChangingObjectTexture != -1)
                 {
-                    EClipNames.Add(clip.changing_object_texture, BaseHAM.EClipNames[i]);
+                    EClipNames.Add(clip.ChangingObjectTexture, BaseHAM.EClipNames[i]);
                 }
             }
             ushort bitmap; string name;
@@ -108,27 +108,27 @@ namespace LibDescent.Edit
             }
             foreach (Polymodel model in replacedModels)
             {
-                model.useTexList = true;
+                model.UseTextureList = true;
                 int textureID, pointer;
-                for (int i = model.first_texture; i < (model.first_texture + model.n_textures); i++)
+                for (int i = model.FirstTexture; i < (model.FirstTexture + model.NumTextures); i++)
                 {
                     pointer = GetObjBitmapPointer(i);
                     textureID = GetObjBitmap(pointer);
                     if (EClipNames.ContainsKey(pointer))
                     {
-                        model.textureList.Add(EClipNames[pointer]);
+                        model.TextureList.Add(EClipNames[pointer]);
                     }
                     else if (TextureNames.ContainsKey(pointer))
                     {
-                        model.textureList.Add(TextureNames[pointer]);
+                        model.TextureList.Add(TextureNames[pointer]);
                     }
                     else
                     {
-                        model.textureList.Add("bogus");
+                        model.TextureList.Add("bogus");
                     }
                 }
                 Console.Write("Model texture list: [");
-                foreach (string texture in model.textureList)
+                foreach (string texture in model.TextureList)
                 {
                     Console.Write("{0} ", texture);
                 }
@@ -144,16 +144,16 @@ namespace LibDescent.Edit
         private void BuildModelAnimation(Robot robot)
         {
             int lowestJoint = int.MaxValue;
-            if (robot.model_num == -1) return;
-            Polymodel model = GetModel(robot.model_num);
+            if (robot.ModelNum == -1) return;
+            Polymodel model = GetModel(robot.ModelNum);
             if (model.replacementID == -1) return;
             List<FixAngles> jointlist = new List<FixAngles>();
-            model.numGuns = robot.n_guns;
+            model.numGuns = robot.NumGuns;
             for (int i = 0; i < Polymodel.MAX_GUNS; i++)
             {
-                model.gunPoints[i] = robot.gun_points[i];
+                model.gunPoints[i] = robot.GunPoints[i];
                 model.gunDirs[i] = FixVector.FromRawValues(65536, 0, 0);
-                model.gunSubmodels[i] = robot.gun_submodels[i];
+                model.gunSubmodels[i] = robot.GunSubmodels[i];
             }
             int[,] jointmapping = new int[10, 5];
             for (int m = 0; m < Polymodel.MAX_SUBMODELS; m++)
@@ -164,11 +164,11 @@ namespace LibDescent.Edit
                 }
             }
             int basejoint = 0;
-            for (int m = 0; m < robot.n_guns + 1; m++)
+            for (int m = 0; m < robot.NumGuns + 1; m++)
             {
                 for (int f = 0; f < Robot.NUM_ANIMATION_STATES; f++)
                 {
-                    Robot.jointlist robotjointlist = robot.anim_states[m, f];
+                    Robot.JointList robotjointlist = robot.AnimStates[m, f];
                     basejoint = robotjointlist.offset;
                     if (basejoint < lowestJoint)
                         lowestJoint = basejoint;
@@ -230,7 +230,7 @@ namespace LibDescent.Edit
         public int AddModel()
         {
             Polymodel newModel = new Polymodel();
-            newModel.data = new PolymodelData(0);
+            newModel.Data = new PolymodelData(0);
             replacedModels.Add(newModel);
             ModelNames.Add("New Model");
             return replacedModels.Count - 1;
@@ -244,7 +244,7 @@ namespace LibDescent.Edit
         public int CountUniqueObjBitmaps(Polymodel model)
         {
             int num = 0;
-            foreach (string tex in model.textureList)
+            foreach (string tex in model.TextureList)
             {
                 if (!BaseHAM.ObjBitmapMapping.ContainsKey(tex))
                 {
@@ -263,13 +263,13 @@ namespace LibDescent.Edit
         {
             int num = int.MaxValue;
             string tex;
-            for (int i = 0; i < model.n_textures; i++)
+            for (int i = 0; i < model.NumTextures; i++)
             {
-                tex = model.textureList[i];
+                tex = model.TextureList[i];
                 if (!BaseHAM.ObjBitmapMapping.ContainsKey(tex))
                 {
                     //This texture isn't present in the base file, so it's new. Figure out where it is
-                    num = GetObjBitmapPointer(model.first_texture + i);
+                    num = GetObjBitmapPointer(model.FirstTexture + i);
                 }
             }
             if (num == int.MaxValue) return 0;
@@ -289,7 +289,7 @@ namespace LibDescent.Edit
             replacedJoints.Clear();
             foreach (Robot robot in replacedRobots)
             {
-                LoadAnimations(robot, GetModel(robot.model_num));
+                LoadAnimations(robot, GetModel(robot.ModelNum));
             }
             LoadModelTextures();
             CreateDataLists();
@@ -335,8 +335,8 @@ namespace LibDescent.Edit
             for (int i = 0; i < BaseHAM.EClips.Count; i++)
             {
                 clip = BaseHAM.EClips[i];
-                if (clip.changing_object_texture != -1)
-                    textureMapping.Add(BaseHAM.EClipNames[i], clip.changing_object_texture);
+                if (clip.ChangingObjectTexture != -1)
+                    textureMapping.Add(BaseHAM.EClipNames[i], clip.ChangingObjectTexture);
             }
             //If augment file, add augment obj bitmaps
             if (augmentFile != null)
@@ -364,9 +364,9 @@ namespace LibDescent.Edit
                 replacedNum = model.BaseTexture;
 
                 //Find the unique textures in this model
-                for (int j = 0; j < model.textureList.Count; j++)
+                for (int j = 0; j < model.TextureList.Count; j++)
                 {
-                    texName = model.textureList[j];
+                    texName = model.TextureList[j];
                     if (!textureMapping.ContainsKey(texName))
                         newTextures.Add(BaseHAM.piggyFile.GetBitmapIDFromName(texName));
                 }
@@ -396,9 +396,9 @@ namespace LibDescent.Edit
             for (int i = 0; i < replacedModels.Count; i++)
             {
                 model = replacedModels[i];
-                replacedNum = model.first_texture;
+                replacedNum = model.FirstTexture;
 
-                foreach (string texture in model.textureList)
+                foreach (string texture in model.TextureList)
                 {
                     ReplacedBitmapElement elem;
                     if (textureMapping.ContainsKey(texture))
@@ -420,48 +420,48 @@ namespace LibDescent.Edit
         private void LoadAnimations(Robot robot, Polymodel model)
         {
             int NumRobotJoints = robot.baseJoint;
-            robot.n_guns = (sbyte)model.numGuns;
+            robot.NumGuns = (sbyte)model.numGuns;
             for (int i = 0; i < 8; i++)
             {
-                robot.gun_points[i] = model.gunPoints[i];
-                robot.gun_submodels[i] = (byte)model.gunSubmodels[i];
+                robot.GunPoints[i] = model.gunPoints[i];
+                robot.GunSubmodels[i] = (byte)model.gunSubmodels[i];
             }
             for (int m = 0; m < 9; m++)
             {
                 for (int f = 0; f < 5; f++)
                 {
-                    robot.anim_states[m, f].n_joints = 0;
-                    robot.anim_states[m, f].offset = 0;
+                    robot.AnimStates[m, f].n_joints = 0;
+                    robot.AnimStates[m, f].offset = 0;
                 }
             }
             if (!model.isAnimated) return;
             int[] gunNums = new int[10];
 
-            for (int i = 1; i < model.n_models; i++)
+            for (int i = 1; i < model.NumSubmodels; i++)
             {
-                gunNums[i] = robot.n_guns;
+                gunNums[i] = robot.NumGuns;
             }
             gunNums[0] = -1;
 
-            for (int g = 0; g < robot.n_guns; g++)
+            for (int g = 0; g < robot.NumGuns; g++)
             {
-                int m = robot.gun_submodels[g];
+                int m = robot.GunSubmodels[g];
 
                 while (m != 0)
                 {
                     gunNums[m] = g;
-                    m = model.submodels[m].Parent;
+                    m = model.Submodels[m].Parent;
                 }
             }
 
-            for (int g = 0; g < robot.n_guns + 1; g++)
+            for (int g = 0; g < robot.NumGuns + 1; g++)
             {
                 for (int state = 0; state < 5; state++)
                 {
-                    robot.anim_states[g, state].n_joints = 0;
-                    robot.anim_states[g, state].offset = (short)NumRobotJoints;
+                    robot.AnimStates[g, state].n_joints = 0;
+                    robot.AnimStates[g, state].offset = (short)NumRobotJoints;
 
-                    for (int m = 0; m < model.n_models; m++)
+                    for (int m = 0; m < model.NumSubmodels; m++)
                     {
                         if (gunNums[m] == g)
                         {
@@ -470,7 +470,7 @@ namespace LibDescent.Edit
                             joint.angles = model.animationMatrix[m, state];
                             joint.replacementID = NumRobotJoints;
                             replacedJoints.Add(joint);
-                            robot.anim_states[g, state].n_joints++;
+                            robot.AnimStates[g, state].n_joints++;
                             NumRobotJoints++;
                         }
                     }

@@ -28,370 +28,370 @@ namespace LibDescent.Data
     {
         public void WriteTMAPInfo(TMAPInfo tmapinfo, BinaryWriter bw)
         {
-            bw.Write(tmapinfo.flags);
+            bw.Write(tmapinfo.Flags);
             bw.Write(new byte[3]);
-            bw.Write(tmapinfo.lighting.value);
-            bw.Write(tmapinfo.damage.value);
-            bw.Write(tmapinfo.eclip_num);
-            bw.Write(tmapinfo.destroyed);
-            bw.Write(tmapinfo.slide_u);
-            bw.Write(tmapinfo.slide_v);
+            bw.Write(tmapinfo.Lighting.value);
+            bw.Write(tmapinfo.Damage.value);
+            bw.Write(tmapinfo.EClipNum);
+            bw.Write(tmapinfo.DestroyedID);
+            bw.Write(tmapinfo.SlideU);
+            bw.Write(tmapinfo.SlideV);
         }
 
         public void WriteVClip(VClip clip, BinaryWriter bw)
         {
-            bw.Write(clip.play_time.value);
-            bw.Write(clip.num_frames);
-            bw.Write(clip.frame_time.value);
-            bw.Write(clip.flags);
-            bw.Write(clip.sound_num);
+            bw.Write(clip.PlayTime.value);
+            bw.Write(clip.NumFrames);
+            bw.Write(clip.FrameTime.value);
+            bw.Write(clip.Flags);
+            bw.Write(clip.SoundNum);
             for (int x = 0; x < 30; x++)
             {
-                bw.Write(clip.frames[x]);
+                bw.Write(clip.Frames[x]);
             }
-            bw.Write(clip.light_value.value);
+            bw.Write(clip.LightValue.value);
         }
 
         public void WriteEClip(EClip clip, BinaryWriter bw)
         {
             WriteVClip(clip.vc, bw);
-            bw.Write(clip.time_left);
-            bw.Write(clip.frame_count);
-            bw.Write(clip.changing_wall_texture);
-            bw.Write(clip.changing_object_texture);
-            bw.Write(clip.flags);
-            bw.Write(clip.crit_clip);
-            bw.Write(clip.dest_bm_num);
-            bw.Write(clip.dest_vclip);
-            bw.Write(clip.dest_eclip);
-            bw.Write(clip.dest_size.value);
-            bw.Write(clip.sound_num);
-            bw.Write(clip.segnum);
-            bw.Write(clip.sidenum);
+            bw.Write(clip.TimeLeft);
+            bw.Write(clip.FrameCount);
+            bw.Write(clip.ChangingWallTexture);
+            bw.Write(clip.ChangingObjectTexture);
+            bw.Write(clip.Flags);
+            bw.Write(clip.CriticalClip);
+            bw.Write(clip.DestroyedBitmapNum);
+            bw.Write(clip.ExplosionVClip);
+            bw.Write(clip.ExplosionEClip);
+            bw.Write(clip.ExplosionSize.value);
+            bw.Write(clip.SoundNum);
+            bw.Write(clip.SegNum);
+            bw.Write(clip.SideNum);
         }
 
         public void WriteWClip(WClip clip, BinaryWriter bw)
         {
-            bw.Write(clip.play_time.value);
-            bw.Write(clip.num_frames);
+            bw.Write(clip.PlayTime.value);
+            bw.Write(clip.NumFrames);
             for (int x = 0; x < 50; x++)
             {
-                bw.Write(clip.frames[x]);
+                bw.Write(clip.Frames[x]);
             }
-            bw.Write(clip.open_sound);
-            bw.Write(clip.close_sound);
-            bw.Write(clip.flags);
+            bw.Write(clip.OpenSound);
+            bw.Write(clip.CloseSound);
+            bw.Write(clip.Flags);
             for (int x = 0; x < 13; x++)
             {
-                bw.Write((byte)clip.filename[x]);
+                bw.Write((byte)clip.Filename[x]);
             }
-            bw.Write(clip.pad);
+            bw.Write(clip.Pad);
         }
 
         public void WriteRobot(Robot robot, BinaryWriter bw)
         {
-            bw.Write(robot.model_num);
+            bw.Write(robot.ModelNum);
             for (int x = 0; x < 8; x++)
             {
-                bw.Write(robot.gun_points[x].x.value);
-                bw.Write(robot.gun_points[x].y.value);
-                bw.Write(robot.gun_points[x].z.value);
+                bw.Write(robot.GunPoints[x].x.value);
+                bw.Write(robot.GunPoints[x].y.value);
+                bw.Write(robot.GunPoints[x].z.value);
             }
             for (int x = 0; x < 8; x++)
             {
-                bw.Write(robot.gun_submodels[x]);
+                bw.Write(robot.GunSubmodels[x]);
             }
-            bw.Write(robot.exp1_vclip_num);
-            bw.Write(robot.exp1_sound_num);
+            bw.Write(robot.HitVClipNum);
+            bw.Write(robot.HitSoundNum);
             
-            bw.Write(robot.exp2_vclip_num);
-            bw.Write(robot.exp2_sound_num);
+            bw.Write(robot.DeathVClipNum);
+            bw.Write(robot.DeathSoundNum);
             
-            bw.Write(robot.weapon_type);
-            bw.Write(robot.weapon_type2);
-            bw.Write(robot.n_guns);
-            bw.Write(robot.contains_id);
+            bw.Write(robot.WeaponType);
+            bw.Write(robot.WeaponTypeSecondary);
+            bw.Write(robot.NumGuns);
+            bw.Write(robot.ContainsID);
 
-            bw.Write(robot.contains_count);
-            bw.Write(robot.contains_prob);
-            bw.Write(robot.contains_type);
-            bw.Write(robot.kamikaze);
+            bw.Write(robot.ContainsCount);
+            bw.Write(robot.ContainsProbability);
+            bw.Write(robot.ContainsType);
+            bw.Write(robot.Kamikaze);
             
-            bw.Write(robot.score_value);
-            bw.Write(robot.badass);
-            bw.Write(robot.energy_drain);
+            bw.Write(robot.ScoreValue);
+            bw.Write(robot.DeathExplosionRadius);
+            bw.Write(robot.EnergyDrain);
             
-            bw.Write(robot.lighting.value);
-            bw.Write(robot.strength.value);
+            bw.Write(robot.Lighting.value);
+            bw.Write(robot.Strength.value);
             
-            bw.Write(robot.mass.value);
-            bw.Write(robot.drag.value);
+            bw.Write(robot.Mass.value);
+            bw.Write(robot.Drag.value);
             
             for (int x = 0; x < 5; x++)
             {
-                bw.Write(robot.field_of_view[x].value);
+                bw.Write(robot.FieldOfView[x].value);
             }
             for (int x = 0; x < 5; x++)
             {
-                bw.Write(robot.firing_wait[x].value);
+                bw.Write(robot.FiringWait[x].value);
             }
             for (int x = 0; x < 5; x++)
             {
-                bw.Write(robot.firing_wait2[x].value);
+                bw.Write(robot.FiringWaitSecondary[x].value);
             }
             for (int x = 0; x < 5; x++)
             {
-                bw.Write(robot.turn_time[x].value);
+                bw.Write(robot.TurnTime[x].value);
             }
             for (int x = 0; x < 5; x++)
             {
-                bw.Write(robot.max_speed[x].value);
+                bw.Write(robot.MaxSpeed[x].value);
             }
             for (int x = 0; x < 5; x++)
             {
-                bw.Write(robot.circle_distance[x].value);
+                bw.Write(robot.CircleDistance[x].value);
             }
             for (int x = 0; x < 5; x++)
             {
-                bw.Write(robot.rapidfire_count[x]);
+                bw.Write(robot.RapidfireCount[x]);
             }
             for (int x = 0; x < 5; x++)
             {
-                bw.Write(robot.evade_speed[x]);
+                bw.Write(robot.EvadeSpeed[x]);
             }
-            bw.Write(robot.cloak_type);
-            bw.Write(robot.attack_type);
+            bw.Write((sbyte)robot.CloakType);
+            bw.Write((sbyte)robot.AttackType);
            
-            bw.Write(robot.see_sound);
-            bw.Write(robot.attack_sound);
-            bw.Write(robot.claw_sound);
-            bw.Write(robot.taunt_sound);
+            bw.Write(robot.SeeSound);
+            bw.Write(robot.AttackSound);
+            bw.Write(robot.ClawSound);
+            bw.Write(robot.TauntSound);
 
-            bw.Write(robot.boss_flag);
-            bw.Write(robot.companion);
-            bw.Write(robot.smart_blobs);
-            bw.Write(robot.energy_blobs);
+            bw.Write((sbyte)robot.BossFlag);
+            bw.Write((sbyte)(robot.Companion ? 0 : 1));
+            bw.Write(robot.SmartBlobsOnDeath);
+            bw.Write(robot.SmartBlobsOnHit);
 
-            bw.Write(robot.thief);
-            bw.Write(robot.pursuit);
-            bw.Write(robot.lightcast);
-            bw.Write(robot.death_roll);
+            bw.Write((sbyte)(robot.Thief ? 0 : 1));
+            bw.Write(robot.Pursuit);
+            bw.Write(robot.LightCast);
+            bw.Write(robot.DeathRollTime);
 
-            bw.Write(robot.flags);
+            bw.Write(robot.Flags);
             bw.Write(new byte[3]);
 
-            bw.Write(robot.deathroll_sound);
-            bw.Write(robot.glow);
-            bw.Write(robot.behavior);
-            bw.Write(robot.aim);
+            bw.Write(robot.DeathRollSound);
+            bw.Write(robot.Glow);
+            bw.Write((sbyte)robot.Behavior);
+            bw.Write(robot.Aim);
 
             for (int y = 0; y < 9; y++)
             {
                 for (int x = 0; x < 5; x++)
                 {
-                    bw.Write(robot.anim_states[y, x].n_joints);
-                    bw.Write(robot.anim_states[y, x].offset);
+                    bw.Write(robot.AnimStates[y, x].n_joints);
+                    bw.Write(robot.AnimStates[y, x].offset);
                 }
             }
-            bw.Write(robot.always_0xabcd);
+            bw.Write(robot.Always0xABCD);
         }
 
         public void WriteWeapon(Weapon weapon, BinaryWriter bw)
         {
-            bw.Write(weapon.render_type);
-            bw.Write(weapon.persistent);
-            bw.Write(weapon.model_num);
-            bw.Write(weapon.model_num_inner);
+            bw.Write((byte)weapon.RenderType);
+            bw.Write((byte)(weapon.Persistent ? 1 : 0));
+            bw.Write(weapon.ModelNum);
+            bw.Write(weapon.ModelNumInner);
             
-            bw.Write(weapon.flash_vclip);
-            bw.Write(weapon.robot_hit_vclip);
-            bw.Write(weapon.flash_sound);
+            bw.Write(weapon.MuzzleFlashVClip);
+            bw.Write(weapon.RobotHitVClip);
+            bw.Write(weapon.FiringSound);
 
-            bw.Write(weapon.wall_hit_vclip);
-            bw.Write(weapon.fire_count);
-            bw.Write(weapon.robot_hit_sound);
+            bw.Write(weapon.WallHitVclip);
+            bw.Write(weapon.FireCount);
+            bw.Write(weapon.RobotHitSound);
             
-            bw.Write(weapon.ammo_usage);
-            bw.Write(weapon.weapon_vclip);
-            bw.Write(weapon.wall_hit_sound);
+            bw.Write(weapon.AmmoUsage);
+            bw.Write(weapon.WeaponVClip);
+            bw.Write(weapon.WallHitSound);
 
-            bw.Write(weapon.destroyable);
-            bw.Write(weapon.matter);
-            bw.Write(weapon.bounce);
-            bw.Write(weapon.homing_flag);
+            bw.Write((byte)(weapon.Destroyable ? 1 : 0));
+            bw.Write((byte)(weapon.Matter ? 1 : 0));
+            bw.Write((byte)weapon.Bounce);
+            bw.Write((byte)(weapon.HomingFlag ? 1 : 0));
 
-            bw.Write(weapon.speedvar);
+            bw.Write(weapon.SpeedVariance);
 
-            bw.Write(weapon.flags);
+            bw.Write(weapon.Flags);
 
-            bw.Write(weapon.flash);
-            bw.Write(weapon.afterburner_size);
+            bw.Write(weapon.Flash);
+            bw.Write(weapon.AfterburnerSize);
 
-            bw.Write(weapon.children);
+            bw.Write(weapon.Children);
             
-            bw.Write(weapon.energy_usage.value);
-            bw.Write(weapon.fire_wait.value);
+            bw.Write(weapon.EnergyUsage.value);
+            bw.Write(weapon.FireWait.value);
 
-            bw.Write(weapon.multi_damage_scale.value);
+            bw.Write(weapon.MultiDamageScale.value);
             
-            bw.Write(weapon.bitmap);
+            bw.Write(weapon.Bitmap);
             
-            bw.Write(weapon.blob_size.value);
-            bw.Write(weapon.flash_size.value);
-            bw.Write(weapon.impact_size.value);
+            bw.Write(weapon.BlobSize.value);
+            bw.Write(weapon.FlashSize.value);
+            bw.Write(weapon.ImpactSize.value);
             for (int x = 0; x < 5; x++)
             {
-                bw.Write(weapon.strength[x].value);
+                bw.Write(weapon.Strength[x].value);
             }
             for (int x = 0; x < 5; x++)
             {
-                bw.Write(weapon.speed[x].value);
+                bw.Write(weapon.Speed[x].value);
             }
-            bw.Write(weapon.mass.value);
-            bw.Write(weapon.drag.value);
-            bw.Write(weapon.thrust.value);
-            bw.Write(weapon.po_len_to_width_ratio.value);
-            bw.Write(weapon.light.value);
-            bw.Write(weapon.lifetime.value);
-            bw.Write(weapon.damage_radius.value);
+            bw.Write(weapon.Mass.value);
+            bw.Write(weapon.Drag.value);
+            bw.Write(weapon.Thrust.value);
+            bw.Write(weapon.POLenToWidthRatio.value);
+            bw.Write(weapon.Light.value);
+            bw.Write(weapon.Lifetime.value);
+            bw.Write(weapon.DamageRadius.value);
             
-            bw.Write(weapon.picture);
-            bw.Write(weapon.hires_picture);
+            bw.Write(weapon.CockpitPicture);
+            bw.Write(weapon.HiresCockpitPicture);
         }
 
         public void WriteWeaponV2(Weapon weapon, BinaryWriter bw)
         {
-            bw.Write(weapon.render_type);
-            bw.Write(weapon.persistent);
-            bw.Write(weapon.model_num);
-            bw.Write(weapon.model_num_inner);
+            bw.Write((byte)weapon.RenderType);
+            bw.Write((byte)(weapon.Persistent ? 1 : 0));
+            bw.Write(weapon.ModelNum);
+            bw.Write(weapon.ModelNumInner);
 
-            bw.Write(weapon.flash_vclip);
-            bw.Write(weapon.robot_hit_vclip);
-            bw.Write(weapon.flash_sound);
+            bw.Write(weapon.MuzzleFlashVClip);
+            bw.Write(weapon.RobotHitVClip);
+            bw.Write(weapon.FiringSound);
 
-            bw.Write(weapon.wall_hit_vclip);
-            bw.Write(weapon.fire_count);
-            bw.Write(weapon.robot_hit_sound);
+            bw.Write(weapon.WallHitVclip);
+            bw.Write(weapon.FireCount);
+            bw.Write(weapon.RobotHitSound);
 
-            bw.Write(weapon.ammo_usage);
-            bw.Write(weapon.weapon_vclip);
-            bw.Write(weapon.wall_hit_sound);
+            bw.Write(weapon.AmmoUsage);
+            bw.Write(weapon.WeaponVClip);
+            bw.Write(weapon.WallHitSound);
 
-            bw.Write(weapon.destroyable);
-            bw.Write(weapon.matter);
-            bw.Write(weapon.bounce);
-            bw.Write(weapon.homing_flag);
+            bw.Write((byte)(weapon.Destroyable ? 1 : 0));
+            bw.Write((byte)(weapon.Matter ? 1 : 0));
+            bw.Write((byte)weapon.Bounce);
+            bw.Write((byte)(weapon.HomingFlag ? 1 : 0));
 
-            bw.Write(weapon.speedvar);
+            bw.Write(weapon.SpeedVariance);
 
-            bw.Write(weapon.flags);
+            bw.Write(weapon.Flags);
 
-            bw.Write(weapon.flash);
-            bw.Write(weapon.afterburner_size);
+            bw.Write(weapon.Flash);
+            bw.Write(weapon.AfterburnerSize);
 
-            bw.Write(weapon.energy_usage.value);
-            bw.Write(weapon.fire_wait.value);
+            bw.Write(weapon.EnergyUsage.value);
+            bw.Write(weapon.FireWait.value);
 
-            bw.Write(weapon.bitmap);
+            bw.Write(weapon.Bitmap);
 
-            bw.Write(weapon.blob_size.value);
-            bw.Write(weapon.flash_size.value);
-            bw.Write(weapon.impact_size.value);
+            bw.Write(weapon.BlobSize.value);
+            bw.Write(weapon.FlashSize.value);
+            bw.Write(weapon.ImpactSize.value);
             for (int x = 0; x < 5; x++)
             {
-                bw.Write(weapon.strength[x].value);
+                bw.Write(weapon.Strength[x].value);
             }
             for (int x = 0; x < 5; x++)
             {
-                bw.Write(weapon.speed[x].value);
+                bw.Write(weapon.Speed[x].value);
             }
-            bw.Write(weapon.mass.value);
-            bw.Write(weapon.drag.value);
-            bw.Write(weapon.thrust.value);
-            bw.Write(weapon.po_len_to_width_ratio.value);
-            bw.Write(weapon.light.value);
-            bw.Write(weapon.lifetime.value);
-            bw.Write(weapon.damage_radius.value);
+            bw.Write(weapon.Mass.value);
+            bw.Write(weapon.Drag.value);
+            bw.Write(weapon.Thrust.value);
+            bw.Write(weapon.POLenToWidthRatio.value);
+            bw.Write(weapon.Light.value);
+            bw.Write(weapon.Lifetime.value);
+            bw.Write(weapon.DamageRadius.value);
 
-            bw.Write(weapon.picture);
+            bw.Write(weapon.CockpitPicture);
         }
 
         public void WritePolymodel(Polymodel model, BinaryWriter bw)
         {
-            bw.Write(model.n_models);
-            bw.Write(model.model_data_size);
-            bw.Write(model.model_data);
+            bw.Write(model.NumSubmodels);
+            bw.Write(model.ModelIDTASize);
+            bw.Write(model.ModelIDTAPointer);
             for (int s = 0; s < 10; s++)
             {
-                bw.Write(model.submodels[s].Pointer);
+                bw.Write(model.Submodels[s].Pointer);
             }
             for (int s = 0; s < 10; s++)
             {
-                bw.Write(model.submodels[s].Offset.x.value);
-                bw.Write(model.submodels[s].Offset.y.value);
-                bw.Write(model.submodels[s].Offset.z.value);
+                bw.Write(model.Submodels[s].Offset.x.value);
+                bw.Write(model.Submodels[s].Offset.y.value);
+                bw.Write(model.Submodels[s].Offset.z.value);
             }
             for (int s = 0; s < 10; s++)
             {
-                bw.Write(model.submodels[s].Normal.x.value);
-                bw.Write(model.submodels[s].Normal.y.value);
-                bw.Write(model.submodels[s].Normal.z.value);
+                bw.Write(model.Submodels[s].Normal.x.value);
+                bw.Write(model.Submodels[s].Normal.y.value);
+                bw.Write(model.Submodels[s].Normal.z.value);
             }
             for (int s = 0; s < 10; s++)
             {
-                bw.Write(model.submodels[s].Point.x.value);
-                bw.Write(model.submodels[s].Point.y.value);
-                bw.Write(model.submodels[s].Point.z.value);
+                bw.Write(model.Submodels[s].Point.x.value);
+                bw.Write(model.Submodels[s].Point.y.value);
+                bw.Write(model.Submodels[s].Point.z.value);
             }
             for (int s = 0; s < 10; s++)
             {
-                bw.Write(model.submodels[s].Radius.value);
+                bw.Write(model.Submodels[s].Radius.value);
             }
             for (int s = 0; s < 10; s++)
             {
-                bw.Write(model.submodels[s].Parent);
+                bw.Write(model.Submodels[s].Parent);
             }
             for (int s = 0; s < 10; s++)
             {
-                bw.Write(model.submodels[s].Mins.x.value);
-                bw.Write(model.submodels[s].Mins.y.value);
-                bw.Write(model.submodels[s].Mins.z.value);
+                bw.Write(model.Submodels[s].Mins.x.value);
+                bw.Write(model.Submodels[s].Mins.y.value);
+                bw.Write(model.Submodels[s].Mins.z.value);
             }
             for (int s = 0; s < 10; s++)
             {
-                bw.Write(model.submodels[s].Maxs.x.value);
-                bw.Write(model.submodels[s].Maxs.y.value);
-                bw.Write(model.submodels[s].Maxs.z.value);
+                bw.Write(model.Submodels[s].Maxs.x.value);
+                bw.Write(model.Submodels[s].Maxs.y.value);
+                bw.Write(model.Submodels[s].Maxs.z.value);
             }
-            bw.Write(model.mins.x.value);
-            bw.Write(model.mins.y.value);
-            bw.Write(model.mins.z.value);
-            bw.Write(model.maxs.x.value);
-            bw.Write(model.maxs.y.value);
-            bw.Write(model.maxs.z.value);
-            bw.Write(model.rad.value);
-            bw.Write(model.n_textures);
-            bw.Write(model.first_texture);
-            bw.Write(model.simpler_model);
+            bw.Write(model.Mins.x.value);
+            bw.Write(model.Mins.y.value);
+            bw.Write(model.Mins.z.value);
+            bw.Write(model.Maxs.x.value);
+            bw.Write(model.Maxs.y.value);
+            bw.Write(model.Maxs.z.value);
+            bw.Write(model.Radius.value);
+            bw.Write(model.NumTextures);
+            bw.Write(model.FirstTexture);
+            bw.Write(model.SimplerModels);
         }
 
         public void WritePlayerShip(Ship ship, BinaryWriter bw)
         {
-            bw.Write(ship.model_num);
-            bw.Write(ship.expl_vclip_num);
-            bw.Write(ship.mass.value);
-            bw.Write(ship.drag.value);
-            bw.Write(ship.max_thrust.value);
-            bw.Write(ship.reverse_thrust.value);
-            bw.Write(ship.brakes.value);
-            bw.Write(ship.wiggle.value);
-            bw.Write(ship.max_rotthrust.value);
+            bw.Write(ship.ModelNum);
+            bw.Write(ship.DeathVClipNum);
+            bw.Write(ship.Mass.value);
+            bw.Write(ship.Drag.value);
+            bw.Write(ship.MaxThrust.value);
+            bw.Write(ship.ReverseThrust.value);
+            bw.Write(ship.Brakes.value);
+            bw.Write(ship.Wiggle.value);
+            bw.Write(ship.MaxRotationThrust.value);
             for (int x = 0; x < 8; x++)
             {
-                bw.Write(ship.gun_points[x].x.value);
-                bw.Write(ship.gun_points[x].y.value);
-                bw.Write(ship.gun_points[x].z.value);
+                bw.Write(ship.GunPoints[x].x.value);
+                bw.Write(ship.GunPoints[x].y.value);
+                bw.Write(ship.GunPoints[x].z.value);
             }
         }
     }

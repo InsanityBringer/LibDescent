@@ -30,11 +30,11 @@ namespace LibDescent.Data
         {
             bw.Write(0x4F505350);
             bw.Write(version);
-            if (model.n_textures > 0)
+            if (model.NumTextures > 0)
                 SerializeTextures(bw, model, version);
             SerializeObject(bw, model, version);
-            for (int i = 0; i < model.n_models; i++)
-                SerializeSubobject(bw, i, model.submodels[i], version);
+            for (int i = 0; i < model.NumSubmodels; i++)
+                SerializeSubobject(bw, i, model.Submodels[i], version);
             if (model.numGuns > 0)
                 SerializeGuns(bw, model, version);
             if (model.isAnimated)
@@ -46,7 +46,7 @@ namespace LibDescent.Data
         {
             int size = 2;
             int padBytes = 0;
-            foreach (string texture in model.textureList)
+            foreach (string texture in model.TextureList)
             {
                 size += texture.Length + 1;
             }
@@ -58,8 +58,8 @@ namespace LibDescent.Data
             }
             bw.Write(0x52545854);
             bw.Write(size);
-            bw.Write((short)model.textureList.Count);
-            foreach (string texture in model.textureList)
+            bw.Write((short)model.TextureList.Count);
+            foreach (string texture in model.TextureList)
             {
                 size += texture.Length + 1;
                 for (int i = 0; i < texture.Length; i++)
@@ -84,14 +84,14 @@ namespace LibDescent.Data
             }
             bw.Write(0x5244484F);
             bw.Write(size);
-            bw.Write(model.n_models);
-            bw.Write(model.rad.value);
-            bw.Write(model.mins.x.value);
-            bw.Write(model.mins.y.value);
-            bw.Write(model.mins.z.value);
-            bw.Write(model.maxs.x.value);
-            bw.Write(model.maxs.y.value);
-            bw.Write(model.maxs.z.value);
+            bw.Write(model.NumSubmodels);
+            bw.Write(model.Radius.value);
+            bw.Write(model.Mins.x.value);
+            bw.Write(model.Mins.y.value);
+            bw.Write(model.Mins.z.value);
+            bw.Write(model.Maxs.x.value);
+            bw.Write(model.Maxs.y.value);
+            bw.Write(model.Maxs.z.value);
             for (int i = 0; i < padBytes; i++)
                 bw.Write((byte)0);
         }
@@ -157,7 +157,7 @@ namespace LibDescent.Data
 
         private static void SerializeAnim(BinaryWriter bw, Polymodel model, short version)
         {
-            int size = 2 + 6 * model.n_models * Robot.NUM_ANIMATION_STATES;
+            int size = 2 + 6 * model.NumSubmodels * Robot.NUM_ANIMATION_STATES;
             int padBytes = 0;
             if (version >= 8)
             {
@@ -168,7 +168,7 @@ namespace LibDescent.Data
             bw.Write(0x4D494E41);
             bw.Write(size);
             bw.Write((short)Robot.NUM_ANIMATION_STATES);
-            for (int i = 0; i < model.n_models; i++)
+            for (int i = 0; i < model.NumSubmodels; i++)
             {
                 for (int f = 0; f < Robot.NUM_ANIMATION_STATES; f++)
                 {
@@ -184,7 +184,7 @@ namespace LibDescent.Data
 
         private static void SerializeIDTA(BinaryWriter bw, Polymodel model, short version)
         {
-            int size = model.model_data_size;
+            int size = model.ModelIDTASize;
             int padBytes = 0;
             if (version >= 8)
             {
@@ -194,7 +194,7 @@ namespace LibDescent.Data
             }
             bw.Write(0x41544449);
             bw.Write(size);
-            bw.Write(model.data.InterpreterData);
+            bw.Write(model.Data.InterpreterData);
 
             for (int i = 0; i < padBytes; i++)
                 bw.Write((byte)0);

@@ -22,225 +22,239 @@
 
 namespace LibDescent.Data
 {
+    public enum WeaponRenderType
+    {
+        Crash,
+        Sprite,
+        Object,
+        VClip,
+        Invisible = 255
+    }
+    public enum WeaponBounceType
+    {
+        None,
+        Infinitely,
+        Twice
+    }
     public class Weapon
     {
         /// <summary>
         /// How to draw 0=crash, 1=blob, 2=object, 3=vclip, 255=invis
         /// </summary>
-        public byte render_type;
+        public WeaponRenderType RenderType { get; set; } //was byte
         /// <summary>
         /// 0 = dies when it hits something, 1 = continues (eg, fusion cannon)
         /// </summary>
-        public byte persistent;
+        public bool Persistent { get; set; } //was byte
         /// <summary>
         /// Model num if rendertype==2.
         /// </summary>
-        public short model_num;
+        public short ModelNum { get; set; }
         /// <summary>
         /// Model num of inner part if rendertype==2.
         /// </summary>
-        public short model_num_inner;
+        public short ModelNumInner { get; set; }
         /// <summary>
         /// What vclip to use for muzzle flash
         /// </summary>
-        public sbyte flash_vclip;
+        public sbyte MuzzleFlashVClip { get; set; }
         /// <summary>
         /// What vclip for impact with robot
         /// </summary>
-        public sbyte robot_hit_vclip;
+        public sbyte RobotHitVClip { get; set; }
         /// <summary>
         /// What sound to play when fired
         /// </summary>
-        public short flash_sound;
+        public short FiringSound { get; set; }
         /// <summary>
         /// What vclip for impact with wall
         /// </summary>
-        public sbyte wall_hit_vclip;
+        public sbyte WallHitVclip { get; set; }
         /// <summary>
         /// Number of bursts fired from EACH GUN per firing.  For weapons which fire from both sides, 3*fire_count shots will be fired.
         /// </summary>
-        public byte fire_count;
+        public byte FireCount { get; set; }
         /// <summary>
         /// What sound for impact with robot
         /// </summary>
-        public short robot_hit_sound;
+        public short RobotHitSound { get; set; }
         /// <summary>
         /// How many units of ammunition it uses.
         /// </summary>
-        public byte ammo_usage;
+        public byte AmmoUsage { get; set; }
         /// <summary>
-        /// Vclip to render for the weapon, itself.
+        /// Vclip to render for the weapon, itself. Used when RenderType == VClip.
         /// </summary>
-        public sbyte weapon_vclip;
+        public sbyte WeaponVClip { get; set; }
         /// <summary>
         /// What sound for impact with wall
         /// </summary>
-        public short wall_hit_sound;
+        public short WallHitSound { get; set; }
         /// <summary>
         /// If !0, this weapon can be destroyed by another weapon.
         /// </summary>
-        public byte destroyable;
+        public bool Destroyable { get; set; } //was byte
         /// <summary>
         /// Flag: set if this object is matter (as opposed to energy)
         /// </summary>
-        public byte matter;
+        public bool Matter { get; set; } //was byte
         /// <summary>
         /// 1==always bounces, 2=bounces twice 
         /// </summary>
-        public byte bounce;
+        public WeaponBounceType Bounce { get; set; } //was byte
         /// <summary>
         /// Set if this weapon can home in on a target.
         /// </summary>
-        public byte homing_flag;
+        public bool HomingFlag { get; set; } //was byte
         /// <summary>
         /// allowed variance in speed below average, /128: 64 = 50% meaning if speed = 100, can be 50..100
         /// </summary>
-        public byte speedvar; 
+        public byte SpeedVariance { get; set; }
         /// <summary>
-        /// In practice this is actually "placeable"
+        /// Flags related to this weapon. See Placable.
         /// </summary>
-        public byte flags;
+        public byte Flags { get; set; }
         /// <summary>
         /// Flash effect
         /// </summary>
-        public sbyte flash;
+        public sbyte Flash { get; set; }
         /// <summary>
         /// Size of blobs in F1_0/16 units.  Player afterburner size = 2.5.
         /// </summary>
-        public sbyte afterburner_size;
+        public sbyte AfterburnerSize { get; set; }
         /// <summary>
         /// ID of weapon to drop if this contains children.  -1 means no children.
         /// </summary>
-        public sbyte children;
+        public sbyte Children { get; set; }
         /// <summary>
         /// How much fuel is consumed to fire this weapon.
         /// </summary>
-        public Fix energy_usage;
+        public Fix EnergyUsage { get; set; }
         /// <summary>
         /// Time until this weapon can be fired again.
         /// </summary>
-        public Fix fire_wait;
+        public Fix FireWait { get; set; }
         /// <summary>
         /// Scale damage by this amount when applying to player in multiplayer.  F1_0 means no change.
         /// </summary>
-        public Fix multi_damage_scale;
+        public Fix MultiDamageScale { get; set; }
         /// <summary>
         /// Pointer to bitmap if rendertype==0 or 1.
         /// </summary>
-        public ushort bitmap;
+        public ushort Bitmap { get; set; }
         /// <summary>
         /// Size of blob if blob type
         /// </summary>
-        public Fix blob_size;
+        public Fix BlobSize { get; set; }
         /// <summary>
         /// How big to draw the flash
         /// </summary>
-        public Fix flash_size;
+        public Fix FlashSize { get; set; }
         /// <summary>
         /// How big of an impact
         /// </summary>
-        public Fix impact_size;
+        public Fix ImpactSize { get; set; }
         /// <summary>
         /// How much damage it can inflict
         /// </summary>
-        public Fix[] strength = new Fix[5];
+        public Fix[] Strength { get; } = new Fix[5];
         /// <summary>
         /// How fast it can move, difficulty level based.
         /// </summary>
-        public Fix[] speed = new Fix[5];
+        public Fix[] Speed { get; } = new Fix[5];
         /// <summary>
         /// How much mass it has
         /// </summary>
-        public Fix mass;
+        public Fix Mass { get; set; }
         /// <summary>
         /// How much drag it has
         /// </summary>
-        public Fix drag;
+        public Fix Drag { get; set; }
         /// <summary>
-        /// How much thrust it has
+        /// (Unused/broken) How much thrust it has
         /// </summary>
-        public Fix thrust;
+        public Fix Thrust { get; set; }
         /// <summary>
-        /// For polyobjects, the ratio of len/width. (10 maybe?)
+        /// For polyobjects, the ratio of len/width. (10 maybe?). The bounding sphere is divided by a factor of this value.
         /// </summary>
-        public Fix po_len_to_width_ratio;
+        public Fix POLenToWidthRatio { get; set; }
         /// <summary>
         /// Amount of light this weapon casts.
         /// </summary>
-        public Fix light;
+        public Fix Light { get; set; }
         /// <summary>
         /// Lifetime in seconds of this weapon.
         /// </summary>
-        public Fix lifetime;
+        public Fix Lifetime { get; set; }
         /// <summary>
         /// Radius of damage caused by weapon, used for missiles (not lasers) to apply to damage to things it did not hit
         /// </summary>
-        public Fix damage_radius;
+        public Fix DamageRadius { get; set; }
         /// <summary>
         /// a picture of the weapon for the cockpit
         /// </summary>
-        public ushort picture;
+        public ushort CockpitPicture { get; set; }
         /// <summary>
         /// a hires picture of the above
         /// </summary>
-        public ushort hires_picture;
+        public ushort HiresCockpitPicture { get; set; }
 
         public int ID;
 
         public Weapon()
         {
-            model_num = -1;
-            model_num_inner = -1;
-            render_type = 3;
-            po_len_to_width_ratio = 10;
-            speedvar = 128;
-            fire_count = 1;
-            children = -1;
+            ModelNum = -1;
+            ModelNumInner = -1;
+            RenderType = WeaponRenderType.VClip;
+            POLenToWidthRatio = 10;
+            SpeedVariance = 128;
+            FireCount = 1;
+            Children = -1;
         }
 
         public void CopyDataFrom(Weapon other, IElementManager manager)
         {
-            render_type = other.render_type;
-            model_num = other.model_num;
-            model_num_inner = other.model_num_inner;
-            flash_vclip = other.flash_vclip;
-            robot_hit_vclip = other.robot_hit_vclip;
-            flash_sound = other.flash_sound;
-            wall_hit_vclip = other.wall_hit_vclip;
-            fire_count = other.fire_count;
-            robot_hit_sound = other.robot_hit_sound;
-            ammo_usage = other.ammo_usage;
-            weapon_vclip = other.weapon_vclip;
-            wall_hit_sound = other.wall_hit_sound;
-            bounce = other.bounce;
-            speedvar = other.speedvar;
-            flash = other.flash;
-            afterburner_size = other.afterburner_size;
-            children = other.children;
-            energy_usage = other.energy_usage;
-            fire_wait = other.fire_wait;
-            multi_damage_scale = other.multi_damage_scale;
-            destroyable = other.destroyable;
-            matter = other.matter;
-            homing_flag = other.homing_flag;
-            flags = other.flags;
-            bitmap = other.bitmap;
-            blob_size = other.blob_size;
-            flash_size = other.flash_size;
-            impact_size = other.impact_size;
-            mass = other.mass;
-            drag = other.drag;
-            thrust = other.thrust;
-            po_len_to_width_ratio = other.po_len_to_width_ratio;
-            light = other.light;
-            lifetime = other.lifetime;
-            damage_radius = other.damage_radius;
-            picture = other.picture;
-            hires_picture = other.hires_picture;
+            RenderType = other.RenderType;
+            ModelNum = other.ModelNum;
+            ModelNumInner = other.ModelNumInner;
+            MuzzleFlashVClip = other.MuzzleFlashVClip;
+            RobotHitVClip = other.RobotHitVClip;
+            FiringSound = other.FiringSound;
+            WallHitVclip = other.WallHitVclip;
+            FireCount = other.FireCount;
+            RobotHitSound = other.RobotHitSound;
+            AmmoUsage = other.AmmoUsage;
+            WeaponVClip = other.WeaponVClip;
+            WallHitSound = other.WallHitSound;
+            Bounce = other.Bounce;
+            SpeedVariance = other.SpeedVariance;
+            Flash = other.Flash;
+            AfterburnerSize = other.AfterburnerSize;
+            Children = other.Children;
+            EnergyUsage = other.EnergyUsage;
+            FireWait = other.FireWait;
+            MultiDamageScale = other.MultiDamageScale;
+            Destroyable = other.Destroyable;
+            Matter = other.Matter;
+            HomingFlag = other.HomingFlag;
+            Flags = other.Flags;
+            Bitmap = other.Bitmap;
+            BlobSize = other.BlobSize;
+            FlashSize = other.FlashSize;
+            ImpactSize = other.ImpactSize;
+            Mass = other.Mass;
+            Drag = other.Drag;
+            Thrust = other.Thrust;
+            POLenToWidthRatio = other.POLenToWidthRatio;
+            Light = other.Light;
+            Lifetime = other.Lifetime;
+            DamageRadius = other.DamageRadius;
+            CockpitPicture = other.CockpitPicture;
+            HiresCockpitPicture = other.HiresCockpitPicture;
             for (int i = 0; i < 5; i++)
             {
-                strength[i] = other.strength[i];
-                speed[i] = other.speed[i];
+                Strength[i] = other.Strength[i];
+                Speed[i] = other.Speed[i];
             }
         }
 
@@ -249,109 +263,109 @@ namespace LibDescent.Data
             switch (tag)
             {
                 case 2:
-                    model_num = (short)(value-1);
+                    ModelNum = (short)(value-1);
                     break;
                 case 3:
-                    model_num_inner = (short)(value-1);
+                    ModelNumInner = (short)(value-1);
                     break;
                 case 4:
-                    flash_vclip = (sbyte)(value - 1);
+                    MuzzleFlashVClip = (sbyte)(value - 1);
                     break;
                 case 5:
-                    robot_hit_vclip = (sbyte)(value - 1);
+                    RobotHitVClip = (sbyte)(value - 1);
                     break;
                 case 6:
-                    if (value == 0) flash_sound = -1;
-                    else flash_sound = (short)(value - 1);
+                    if (value == 0) FiringSound = -1;
+                    else FiringSound = (short)(value - 1);
                     break;
                 case 7:
-                    wall_hit_vclip = (sbyte)(value - 1);
+                    WallHitVclip = (sbyte)(value - 1);
                     break;
                 case 8:
-                    fire_count = (byte)value;
+                    FireCount = (byte)value;
                     break;
                 case 9:
-                    if (value == 0) robot_hit_sound = -1;
-                    else robot_hit_sound = (short)(value - 1);
+                    if (value == 0) RobotHitSound = -1;
+                    else RobotHitSound = (short)(value - 1);
                     break;
                 case 10:
-                    ammo_usage = (byte)value;
+                    AmmoUsage = (byte)value;
                     break;
                 case 11:
-                    weapon_vclip = (sbyte)(value - 1);
+                    WeaponVClip = (sbyte)(value - 1);
                     break;
                 case 12:
-                    if (value == 0) wall_hit_sound = -1;
-                    else wall_hit_sound = (short)(value - 1);
+                    if (value == 0) WallHitSound = -1;
+                    else WallHitSound = (short)(value - 1);
                     break;
                 case 15:
-                    bounce = (byte)value;
+                    Bounce = (WeaponBounceType)value;
                     break;
                 case 17:
-                    speedvar = (byte)value;
+                    SpeedVariance = (byte)value;
                     break;
                 case 19:
-                    flash = (sbyte)value;
+                    Flash = (sbyte)value;
                     break;
                 case 20:
-                    afterburner_size = (sbyte)value;
+                    AfterburnerSize = (sbyte)value;
                     break;
                 case 21:
-                    children = (sbyte)(value - 1);
+                    Children = (sbyte)(value - 1);
                     break;
                 case 22:
-                    energy_usage = Fix.FromRawValue(value);
+                    EnergyUsage = Fix.FromRawValue(value);
                     break;
                 case 23:
-                    fire_wait = Fix.FromRawValue(value);
+                    FireWait = Fix.FromRawValue(value);
                     break;
                 case 24:
-                    multi_damage_scale = value;
+                    MultiDamageScale = value;
                     break;
                 case 25:
-                    bitmap = (ushort)value;
+                    Bitmap = (ushort)value;
                     break;
                 case 26:
-                    blob_size = Fix.FromRawValue(value);
+                    BlobSize = Fix.FromRawValue(value);
                     break;
                 case 27:
-                    flash_size = Fix.FromRawValue(value);
+                    FlashSize = Fix.FromRawValue(value);
                     break;
                 case 28:
-                    impact_size = Fix.FromRawValue(value);
+                    ImpactSize = Fix.FromRawValue(value);
                     break;
                 case 29:
-                    strength[index] = Fix.FromRawValue(value);
+                    Strength[index] = Fix.FromRawValue(value);
                     break;
                 case 30:
-                    speed[index] = Fix.FromRawValue(value);
+                    Speed[index] = Fix.FromRawValue(value);
                     break;
                 case 31:
-                    mass = Fix.FromRawValue(value);
+                    Mass = Fix.FromRawValue(value);
                     break;
                 case 32:
-                    drag = Fix.FromRawValue(value);
+                    Drag = Fix.FromRawValue(value);
                     break;
                 case 33:
-                    thrust = Fix.FromRawValue(value);
+                    Thrust = Fix.FromRawValue(value);
                     break;
                 case 34:
-                    po_len_to_width_ratio = Fix.FromRawValue(value);
+                    POLenToWidthRatio = Fix.FromRawValue(value);
                     break;
                 case 35:
-                    light = Fix.FromRawValue(value);
+                    Light = Fix.FromRawValue(value);
                     break;
                 case 36:
-                    lifetime = Fix.FromRawValue(value);
+                    Lifetime = Fix.FromRawValue(value);
                     break;
                 case 37:
-                    picture = (ushort)value;
+                    CockpitPicture = (ushort)value;
                     break;
                 case 38:
-                    hires_picture = (ushort)value;
+                    HiresCockpitPicture = (ushort)value;
                     break;
                 case 39:
-                    damage_radius = Fix.FromRawValue(value);
+                    DamageRadius = Fix.FromRawValue(value);
                     break;
             }
         }

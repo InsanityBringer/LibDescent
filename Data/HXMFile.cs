@@ -97,9 +97,9 @@ namespace LibDescent.Data
                 int replacementID = br.ReadInt32();
                 Polymodel model = data.ReadPolymodelInfo(br);
                 model.replacementID = replacementID;
-                PolymodelData modeldata = new PolymodelData(model.model_data_size);
-                modeldata.InterpreterData = br.ReadBytes(model.model_data_size);
-                model.data = modeldata;
+                PolymodelData modeldata = new PolymodelData(model.ModelIDTASize);
+                modeldata.InterpreterData = br.ReadBytes(model.ModelIDTASize);
+                model.Data = modeldata;
                 replacedModels.Add(model);
                 model.DyingModelnum = br.ReadInt32();
                 model.DeadModelnum = br.ReadInt32();
@@ -156,7 +156,7 @@ namespace LibDescent.Data
             {
                 bw.Write(replacedModels[x].replacementID);
                 datawriter.WritePolymodel(replacedModels[x], bw);
-                bw.Write(replacedModels[x].data.InterpreterData);
+                bw.Write(replacedModels[x].Data.InterpreterData);
                 bw.Write(replacedModels[x].DyingModelnum);
                 bw.Write(replacedModels[x].DeadModelnum);
             }

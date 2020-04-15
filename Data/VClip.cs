@@ -24,13 +24,53 @@ namespace LibDescent.Data
 {
     public class VClip
     {
-        public Fix play_time;
-        public int num_frames;
-        public Fix frame_time;
-        public int flags;
-        public short sound_num;
-        public ushort[] frames = new ushort[30];
-        public Fix light_value;
+        /// <summary>
+        /// Total play time of the VClip, in seconds.
+        /// </summary>
+        public Fix PlayTime { get; set; }
+        /// <summary>
+        /// Number of frames in the VClip.
+        /// </summary>
+        public int NumFrames { get; set; }
+        /// <summary>
+        /// Time of all frame, in seconds.
+        /// </summary>
+        public Fix FrameTime { get; set; }
+        /// <summary>
+        /// Flags related to the VClip. See DrawAsRod.
+        /// </summary>
+        public int Flags { get; set; }
+        /// <summary>
+        /// Sound number associated with the VClip. Only used in certain contexts (e.g. Matcen spawning).
+        /// </summary>
+        public short SoundNum { get; set; }
+        /// <summary>
+        /// Piggy indexes of each frame of this VClip.
+        /// </summary>
+        public ushort[] Frames { get; } = new ushort[30];
+        /// <summary>
+        /// Light cast by the VClip. Only used in certain contexts.
+        /// </summary>
+        public Fix LightValue { get; set; }
+
+        //Flag properties
+        /// <summary>
+        /// Whether or not the sprite is aligned to an axis, based on the object orientation.
+        /// </summary>
+        public bool DrawAsRod
+        {
+            get
+            {
+                return (Flags & 1) != 0;
+            }
+            set
+            {
+                if (value)
+                    Flags |= 1;
+                else
+                    Flags &= ~1;
+            }
+        }
 
         public int ID;
 
@@ -42,22 +82,22 @@ namespace LibDescent.Data
             if (img.isAnimated)
             {
                 //Clear the old animation
-                for (int i = 0; i < 30; i++) frames[i] = 0;
+                for (int i = 0; i < 30; i++) Frames[i] = 0;
 
-                frames[numFrames] = (ushort)(firstFrame + numFrames);
+                Frames[numFrames] = (ushort)(firstFrame + numFrames);
                 img = piggyFile.Bitmaps[firstFrame + numFrames + 1];
                 numFrames++;
                 while (img.frame == numFrames)
                 {
                     if (firstFrame + numFrames + 1 >= piggyFile.Bitmaps.Count) break; 
-                    frames[numFrames] = (ushort)(firstFrame + numFrames);
+                    Frames[numFrames] = (ushort)(firstFrame + numFrames);
                     img = piggyFile.Bitmaps[firstFrame + numFrames + 1];
                     numFrames++;
                     nextFrame++;
                 }
-                this.num_frames = numFrames;
+                this.NumFrames = numFrames;
             }
-            frame_time = play_time / num_frames;
+            FrameTime = PlayTime / NumFrames;
         }
     }
 }

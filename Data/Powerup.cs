@@ -24,10 +24,22 @@ namespace LibDescent.Data
 {
     public class Powerup
     {
-        public int vclip_num;
-        public int hit_sound;
-        public Fix size;			//3d size of longest dimension
-        public Fix light;		//	amount of light cast by this powerup, set in bitmaps.tbl
+        /// <summary>
+        /// VClip number used for the sprite.
+        /// </summary>
+        public int VClipNum { get; set; }
+        /// <summary>
+        /// Sound number played when the powerup is successfully collected.
+        /// </summary>
+        public int HitSound { get; set; }
+        /// <summary>
+        /// Size of the powerup's sprite, in map units.
+        /// </summary>
+        public Fix Size { get; set; }
+        /// <summary>
+        /// Amount of light cast by this powerup.
+        /// </summary>
+        public Fix Light { get; set; }
 
         public int ID;
     }

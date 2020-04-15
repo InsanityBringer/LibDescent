@@ -48,7 +48,7 @@ namespace LibDescent.Data
                     case 1381259348:
                         {
                             short texcount = br.ReadInt16();
-                            model.n_textures = (byte)texcount;
+                            model.NumTextures = (byte)texcount;
                             for (int x = 0; x < texcount; x++)
                             {
                                 char[] texchars = new char[128];
@@ -61,20 +61,20 @@ namespace LibDescent.Data
                                 }
                                 string name = new string(texchars);
                                 name = name.Trim(' ', '\0');
-                                model.textureList.Add(name);
+                                model.TextureList.Add(name);
                             }
                         }
                         break;
                     //OHDR
                     case 1380206671:
                         {
-                            model.n_models = br.ReadInt32();
-                            model.rad = Fix.FromRawValue(br.ReadInt32());
-                            model.mins = ReadVector(br);
-                            model.maxs = ReadVector(br);
-                            for (int i = 0; i < model.n_models; i++)
+                            model.NumSubmodels = br.ReadInt32();
+                            model.Radius = Fix.FromRawValue(br.ReadInt32());
+                            model.Mins = ReadVector(br);
+                            model.Maxs = ReadVector(br);
+                            for (int i = 0; i < model.NumSubmodels; i++)
                             {
-                                model.submodels.Add(new Submodel());
+                                model.Submodels.Add(new Submodel());
                             }
                         }
                         break;
@@ -82,7 +82,7 @@ namespace LibDescent.Data
                     case 1245859667:
                         {
                             short modelnum = br.ReadInt16();
-                            Submodel submodel = model.submodels[modelnum];
+                            Submodel submodel = model.Submodels[modelnum];
                             submodel.ID = modelnum;
                             short parentTest = br.ReadInt16();
                             submodel.Parent = (byte)parentTest;
@@ -96,10 +96,10 @@ namespace LibDescent.Data
                             }
                             submodel.Radius = Fix.FromRawValue(br.ReadInt32());
                             submodel.Pointer = br.ReadInt32();
-                            model.submodels.Add(submodel);
+                            model.Submodels.Add(submodel);
                             if (submodel.Parent != 255)
                             {
-                                model.submodels[submodel.Parent].Children.Add(submodel);
+                                model.Submodels[submodel.Parent].Children.Add(submodel);
                             }
                         }
                         break;
@@ -123,7 +123,7 @@ namespace LibDescent.Data
                             model.isAnimated = true;
                             //br.ReadBytes(datasize);
                             int numFrames = br.ReadInt16();
-                            for (int submodel = 0; submodel < model.n_models; submodel++)
+                            for (int submodel = 0; submodel < model.NumSubmodels; submodel++)
                             {
                                 for (int i = 0; i < numFrames; i++)
                                 {
@@ -137,10 +137,10 @@ namespace LibDescent.Data
                     //IDTA
                     case 1096041545:
                         {
-                            model.model_data_size = datasize;
+                            model.ModelIDTASize = datasize;
                             PolymodelData data = new PolymodelData(datasize);
                             data.InterpreterData = br.ReadBytes(datasize);
-                            model.data = data;
+                            model.Data = data;
                         }
                         break;
                     default:
@@ -160,9 +160,9 @@ namespace LibDescent.Data
             }
             if (ver < 9)
             {
-                for (int i = 0; i < model.n_models; i++)
+                for (int i = 0; i < model.NumSubmodels; i++)
                 {
-                    model.data.GetSubmodelMinMaxs(i, model);
+                    model.Data.GetSubmodelMinMaxs(i, model);
                 }
             }
 

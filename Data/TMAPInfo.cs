@@ -30,35 +30,144 @@ namespace LibDescent.Data
         public const int TMI_GOAL_BLUE = 8;	//this is used to remap the blue goal
         public const int TMI_GOAL_RED = 16;	//this is used to remap the red goal
         public const int TMI_GOAL_HOARD = 32;		//this is used to remap the goals
-        public byte flags;
-        //three bytes padding
-        public Fix lighting;
-        public Fix damage;
-        public short eclip_num;
-        public short destroyed;
-        public short slide_u, slide_v;
-        public ushort texture;
+        /// <summary>
+        /// Flags related to this TMAPInfo. See Volatile, Water, ForceField, BlueGoal, RedGoal, and HoardGoal.
+        /// </summary>
+        public byte Flags { get; set; }
+        /// <summary>
+        /// Light cast by this texture. For editor purposes.
+        /// </summary>
+        public Fix Lighting { get; set; }
+        /// <summary>
+        /// Damage done per second when touching the texture.
+        /// </summary>
+        public Fix Damage { get; set; }
+        /// <summary>
+        /// EClip associated with this 
+        /// </summary>
+        public short EClipNum { get; set; }
+        /// <summary>
+        /// ID of the texture changed to when shot, -1 if indestructable.
+        /// </summary>
+        public short DestroyedID { get; set; }
+        /// <summary>
+        /// Amount the texture slides in the U axis per second, in 8:8 fixed.
+        /// </summary>
+        public short SlideU { get; set; }
+        /// <summary>
+        /// Amount the texture slides in the V axis per second, in 8:8 fixed.
+        /// </summary>
+        public short SlideV { get; set; }
         public int ID;
 
         //Descent 1 extra data
-        public byte[] filename = new byte[13];
+        public byte[] filename { get; } = new byte[13];
 
-        public void updateFlags(int flag, bool set)
+        //Flag properties
+        /// <summary>
+        /// Whether or not the texture explodes like lava when shot.
+        /// </summary>
+        public bool Volatile
         {
-            int flagvalue = 1 << flag;
-            if (set)
+            get
             {
-                if ((flags & flagvalue) == 0)
-                {
-                    flags |= (byte)flagvalue;
-                }
+                return (Flags & TMI_VOLATILE) != 0;
             }
-            else
+            set
             {
-                if ((flags & flagvalue) != 0)
-                {
-                    flags -= (byte)flagvalue;
-                }
+                if (value)
+                    Flags |= TMI_VOLATILE;
+                else
+                    Flags = (byte)(Flags & ~TMI_VOLATILE);
+            }
+        }
+        /// <summary>
+        /// Whether or not the texture splashes when shot.
+        /// </summary>
+        public bool Water
+        {
+            get
+            {
+                return (Flags & TMI_WATER) != 0;
+            }
+            set
+            {
+                if (value)
+                    Flags |= TMI_WATER;
+                else
+                    Flags = (byte)(Flags & ~TMI_WATER);
+            }
+        }
+
+        /// <summary>
+        /// Whether or not the texture reflects players and weapons that touch it.
+        /// </summary>
+        public bool ForceField
+        {
+            get
+            {
+                return (Flags & TMI_FORCE_FIELD) != 0;
+            }
+            set
+            {
+                if (value)
+                    Flags |= TMI_FORCE_FIELD;
+                else
+                    Flags = (byte)(Flags & ~TMI_FORCE_FIELD);
+            }
+        }
+
+        /// <summary>
+        /// Whether or not the texture should be used as a blue CTF goal.
+        /// </summary>
+        public bool BlueGoal
+        {
+            get
+            {
+                return (Flags & TMI_GOAL_BLUE) != 0;
+            }
+            set
+            {
+                if (value)
+                    Flags |= TMI_GOAL_BLUE;
+                else
+                    Flags = (byte)(Flags & ~TMI_GOAL_BLUE);
+            }
+        }
+
+        /// <summary>
+        /// Whether or not the texture should be used as a red CTF goal.
+        /// </summary>
+        public bool RedGoal
+        {
+            get
+            {
+                return (Flags & TMI_GOAL_RED) != 0;
+            }
+            set
+            {
+                if (value)
+                    Flags |= TMI_GOAL_RED;
+                else
+                    Flags = (byte)(Flags & ~TMI_GOAL_RED);
+            }
+        }
+
+        /// <summary>
+        /// Whether or not the texture should be used as a hoard goal.
+        /// </summary>
+        public bool HoardGoal
+        {
+            get
+            {
+                return (Flags & TMI_GOAL_HOARD) != 0;
+            }
+            set
+            {
+                if (value)
+                    Flags |= TMI_GOAL_HOARD;
+                else
+                    Flags = (byte)(Flags & ~TMI_GOAL_HOARD);
             }
         }
     }

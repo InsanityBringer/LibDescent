@@ -28,13 +28,110 @@ namespace LibDescent.Data
         public const int WCF_BLASTABLE = 2; //this is a blastable wall
         public const int WCF_TMAP1 = 4; //this uses primary tmap, not tmap2
         public const int WCF_HIDDEN = 8;		//this uses primary tmap, not tmap2
-        public Fix play_time;
-        public short num_frames;
-        public ushort[] frames = new ushort[50];
-        public short open_sound;
-        public short close_sound;
-        public short flags;
-        public char[] filename = new char[13];
-        public byte pad;
+        /// <summary>
+        /// Total time it takes for the door to open.
+        /// </summary>
+        public Fix PlayTime { get; set; }
+        /// <summary>
+        /// Number of frames in the WClip
+        /// </summary>
+        public short NumFrames { get; set; }
+        /// <summary>
+        /// Piggy indexes of each frame of this WClip.
+        /// </summary>
+        public ushort[] Frames { get; } = new ushort[50];
+        /// <summary>
+        /// Sound played when the door opens.
+        /// </summary>
+        public short OpenSound { get; set; }
+        /// <summary>
+        /// Sound played when the door closes.
+        /// </summary>
+        public short CloseSound { get; set; }
+        /// <summary>
+        /// Flags related to the WClip. See Explodes, Blastable, PrimaryTMap, and SecretDoor.
+        /// </summary>
+        public short Flags { get; set; }
+        /// <summary>
+        /// (Unused) Filename this WClip was constructed from.
+        /// </summary>
+        public char[] Filename { get; } = new char[13];
+        /// <summary>
+        /// (Unused) Ask ISB why this is even here.
+        /// </summary>
+        public byte Pad { get; set; }
+
+        //Flag properties
+        /// <summary>
+        /// Whether or not a blastable door explodes when fully destroyed.
+        /// </summary>
+        public bool Explodes
+        {
+            get
+            {
+                return (Flags & WCF_EXPLODES) != 0;
+            }
+            set
+            {
+                if (value)
+                    Flags |= WCF_EXPLODES;
+                else
+                    Flags &= ~WCF_EXPLODES;
+            }
+        }
+
+        /// <summary>
+        /// Whether or not the door should be damagable by default, instead of opening normally. Overridden in map format.
+        /// </summary>
+        public bool Blastable
+        {
+            get
+            {
+                return (Flags & WCF_BLASTABLE) != 0;
+            }
+            set
+            {
+                if (value)
+                    Flags |= WCF_BLASTABLE;
+                else
+                    Flags &= ~WCF_BLASTABLE;
+            }
+        }
+
+        /// <summary>
+        /// Whether or not the door should be on the primary texture slot for a side.
+        /// </summary>
+        public bool PrimaryTMap
+        {
+            get
+            {
+                return (Flags & WCF_TMAP1) != 0;
+            }
+            set
+            {
+                if (value)
+                    Flags |= WCF_TMAP1;
+                else
+                    Flags &= ~WCF_TMAP1;
+            }
+        }
+
+        /// <summary>
+        /// Whether or not the door should be highlighted on the map.
+        /// </summary>
+        public bool SecretDoor
+        {
+            get
+            {
+                return (Flags & WCF_HIDDEN) != 0;
+            }
+            set
+            {
+                if (value)
+                    Flags |= WCF_HIDDEN;
+                else
+                    Flags &= ~WCF_HIDDEN;
+            }
+        }
     }
 }

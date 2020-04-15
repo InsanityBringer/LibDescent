@@ -21,175 +21,175 @@ namespace LibDescent.Edit
             {
                 case 1:
                     value = Util.Clamp(value, int.MinValue, int.MaxValue, ref clamped);
-                    robot.model_num = value;
+                    robot.ModelNum = value;
                     break;
                 case 2:
                     value = Util.Clamp(value, short.MinValue, short.MaxValue, ref clamped);
-                    robot.exp1_vclip_num = (short)value;
+                    robot.HitVClipNum = (short)value;
                     break;
                 case 3:
                     value = Util.Clamp(value, short.MinValue, short.MaxValue, ref clamped);
-                    robot.exp1_sound_num = (short)value;
+                    robot.HitSoundNum = (short)value;
                     break;
                 case 4:
                     value = Util.Clamp(value, short.MinValue, short.MaxValue, ref clamped);
-                    robot.exp2_vclip_num = (short)value;
+                    robot.DeathVClipNum = (short)value;
                     break;
                 case 5:
                     value = Util.Clamp(value, sbyte.MinValue, sbyte.MaxValue, ref clamped);
-                    robot.weapon_type = (sbyte)value;
+                    robot.WeaponType = (sbyte)value;
                     break;
                 case 6:
-                    robot.weapon_type2 = (sbyte)(value - 1);
+                    robot.WeaponTypeSecondary = (sbyte)(value - 1);
                     break;
                 case 7:
                     value = Util.Clamp(value, sbyte.MinValue, sbyte.MaxValue, ref clamped);
-                    robot.n_guns = (sbyte)value;
+                    robot.NumGuns = (sbyte)value;
                     break;
                 case 8:
                     value = Util.Clamp(value, sbyte.MinValue, sbyte.MaxValue, ref clamped);
-                    robot.contains_id = (sbyte)value;
+                    robot.ContainsID = (sbyte)value;
                     break;
                 case 9:
                     value = Util.Clamp(value, sbyte.MinValue, sbyte.MaxValue, ref clamped);
-                    robot.contains_count = (sbyte)value;
+                    robot.ContainsCount = (sbyte)value;
                     break;
                 case 10:
                     value = Util.Clamp(value, sbyte.MinValue, sbyte.MaxValue, ref clamped);
-                    robot.contains_prob = (sbyte)value;
+                    robot.ContainsProbability = (sbyte)value;
                     break;
                 case 12:
                     if (value == 0)
-                        robot.claw_sound = 255;
+                        robot.ClawSound = 255;
                     else
-                        robot.claw_sound = (byte)(value);
+                        robot.ClawSound = (byte)(value);
                     break;
                 case 13:
                     value = Util.Clamp(value, short.MinValue, short.MaxValue, ref clamped);
-                    robot.score_value = (short)value;
+                    robot.ScoreValue = (short)value;
                     break;
                 case 14:
                     value = Util.Clamp(value, byte.MinValue, byte.MaxValue, ref clamped);
-                    robot.badass = (byte)value;
+                    robot.DeathExplosionRadius = (byte)value;
                     break;
                 case 15:
                     value = Util.Clamp(value, byte.MinValue, byte.MaxValue, ref clamped);
-                    robot.energy_drain = (byte)value;
+                    robot.EnergyDrain = (byte)value;
                     break;
                 case 16:
                     value = Util.Clamp(value, int.MinValue, int.MaxValue, ref clamped);
-                    robot.lighting = Fix.FromRawValue(value);
+                    robot.Lighting = Fix.FromRawValue(value);
                     break;
                 case 17:
                     value = Util.Clamp(value, int.MinValue, int.MaxValue, ref clamped);
-                    robot.strength = Fix.FromRawValue(value);
+                    robot.Strength = Fix.FromRawValue(value);
                     break;
                 case 18:
                     value = Util.Clamp(value, int.MinValue, int.MaxValue, ref clamped);
-                    robot.mass = Fix.FromRawValue(value);
+                    robot.Mass = Fix.FromRawValue(value);
                     break;
                 case 19:
                     value = Util.Clamp(value, int.MinValue, int.MaxValue, ref clamped);
-                    robot.drag = Fix.FromRawValue(value);
+                    robot.Drag = Fix.FromRawValue(value);
                     break;
                 case 20:
                     value = (int)(Math.Cos(value * Math.PI / 180.0D) * 65536.0);
                     value = Util.Clamp(value, int.MinValue, int.MaxValue, ref clamped);
-                    robot.field_of_view[curAI] = Fix.FromRawValue(value);
+                    robot.FieldOfView[curAI] = Fix.FromRawValue(value);
                     break;
                 case 21:
                     value = Util.Clamp(value, int.MinValue, int.MaxValue, ref clamped);
-                    robot.firing_wait[curAI] = Fix.FromRawValue(value);
+                    robot.FiringWait[curAI] = Fix.FromRawValue(value);
                     break;
                 case 22:
                     value = Util.Clamp(value, int.MinValue, int.MaxValue, ref clamped);
-                    robot.firing_wait2[curAI] = Fix.FromRawValue(value);
+                    robot.FiringWaitSecondary[curAI] = Fix.FromRawValue(value);
                     break;
                 case 23:
                     value = Util.Clamp(value, int.MinValue, int.MaxValue, ref clamped);
-                    robot.turn_time[curAI] = Fix.FromRawValue(value);
+                    robot.TurnTime[curAI] = Fix.FromRawValue(value);
                     break;
                 case 24:
                     value = Util.Clamp(value, int.MinValue, int.MaxValue, ref clamped);
-                    robot.max_speed[curAI] = Fix.FromRawValue(value);
+                    robot.MaxSpeed[curAI] = Fix.FromRawValue(value);
                     break;
                 case 25:
                     value = Util.Clamp(value, int.MinValue, int.MaxValue, ref clamped);
-                    robot.circle_distance[curAI] = Fix.FromRawValue(value);
+                    robot.CircleDistance[curAI] = Fix.FromRawValue(value);
                     break;
                 case 26:
                     value = Util.Clamp(value, sbyte.MinValue, sbyte.MaxValue, ref clamped);
-                    robot.rapidfire_count[curAI] = (sbyte)value;
+                    robot.RapidfireCount[curAI] = (sbyte)value;
                     break;
                 case 27:
                     value = Util.Clamp(value, sbyte.MinValue, sbyte.MaxValue, ref clamped);
-                    robot.evade_speed[curAI] = (sbyte)value;
+                    robot.EvadeSpeed[curAI] = (sbyte)value;
                     break;
                 case 30:
                     value = Util.Clamp(value, byte.MinValue, byte.MaxValue, ref clamped);
                     if (value == 0)
-                        robot.see_sound = 255;
+                        robot.SeeSound = 255;
                     else
-                        robot.see_sound = (byte)(value);
+                        robot.SeeSound = (byte)(value);
                     break;
                 case 31:
                     value = Util.Clamp(value, byte.MinValue, byte.MaxValue, ref clamped);
                     if (value == 0)
-                        robot.attack_sound = 255;
+                        robot.AttackSound = 255;
                     else
-                        robot.attack_sound = (byte)(value);
+                        robot.AttackSound = (byte)(value);
                     break;
                 case 33:
                     value = Util.Clamp(value, byte.MinValue, byte.MaxValue, ref clamped);
                     if (value == 0)
-                        robot.taunt_sound = 255;
+                        robot.TauntSound = 255;
                     else
-                        robot.taunt_sound = (byte)(value);
+                        robot.TauntSound = (byte)(value);
                     break;
                 case 34:
                     value = Util.Clamp(value, byte.MinValue, byte.MaxValue, ref clamped);
                     if (value == 0)
-                        robot.deathroll_sound = 255;
+                        robot.DeathRollSound = 255;
                     else
-                        robot.deathroll_sound = (byte)(value);
+                        robot.DeathRollSound = (byte)(value);
                     break;
                 case 36:
                     value = Util.Clamp(value, sbyte.MinValue, sbyte.MaxValue, ref clamped);
-                    robot.smart_blobs = (sbyte)value;
+                    robot.SmartBlobsOnDeath = (sbyte)value;
                     break;
                 case 37:
                     value = Util.Clamp(value, sbyte.MinValue, sbyte.MaxValue, ref clamped);
-                    robot.energy_blobs = (sbyte)value;
+                    robot.SmartBlobsOnHit = (sbyte)value;
                     break;
                 case 38:
                     value = Util.Clamp(value, sbyte.MinValue, sbyte.MaxValue, ref clamped);
-                    robot.pursuit = (sbyte)value;
+                    robot.Pursuit = (sbyte)value;
                     break;
                 case 39:
                     value = Util.Clamp(value, sbyte.MinValue, sbyte.MaxValue, ref clamped);
-                    robot.lightcast = (sbyte)value;
+                    robot.LightCast = (sbyte)value;
                     break;
                 case 40:
                     value = Util.Clamp(value, byte.MinValue, byte.MaxValue, ref clamped);
                     if (value == 0)
-                        robot.exp1_sound_num = 255;
+                        robot.HitSoundNum = 255;
                     else
-                        robot.exp1_sound_num = (byte)(value);
+                        robot.HitSoundNum = (byte)(value);
                     break;
                 case 41:
                     value = Util.Clamp(value, byte.MinValue, byte.MaxValue, ref clamped);
                     if (value == 0)
-                        robot.exp2_sound_num = 255;
+                        robot.DeathSoundNum = 255;
                     else
-                        robot.exp2_sound_num = (byte)(value);
+                        robot.DeathSoundNum = (byte)(value);
                     break;
                 case 43:
                     value = Util.Clamp(value, byte.MinValue, byte.MaxValue, ref clamped);
-                    robot.glow = (byte)value;
+                    robot.Glow = (byte)value;
                     break;
                 case 45:
                     value = Util.Clamp(value, byte.MinValue, byte.MaxValue, ref clamped);
-                    robot.aim = (byte)value;
+                    robot.Aim = (byte)value;
                     break;
             }
             return clamped;
@@ -198,8 +198,8 @@ namespace LibDescent.Edit
         public void ClearAndUpdateDropReference(int v)
         {
             //[ISB] this doesn't really need to exist anymore but may as well..
-            robot.contains_type = (sbyte)v;
-            robot.contains_id = 0;
+            robot.ContainsType = (sbyte)v;
+            robot.ContainsID = 0;
         }
     }
 }

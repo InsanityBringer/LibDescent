@@ -255,10 +255,10 @@ namespace LibDescent.Data
             for (int i = 0; i < 29; i++)
             {
                 Powerup powerup = new Powerup();
-                powerup.vclip_num = br.ReadInt32();
-                powerup.hit_sound = br.ReadInt32();
-                powerup.size = Fix.FromRawValue(br.ReadInt32());
-                powerup.light = Fix.FromRawValue(br.ReadInt32());
+                powerup.VClipNum = br.ReadInt32();
+                powerup.HitSound = br.ReadInt32();
+                powerup.Size = Fix.FromRawValue(br.ReadInt32());
+                powerup.Light = Fix.FromRawValue(br.ReadInt32());
                 Powerups[i] = powerup;
             }
             numModels = br.ReadInt32();
@@ -269,9 +269,9 @@ namespace LibDescent.Data
             for (int i = 0; i < numModels; i++)
             {
                 //TODO: Why do I still even have PolymodelData........................
-                PolymodelData data = new PolymodelData(Models[i].model_data_size);
-                data.InterpreterData = br.ReadBytes(Models[i].model_data_size);
-                Models[i].data = data;
+                PolymodelData data = new PolymodelData(Models[i].ModelIDTASize);
+                data.InterpreterData = br.ReadBytes(Models[i].ModelIDTASize);
+                Models[i].Data = data;
             }
             for (int i = 0; i < 80; i++)
             {
@@ -298,18 +298,18 @@ namespace LibDescent.Data
                 ObjBitmapPointers[i] = br.ReadUInt16();
             }
             PlayerShip = new Ship();
-            PlayerShip.model_num = br.ReadInt32();
-            PlayerShip.expl_vclip_num = br.ReadInt32();
-            PlayerShip.mass = Fix.FromRawValue(br.ReadInt32());
-            PlayerShip.drag = Fix.FromRawValue(br.ReadInt32());
-            PlayerShip.max_thrust = Fix.FromRawValue(br.ReadInt32());
-            PlayerShip.reverse_thrust = Fix.FromRawValue(br.ReadInt32());
-            PlayerShip.brakes = Fix.FromRawValue(br.ReadInt32());
-            PlayerShip.wiggle = Fix.FromRawValue(br.ReadInt32());
-            PlayerShip.max_rotthrust = Fix.FromRawValue(br.ReadInt32());
+            PlayerShip.ModelNum = br.ReadInt32();
+            PlayerShip.DeathVClipNum = br.ReadInt32();
+            PlayerShip.Mass = Fix.FromRawValue(br.ReadInt32());
+            PlayerShip.Drag = Fix.FromRawValue(br.ReadInt32());
+            PlayerShip.MaxThrust = Fix.FromRawValue(br.ReadInt32());
+            PlayerShip.ReverseThrust = Fix.FromRawValue(br.ReadInt32());
+            PlayerShip.Brakes = Fix.FromRawValue(br.ReadInt32());
+            PlayerShip.Wiggle = Fix.FromRawValue(br.ReadInt32());
+            PlayerShip.MaxRotationThrust = Fix.FromRawValue(br.ReadInt32());
             for (int x = 0; x < 8; x++)
             {
-                PlayerShip.gun_points[x] = FixVector.FromRawValues(br.ReadInt32(), br.ReadInt32(), br.ReadInt32());
+                PlayerShip.GunPoints[x] = FixVector.FromRawValues(br.ReadInt32(), br.ReadInt32(), br.ReadInt32());
             }
             numCockpits = br.ReadInt32();
             for (int i = 0; i < 4; i++)
@@ -335,14 +335,14 @@ namespace LibDescent.Data
                 //Console.WriteLine("type: {0}({3})\nid: {1}\nstr: {2}", ObjectTypes[i].type, ObjectTypes[i].id, ObjectTypes[i].strength, (int)ObjectTypes[i].type);
             }
             FirstMultiBitmapNum = br.ReadInt32();
-            reactor.n_guns = br.ReadInt32();
+            reactor.NumGuns = br.ReadInt32();
             for (int y = 0; y < 4; y++)
             {
-                reactor.gun_points[y] = FixVector.FromRawValues(br.ReadInt32(), br.ReadInt32(), br.ReadInt32());
+                reactor.GunPoints[y] = FixVector.FromRawValues(br.ReadInt32(), br.ReadInt32(), br.ReadInt32());
             }
             for (int y = 0; y < 4; y++)
             {
-                reactor.gun_dirs[y] = FixVector.FromRawValues(br.ReadInt32(), br.ReadInt32(), br.ReadInt32());
+                reactor.GunDirs[y] = FixVector.FromRawValues(br.ReadInt32(), br.ReadInt32(), br.ReadInt32());
             }
             exitModelnum = br.ReadInt32();
             destroyedExitModelnum = br.ReadInt32();

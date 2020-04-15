@@ -25,32 +25,70 @@ namespace LibDescent.Data
     public class EClip
     {
         public int ID; //Needed for convenience
-        public VClip vc = new VClip();				//imbedded vclip
-        public int time_left;		//for sequencing
-        public int frame_count;	//for sequencing
-        public short changing_wall_texture;			//Which element of Textures array to replace.
-        public short changing_object_texture;		//Which element of ObjBitmapPtrs array to replace.
-        public int flags;			//see above
-        public int crit_clip;		//use this clip instead of above one when mine critical
-        public int dest_bm_num;	//use this bitmap when monitor destroyed
-        public int dest_vclip;		//what vclip to play when exploding
-        public int dest_eclip;		//what eclip to play when exploding
-        public Fix dest_size;		//3d size of explosion
-        public int sound_num;		//what sound this makes
-        public int segnum, sidenum;	//what seg & side, for one-shot clips
+        /// <summary>
+        /// Embedded vclip, contains information about the animation itself.
+        /// </summary>
+        public VClip vc = new VClip();
+        /// <summary>
+        /// Time left for the current animation frame, useless for definitons.
+        /// </summary>
+        public int TimeLeft { get; set; }
+        /// <summary>
+        /// Current animation frame, useless for definitions.
+        /// </summary>
+        public int FrameCount { get; set; }
+        /// <summary>
+        /// Which element of Textures array to replace.
+        /// </summary>
+        public short ChangingWallTexture { get; set; }
+        /// <summary>
+        /// Which element of ObjBitmapPtrs array to replace.
+        /// </summary>
+        public short ChangingObjectTexture { get; set; }
+        /// <summary>
+        /// Temporary flags for the animation, useless for definitions.
+        /// </summary>
+        public int Flags { get; set; }
+        /// <summary>
+        /// Use this clip instead of above one when mine critical.
+        /// </summary>
+        public int CriticalClip { get; set; }
+        /// <summary>
+        /// Use this bitmap when monitor destroyed.
+        /// </summary>
+        public int DestroyedBitmapNum { get; set; }
+        /// <summary>
+        /// What vclip to play when exploding.
+        /// </summary>
+        public int ExplosionVClip { get; set; }
+        /// <summary>
+        /// What eclip to play when exploding.
+        /// </summary>
+        public int ExplosionEClip { get; set; }
+        /// <summary>
+        /// 3D size of explosion, in map units.
+        /// </summary>
+        public Fix ExplosionSize { get; set; }
+        /// <summary>
+        /// What sound this makes ambiently.
+        /// </summary>
+        public int SoundNum { get; set; }
+        /// <summary>
+        /// Seg number of the current one-shot animation, useless for definitions.
+        /// </summary>
+        public int SegNum { get; set; }
+        /// <summary>
+        /// Side number of segnum of the current one-shot animation, useless for definitions.
+        /// </summary>
+        public int SideNum { get; set; }
 
         public EClip()
         {
-            dest_vclip = -1;
-            dest_eclip = -1;
-            crit_clip = -1;
-            dest_bm_num = -1;
-            sound_num = -1;
-        }
-
-        public int GetCurrentTMap()
-        {
-            return changing_wall_texture;
+            ExplosionVClip = -1;
+            ExplosionEClip = -1;
+            CriticalClip = -1;
+            DestroyedBitmapNum = -1;
+            SoundNum = -1;
         }
     }
 }

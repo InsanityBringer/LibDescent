@@ -24,9 +24,21 @@ namespace LibDescent.Data
 {
     public class Reactor
     {
-        public int model_id;
-        public int n_guns;
-        public FixVector[] gun_points = new FixVector[8];
-        public FixVector[] gun_dirs = new FixVector[8];
+        /// <summary>
+        /// Model number used by the reactor.
+        /// </summary>
+        public int ModelNum { get; set; }
+        /// <summary>
+        /// Number of guns used by the reactor, up to 8.
+        /// </summary>
+        public int NumGuns { get; set; }
+        /// <summary>
+        /// Positions of all the reactor's guns.
+        /// </summary>
+        public FixVector[] GunPoints { get; } = new FixVector[8];
+        /// <summary>
+        /// Directions of all the reactor's guns.
+        /// </summary>
+        public FixVector[] GunDirs { get; } = new FixVector[8];
     }
 }

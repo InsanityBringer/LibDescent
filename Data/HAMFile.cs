@@ -257,10 +257,10 @@ namespace LibDescent.Data
             for (int x = 0; x < NumPowerups; x++)
             {
                 Powerup powerup = new Powerup();
-                powerup.vclip_num = br.ReadInt32();
-                powerup.hit_sound = br.ReadInt32();
-                powerup.size = Fix.FromRawValue(br.ReadInt32());
-                powerup.light = Fix.FromRawValue(br.ReadInt32());
+                powerup.VClipNum = br.ReadInt32();
+                powerup.HitSound = br.ReadInt32();
+                powerup.Size = Fix.FromRawValue(br.ReadInt32());
+                powerup.Light = Fix.FromRawValue(br.ReadInt32());
                 powerup.ID = x;
                 Powerups.Add(powerup);
             }
@@ -274,12 +274,12 @@ namespace LibDescent.Data
 
             for (int x = 0; x < NumPolygonModels; x++)
             {
-                PolymodelData modeldata = new PolymodelData(Models[x].model_data_size);
-                for (int y = 0; y < Models[x].model_data_size; y++)
+                PolymodelData modeldata = new PolymodelData(Models[x].ModelIDTASize);
+                for (int y = 0; y < Models[x].ModelIDTASize; y++)
                 {
                     modeldata.InterpreterData[y] = br.ReadByte();
                 }
-                Models[x].data = modeldata;
+                Models[x].Data = modeldata;
                 //PolymodelData.Add(modeldata);
             }
             for (int x = 0; x < NumPolygonModels; x++)
@@ -315,18 +315,18 @@ namespace LibDescent.Data
             }
             
             PlayerShip = new Ship();
-            PlayerShip.model_num = br.ReadInt32();
-            PlayerShip.expl_vclip_num = br.ReadInt32();
-            PlayerShip.mass = Fix.FromRawValue(br.ReadInt32());
-            PlayerShip.drag = Fix.FromRawValue(br.ReadInt32());
-            PlayerShip.max_thrust = Fix.FromRawValue(br.ReadInt32());
-            PlayerShip.reverse_thrust = Fix.FromRawValue(br.ReadInt32());
-            PlayerShip.brakes = Fix.FromRawValue(br.ReadInt32());
-            PlayerShip.wiggle = Fix.FromRawValue(br.ReadInt32());
-            PlayerShip.max_rotthrust = Fix.FromRawValue(br.ReadInt32());
+            PlayerShip.ModelNum = br.ReadInt32();
+            PlayerShip.DeathVClipNum = br.ReadInt32();
+            PlayerShip.Mass = Fix.FromRawValue(br.ReadInt32());
+            PlayerShip.Drag = Fix.FromRawValue(br.ReadInt32());
+            PlayerShip.MaxThrust = Fix.FromRawValue(br.ReadInt32());
+            PlayerShip.ReverseThrust = Fix.FromRawValue(br.ReadInt32());
+            PlayerShip.Brakes = Fix.FromRawValue(br.ReadInt32());
+            PlayerShip.Wiggle = Fix.FromRawValue(br.ReadInt32());
+            PlayerShip.MaxRotationThrust = Fix.FromRawValue(br.ReadInt32());
             for (int x = 0; x < 8; x++)
             {
-                PlayerShip.gun_points[x] = FixVector.FromRawValues(br.ReadInt32(), br.ReadInt32(), br.ReadInt32());
+                PlayerShip.GunPoints[x] = FixVector.FromRawValues(br.ReadInt32(), br.ReadInt32(), br.ReadInt32());
             }
             
             int NumCockpits = br.ReadInt32();
@@ -341,19 +341,19 @@ namespace LibDescent.Data
             for (int x = 0; x < NumReactors; x++)
             {
                 Reactor reactor = new Reactor();
-                reactor.model_id = br.ReadInt32();
-                reactor.n_guns = br.ReadInt32();
+                reactor.ModelNum = br.ReadInt32();
+                reactor.NumGuns = br.ReadInt32();
                 for (int y = 0; y < 8; y++)
                 {
-                    reactor.gun_points[y] = FixVector.FromRawValues(br.ReadInt32(), br.ReadInt32(), br.ReadInt32());
+                    reactor.GunPoints[y] = FixVector.FromRawValues(br.ReadInt32(), br.ReadInt32(), br.ReadInt32());
                 }
                 for (int y = 0; y < 8; y++)
                 {
-                    reactor.gun_dirs[y] = FixVector.FromRawValues(br.ReadInt32(), br.ReadInt32(), br.ReadInt32());
+                    reactor.GunDirs[y] = FixVector.FromRawValues(br.ReadInt32(), br.ReadInt32(), br.ReadInt32());
                 }
                 Reactors.Add(reactor);
             }
-            PlayerShip.markerModel = br.ReadInt32();
+            PlayerShip.MarkerModel = br.ReadInt32();
             //2620
             if (version < 3)
             {
@@ -460,10 +460,10 @@ namespace LibDescent.Data
             for (int x = 0; x < Powerups.Count; x++)
             {
                 Powerup powerup = Powerups[x];
-                bw.Write(powerup.vclip_num);
-                bw.Write(powerup.hit_sound);
-                bw.Write(powerup.size.value);
-                bw.Write(powerup.light.value);
+                bw.Write(powerup.VClipNum);
+                bw.Write(powerup.HitSound);
+                bw.Write(powerup.Size.value);
+                bw.Write(powerup.Light.value);
             }
             bw.Write(Models.Count);
             for (int x = 0; x < Models.Count; x++)
@@ -472,7 +472,7 @@ namespace LibDescent.Data
             }
             for (int x = 0; x < Models.Count; x++)
             {
-                PolymodelData pmd = Models[x].data;
+                PolymodelData pmd = Models[x].Data;
                 bw.Write(pmd.InterpreterData);
             }
             for (int x = 0; x < Models.Count; x++)
@@ -533,22 +533,22 @@ namespace LibDescent.Data
             for (int x = 0; x < Reactors.Count; x++)
             {
                 Reactor reactor = Reactors[x];
-                bw.Write(reactor.model_id);
-                bw.Write(reactor.n_guns);
+                bw.Write(reactor.ModelNum);
+                bw.Write(reactor.NumGuns);
                 for (int y = 0; y < 8; y++)
                 {
-                    bw.Write(reactor.gun_points[y].x.value);
-                    bw.Write(reactor.gun_points[y].y.value);
-                    bw.Write(reactor.gun_points[y].z.value);
+                    bw.Write(reactor.GunPoints[y].x.value);
+                    bw.Write(reactor.GunPoints[y].y.value);
+                    bw.Write(reactor.GunPoints[y].z.value);
                 }
                 for (int y = 0; y < 8; y++)
                 {
-                    bw.Write(reactor.gun_dirs[y].x.value);
-                    bw.Write(reactor.gun_dirs[y].y.value);
-                    bw.Write(reactor.gun_dirs[y].z.value);
+                    bw.Write(reactor.GunDirs[y].x.value);
+                    bw.Write(reactor.GunDirs[y].y.value);
+                    bw.Write(reactor.GunDirs[y].z.value);
                 }
             }
-            bw.Write(PlayerShip.markerModel);
+            bw.Write(PlayerShip.MarkerModel);
             if (version < 3)
             {
                 bw.Write(ExitModelnum);
