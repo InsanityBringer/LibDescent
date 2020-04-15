@@ -193,8 +193,6 @@ namespace LibDescent.Edit
                     return weapon.ID;
                 case HAMType.Model:
                     Polymodel model = new Polymodel();
-                    PolymodelData data = new PolymodelData(0);
-                    model.Data = data;
                     model.ExpandSubmodels();
                     model.ID = Models.Count;
                     Models.Add(model);

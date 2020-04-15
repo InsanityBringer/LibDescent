@@ -137,10 +137,8 @@ namespace LibDescent.Data
                     //IDTA
                     case 1096041545:
                         {
-                            model.ModelIDTASize = datasize;
-                            PolymodelData data = new PolymodelData(datasize);
-                            data.InterpreterData = br.ReadBytes(datasize);
-                            model.Data = data;
+                            //model.ModelIDTASize = datasize;
+                            model.InterpreterData = br.ReadBytes(datasize);
                         }
                         break;
                     default:
@@ -162,7 +160,7 @@ namespace LibDescent.Data
             {
                 for (int i = 0; i < model.NumSubmodels; i++)
                 {
-                    model.Data.GetSubmodelMinMaxs(i, model);
+                    model.GetSubmodelMinMaxs(i, model);
                 }
             }
 

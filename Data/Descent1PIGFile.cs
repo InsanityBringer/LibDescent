@@ -268,10 +268,7 @@ namespace LibDescent.Data
             }
             for (int i = 0; i < numModels; i++)
             {
-                //TODO: Why do I still even have PolymodelData........................
-                PolymodelData data = new PolymodelData(Models[i].ModelIDTASize);
-                data.InterpreterData = br.ReadBytes(Models[i].ModelIDTASize);
-                Models[i].Data = data;
+                Models[i].InterpreterData = br.ReadBytes(Models[i].ModelIDTASize);
             }
             for (int i = 0; i < 80; i++)
             {

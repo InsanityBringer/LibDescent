@@ -16,7 +16,6 @@ namespace LibDescent.Edit
         public List<Robot> replacedRobots { get; private set; }
         public List<JointPos> replacedJoints { get; private set; }
         public List<Polymodel> replacedModels { get; private set; }
-        public List<PolymodelData> replacedModelData { get; private set; }
         public List<ReplacedBitmapElement> replacedObjBitmaps { get; private set; }
         public List<ReplacedBitmapElement> replacedObjBitmapPtrs { get; private set; }
 
@@ -30,7 +29,6 @@ namespace LibDescent.Edit
             replacedRobots = new List<Robot>();
             replacedJoints = new List<JointPos>();
             replacedModels = new List<Polymodel>();
-            replacedModelData = new List<PolymodelData>();
             replacedObjBitmaps = new List<ReplacedBitmapElement>();
             replacedObjBitmapPtrs = new List<ReplacedBitmapElement>();
 
@@ -230,7 +228,6 @@ namespace LibDescent.Edit
         public int AddModel()
         {
             Polymodel newModel = new Polymodel();
-            newModel.Data = new PolymodelData(0);
             replacedModels.Add(newModel);
             ModelNames.Add("New Model");
             return replacedModels.Count - 1;

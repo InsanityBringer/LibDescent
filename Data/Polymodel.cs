@@ -20,6 +20,8 @@
     SOFTWARE.
 */
 
+using System;
+using System.IO;
 using System.Collections.Generic;
 
 namespace LibDescent.Data
@@ -80,6 +82,7 @@ namespace LibDescent.Data
     /// </summary>
     public class Polymodel
     {
+        private byte[] mInterpreterData;
         /// <summary>
         /// The maximum amount of submodels that Descent supports.
         /// </summary>
@@ -132,7 +135,16 @@ namespace LibDescent.Data
         /// <summary>
         /// The interpreter data for this model.
         /// </summary>
-        public PolymodelData Data { get; set; }
+        //public PolymodelData Data { get; set; }
+        public byte[] InterpreterData
+        {
+            get => mInterpreterData;
+            set
+            {
+                mInterpreterData = value;
+                ModelIDTASize = value.Length;
+            }
+        }
 
         //[ISB] Nonstandard editor data begins here
         /// <summary>
@@ -195,6 +207,7 @@ namespace LibDescent.Data
             {
                 Submodels.Add(new Submodel());
             }
+            InterpreterData = new byte[2]; //just terminator instruction
         }
         public Polymodel() : this(0) { }
 
@@ -212,6 +225,64 @@ namespace LibDescent.Data
                 gunPoints[x] = new FixVector();
                 gunDirs[x] = new FixVector(1, 0, 0);
             }
+        }
+
+        public void GetSubmodelMinMaxs(int num, Polymodel host)
+        {
+            MemoryStream ms = new MemoryStream(mInterpreterData);
+            BinaryReader br = new BinaryReader(ms);
+            br.BaseStream.Seek(host.Submodels[num].Pointer, SeekOrigin.Begin);
+            short opcode = br.ReadInt16();
+            FixVector mins = FixVector.FromRawValues(int.MaxValue, int.MaxValue, int.MaxValue);
+            FixVector maxs = FixVector.FromRawValues(int.MinValue, int.MinValue, int.MinValue);
+            switch (opcode)
+            {
+                case 1:
+                    {
+                        short pointc = br.ReadInt16(); //+2
+                                                       //data.points = new HAMFile.vms_vector[pointc];
+                        for (int x = 0; x < pointc; x++)
+                        {
+                            FixVector point = new FixVector();
+                            point.x = new Fix(br.ReadInt32());
+                            point.y = new Fix(br.ReadInt32());
+                            point.z = new Fix(br.ReadInt32());
+
+                            mins.x = Math.Min(mins.x, point.x);
+                            mins.y = Math.Min(mins.y, point.y);
+                            mins.z = Math.Min(mins.z, point.z);
+                            maxs.x = Math.Max(maxs.x, point.x);
+                            maxs.y = Math.Max(maxs.y, point.y);
+                            maxs.z = Math.Max(maxs.z, point.z);
+                        }
+                    }
+                    break;
+                case 7:
+                    {
+                        short pointc = br.ReadInt16();
+                        br.ReadInt32();
+                        for (int x = 0; x < pointc; x++)
+                        {
+                            FixVector point = new FixVector();
+                            point.x = new Fix(br.ReadInt32());
+                            point.y = new Fix(br.ReadInt32());
+                            point.z = new Fix(br.ReadInt32());
+
+                            mins.x = Math.Min(mins.x, point.x);
+                            mins.y = Math.Min(mins.y, point.y);
+                            mins.z = Math.Min(mins.z, point.z);
+                            maxs.x = Math.Max(maxs.x, point.x);
+                            maxs.y = Math.Max(maxs.y, point.y);
+                            maxs.z = Math.Max(maxs.z, point.z);
+                        }
+                    }
+                    break;
+            }
+            br.Close();
+            br.Dispose();
+
+            Submodels[num].Mins = mins;
+            Submodels[num].Maxs = maxs;
         }
     }
 

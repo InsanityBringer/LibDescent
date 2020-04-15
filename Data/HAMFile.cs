@@ -274,12 +274,7 @@ namespace LibDescent.Data
 
             for (int x = 0; x < NumPolygonModels; x++)
             {
-                PolymodelData modeldata = new PolymodelData(Models[x].ModelIDTASize);
-                for (int y = 0; y < Models[x].ModelIDTASize; y++)
-                {
-                    modeldata.InterpreterData[y] = br.ReadByte();
-                }
-                Models[x].Data = modeldata;
+                Models[x].InterpreterData = br.ReadBytes(Models[x].ModelIDTASize);
                 //PolymodelData.Add(modeldata);
             }
             for (int x = 0; x < NumPolygonModels; x++)
@@ -472,8 +467,7 @@ namespace LibDescent.Data
             }
             for (int x = 0; x < Models.Count; x++)
             {
-                PolymodelData pmd = Models[x].Data;
-                bw.Write(pmd.InterpreterData);
+                bw.Write(Models[x].InterpreterData);
             }
             for (int x = 0; x < Models.Count; x++)
             {

@@ -194,7 +194,7 @@ namespace LibDescent.Data
             }
             bw.Write(0x41544449);
             bw.Write(size);
-            bw.Write(model.Data.InterpreterData);
+            bw.Write(model.InterpreterData);
 
             for (int i = 0; i < padBytes; i++)
                 bw.Write((byte)0);
