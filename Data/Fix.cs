@@ -25,13 +25,17 @@ using System.Runtime.CompilerServices;
 
 namespace LibDescent.Data
 {
-    public struct Fix
+    public readonly struct Fix
     {
         /// <summary>
         /// The internal value of the fixed-point number as an integer.
         /// Corresponds to the fixed-point value * 2^16 (65536).
         /// </summary>
-        internal int value;
+        internal readonly int value;
+
+        [MethodImpl(MethodImplOptions.AggressiveInlining)] // inline if at possible
+        public Fix(int v) => value = v;
+        public int Value => this.value;
 
         public static explicit operator int(Fix f)
             => f.value / 65536;
@@ -41,40 +45,28 @@ namespace LibDescent.Data
             => f.value / 65536.0;
 
         public static implicit operator Fix(int i)
-            => new Fix() { value = checked(i * 65536) };
+            => new Fix(checked(i * 65536));
         public static implicit operator Fix(float d)
-            => new Fix() { value = checked((int)(d * 65536.0f)) };
+            => new Fix(checked((int)(d * 65536.0f)));
         public static implicit operator Fix(double d)
-            => new Fix() { value = checked((int)(d * 65536.0)) };
+            => new Fix(checked((int)(d * 65536.0)));
 
         public static Fix operator +(Fix a)
-            => new Fix() { value = a.value };
+            => new Fix(a.value);
         public static Fix operator -(Fix a)
-            => new Fix() { value = -a.value };
+            => new Fix(-a.value);
 
         public static Fix operator +(Fix a, Fix b)
-        {
-            Fix result = new Fix(); result.value = a.value + b.value;
-            return result;
-        }
+            => new Fix(a.value + b.value);
         public static Fix operator -(Fix a, Fix b)
-        {
-            Fix result = new Fix(); result.value = checked(a.value - b.value);
-            return result;
-        }
+            => new Fix(checked(a.value - b.value));
         public static Fix operator *(Fix a, Fix b)
-        {
-            Fix result = new Fix(); result.value = checked((int)(((long)a.value * (long)b.value) >> 16));
-            return result;
-        }
+            => new Fix(checked((int)(((long)a.value * (long)b.value) >> 16)));
         public static Fix operator /(Fix a, Fix b)
-        {
-            Fix result = new Fix(); result.value = (int)(((long)a.value << 16) / (long)b.value);
-            return result;
-        }
+            => new Fix((int)(((long)a.value << 16) / (long)b.value));
 
-        public static Fix operator <<(Fix a, int shift) => new Fix() { value = checked(a.value << shift) };
-        public static Fix operator >>(Fix a, int shift) => new Fix() { value = a.value >> shift };
+        public static Fix operator <<(Fix a, int shift) => new Fix(checked(a.value << shift));
+        public static Fix operator >>(Fix a, int shift) => new Fix(a.value >> shift);
         public static bool operator ==(Fix a, Fix b) => a.value == b.value;
         public static bool operator !=(Fix a, Fix b) => a.value != b.value;
         public static bool operator <(Fix a, Fix b) => a.value < b.value;
@@ -86,18 +78,6 @@ namespace LibDescent.Data
         {
             return ((double)this).ToString("0.####", System.Globalization.CultureInfo.InvariantCulture);
         }
-
-        [MethodImpl(MethodImplOptions.AggressiveInlining)] // inline if at all possible
-        public static Fix FromRawValue(int value)
-        {
-            // fastest way to create new struct
-            Fix f = new Fix();
-            f.value = value;
-            return f;
-        }
-
-        [MethodImpl(MethodImplOptions.AggressiveInlining)] // inline if at all possible
-        public int GetRawValue() => this.value;
 
         public override bool Equals(object obj)
         {

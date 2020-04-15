@@ -55,7 +55,7 @@ namespace LibDescent.Data
 
         public static FixVector FromRawValues(int x, int y, int z)
         {
-            return new FixVector(Fix.FromRawValue(x), Fix.FromRawValue(y), Fix.FromRawValue(z));
+            return new FixVector(new Fix(x), new Fix(y), new Fix(z));
         }
 
         public static explicit operator Vector3(FixVector v)

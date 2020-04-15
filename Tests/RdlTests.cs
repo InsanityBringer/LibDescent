@@ -234,7 +234,7 @@ namespace LibDescent.Tests
             Assert.AreEqual(0, level.Objects[4].physicsInfo.drag);
             Assert.AreEqual(0, level.Objects[4].physicsInfo.flags);
             // .shields should probably be a fix, will change that later
-            Assert.AreEqual((Fix)100, Fix.FromRawValue(level.Objects[4].shields));
+            Assert.AreEqual((Fix)100, new Fix(level.Objects[4].shields));
             Assert.AreEqual(7, level.Objects[4].containsType); // powerup
             Assert.AreEqual(1, level.Objects[4].containsCount);
             Assert.AreEqual(11, level.Objects[4].containsId); // 4-pack conc

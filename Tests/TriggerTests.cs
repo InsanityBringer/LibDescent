@@ -33,7 +33,7 @@ namespace LibDescent.Tests
             var trigger = block.Triggers[0];
             Assert.AreEqual(TriggerType.OpenDoor, trigger.Type);
             Assert.AreEqual(0, trigger.Flags);
-            Assert.AreEqual((Fix)5.0, Fix.FromRawValue((int)trigger.Value));
+            Assert.AreEqual((Fix)5.0, new Fix((int)trigger.Value));
             Assert.AreEqual(-1, trigger.Time);
 
             trigger = block.Triggers[1];

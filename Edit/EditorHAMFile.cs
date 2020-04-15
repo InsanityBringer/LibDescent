@@ -754,12 +754,12 @@ namespace LibDescent.Edit
                     for (int j = 0; j < model.numGuns; j++)
                     {
                         model.gunSubmodels[j] = br.ReadInt32();
-                        model.gunPoints[j].x = Fix.FromRawValue(br.ReadInt32());
-                        model.gunPoints[j].y = Fix.FromRawValue(br.ReadInt32());
-                        model.gunPoints[j].z = Fix.FromRawValue(br.ReadInt32());
-                        model.gunDirs[j].x = Fix.FromRawValue(br.ReadInt32());
-                        model.gunDirs[j].y = Fix.FromRawValue(br.ReadInt32());
-                        model.gunDirs[j].z = Fix.FromRawValue(br.ReadInt32());
+                        model.gunPoints[j].x = new Fix(br.ReadInt32());
+                        model.gunPoints[j].y = new Fix(br.ReadInt32());
+                        model.gunPoints[j].z = new Fix(br.ReadInt32());
+                        model.gunDirs[j].x = new Fix(br.ReadInt32());
+                        model.gunDirs[j].y = new Fix(br.ReadInt32());
+                        model.gunDirs[j].z = new Fix(br.ReadInt32());
                     }
                     model.isAnimated = br.ReadBoolean();
                     if (model.isAnimated)
@@ -1146,12 +1146,12 @@ namespace LibDescent.Edit
                 for (int j = 0; j < model.numGuns; j++)
                 {
                     bw.Write(model.gunSubmodels[j]);
-                    bw.Write(model.gunPoints[j].x.GetRawValue());
-                    bw.Write(model.gunPoints[j].y.GetRawValue());
-                    bw.Write(model.gunPoints[j].z.GetRawValue());
-                    bw.Write(model.gunDirs[j].x.GetRawValue());
-                    bw.Write(model.gunDirs[j].y.GetRawValue());
-                    bw.Write(model.gunDirs[j].z.GetRawValue());
+                    bw.Write(model.gunPoints[j].x.Value);
+                    bw.Write(model.gunPoints[j].y.Value);
+                    bw.Write(model.gunPoints[j].z.Value);
+                    bw.Write(model.gunDirs[j].x.Value);
+                    bw.Write(model.gunDirs[j].y.Value);
+                    bw.Write(model.gunDirs[j].z.Value);
                 }
                 bw.Write(model.isAnimated);
                 if (model.isAnimated)

@@ -39,7 +39,7 @@ namespace LibDescent.Data
         {
             // UVL elements are written to file as 16-bit values, but are converted to 16.16 fixed-point
             // when loaded, using bitshifts. We do the same conversion here.
-            return new Uvl(Fix.FromRawValue(u << 5), Fix.FromRawValue(v << 5), Fix.FromRawValue(l << 1));
+            return new Uvl(new Fix(u << 5), new Fix(v << 5), new Fix(l << 1));
         }
 
         public (short u, short v, ushort l) ToRawValues()
