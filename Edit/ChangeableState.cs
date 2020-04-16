@@ -230,6 +230,23 @@ namespace LibDescent.Edit
     }
 
     /// <summary>
+    /// Usa this to implement proxies for existing classes in order to reimplement
+    /// them as ChangeableStates. All properties, methods and constructors must be
+    /// reimplemented and should use the corresponding property, method or constructor.
+    /// It is expected that the implemented properties will use the helper methods
+    /// provided by ChangeableState. The underlying proxied instance is the "host".
+    /// </summary>
+    /// <typeparam name="T">The class to proxy.</typeparam>
+    public abstract class ChangeableStateProxy<T> : ChangeableState where T : class
+    {
+        /// <summary>
+        /// The underlying proxied class. Properties, methods and constructors should
+        /// use this for backing.
+        /// </summary>
+        protected T Host { get; }
+    }
+
+    /// <summary>
     /// If added to a property with a data type that inherits from ChangeableState,
     /// the substate will not be automatically subscribed to from the parent object,
     /// which prevents property change events from automatically passing from the
