@@ -26,15 +26,15 @@ using System.IO;
 
 namespace LibDescent.Data
 {
-    public class PIGFile
+    public class PIGFile : IDataFile
     {
         public List<PIGImage> Bitmaps { get; private set; }
         private long startptr = 0L;
         private int header, version;
-        public string filename;
 
         public PIGFile()
         {
+            version = 2;
             Bitmaps = new List<PIGImage>(2620);
             //Init a bogus texture for all piggyfiles
             PIGImage bogusTexture = new PIGImage(64, 64, 0, 0, 0, 0, "bogus", 0);
@@ -52,12 +52,18 @@ namespace LibDescent.Data
             Bitmaps.Add(bogusTexture);
         }
 
-        public void Read(string name)
+        public void Read(Stream stream)
         {
-            BinaryReader br = new BinaryReader(File.Open(name, FileMode.Open));
+            BinaryReader br = new BinaryReader(stream);
 
             header = br.ReadInt32();
             version = br.ReadInt32();
+
+            if (header != 1195987024)
+                throw new InvalidDataException("PIGFile::Read: PIG file has bad header.");
+            if (version != 2)
+                throw new InvalidDataException(string.Format("PIGFile::Read: PIG file has bad version. Got {0}, but expected 2", version));
+
             int textureCount = br.ReadInt32();
 
             for (int x = 0; x < textureCount; x++)
@@ -102,14 +108,12 @@ namespace LibDescent.Data
                 //images[i].LoadData(br);
             }
             
-            br.Close();
             br.Dispose();
-            filename = name;
         }
 
-        public void Write(string name)
+        public void Write(Stream stream)
         {
-            BinaryWriter bw = new BinaryWriter(File.Open(name, FileMode.Create));
+            BinaryWriter bw = new BinaryWriter(stream);
             int offset = 0;
             bw.Write(header);
             bw.Write(version);
@@ -125,9 +129,7 @@ namespace LibDescent.Data
                 Bitmaps[i].WriteImage(bw);
             }
             bw.Flush();
-            bw.Close();
             bw.Dispose();
-            filename = name;
         }
 
         public PIGImage GetImage(int id)

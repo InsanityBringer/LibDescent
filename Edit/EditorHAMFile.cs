@@ -372,8 +372,7 @@ namespace LibDescent.Edit
         /// <returns>0 on success, -1 if bad sig, -2 on bad version.</returns>
         public int Read(Stream stream)
         {
-            int res = BaseFile.Read(stream);
-            if (res != 0) return res;
+            BaseFile.Read(stream);
 
             CreateLocalLists();
 
@@ -836,7 +835,7 @@ namespace LibDescent.Edit
             LoadShipGuns(PlayerShip);
 
             CreateDataLists();
-            BaseFile.Write(stream, compatObjBitmaps);
+            BaseFile.Write(stream);
 
             if (exportExtraData)
             {

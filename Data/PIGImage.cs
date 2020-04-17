@@ -27,13 +27,13 @@ namespace LibDescent.Data
 {
     public class PIGImage
     {
-        private const byte animdata = 1 | 2 | 4 | 8 | 16;
+        private const byte animMask = 1 | 2 | 4 | 8 | 16;
 
         public const int BM_FLAG_TRANSPARENT = 1;
         public const int BM_FLAG_SUPER_TRANSPARENT = 2;
         public const int BM_FLAG_NO_LIGHTING = 4;
         public const int BM_FLAG_RLE = 8;
-        public const int BM_FLAG_PAGED_OUT = 16;
+        public const int BM_FLAG_PAGED_OUT = 16; //This is unneeded in definitions, and isn't exposed in a property. 
         public const int BM_FLAG_RLE_BIG = 32;
 
         //Metaflags, not for use in the game data, but needed for managing data
@@ -66,6 +66,98 @@ namespace LibDescent.Data
         /// Raw image data.
         /// </summary>
         public byte[] data;
+        /// <summary>
+        /// Used for POG files, which base PIG bitmap this replaces.
+        /// </summary>
+        public ushort ReplacementNum { get; set; }
+
+        //Flag properties
+        /// <summary>
+        /// Gets or sets whether or not the bitmap should be drawn with palette index 255 transparent.
+        /// </summary>
+        public bool Transparent
+        {
+            get
+            {
+                return (flags & BM_FLAG_TRANSPARENT) != 0;
+            }
+            set
+            {
+                if (value)
+                    flags |= BM_FLAG_TRANSPARENT;
+                else
+                    flags = (byte)(flags & ~BM_FLAG_TRANSPARENT);
+            }
+        }
+        /// <summary>
+        /// Gets or sets whether or not the bitmap should show through a base texture with pixels with palette index 254 when used as a secondary texture in a level.
+        /// </summary>
+        public bool SuperTransparent
+        {
+            get
+            {
+                return (flags & BM_FLAG_SUPER_TRANSPARENT) != 0;
+            }
+            set
+            {
+                if (value)
+                    flags |= BM_FLAG_SUPER_TRANSPARENT;
+                else
+                    flags = (byte)(flags & ~BM_FLAG_SUPER_TRANSPARENT);
+            }
+        }
+
+        /// <summary>
+        /// Gets or sets whether or not the bitmap should be drawn without lighting from the world.
+        /// </summary>
+        public bool NoLighting
+        {
+            get
+            {
+                return (flags & BM_FLAG_NO_LIGHTING) != 0;
+            }
+            set
+            {
+                if (value)
+                    flags |= BM_FLAG_NO_LIGHTING;
+                else
+                    flags = (byte)(flags & ~BM_FLAG_NO_LIGHTING);
+            }
+        }
+        /// <summary>
+        /// Gets or sets whether or not the data is compressed.
+        /// </summary>
+        public bool RLECompressed
+        {
+            get
+            {
+                return (flags & BM_FLAG_RLE) != 0;
+            }
+            set
+            {
+                if (value) //TODO: This should either strip or remove compression as set. 
+                    flags |= BM_FLAG_RLE;
+                else
+                    flags = (byte)(flags & ~BM_FLAG_RLE);
+            }
+        }
+        /// <summary>
+        /// Gets whether or not the data is compressed and the image is wider than 255 pixels.
+        /// </summary>
+        public bool RLECompressedBig 
+        {
+            get
+            {
+                return (flags & BM_FLAG_RLE_BIG) != 0;
+            }
+            private set //Not exposed as it should only be managed by the internal compression code to avoid issues. 
+            {
+                if (value) 
+                    flags |= BM_FLAG_RLE_BIG;
+                else
+                    flags = (byte)(flags & ~BM_FLAG_RLE_BIG);
+            }
+        }
 
         public byte flags;
         public byte averageIndex;
@@ -74,28 +166,54 @@ namespace LibDescent.Data
         public Palette paletteData;
         public byte extension;
         public bool isAnimated;
-        public PIGImage(int mx, int my, byte framed, byte flag, byte average, int dataOffset, string imagename, byte extension)
+
+        /// <summary>
+        /// Creates a new PIG image that can be up to 1024x1024 in size. Used by Descent 2 PIG and POG files.
+        /// </summary>
+        /// <param name="baseWidth">Base width of the image in the range 0-255</param>
+        /// <param name="baseHeight">Base height of the image in the range 0-255</param>
+        /// <param name="dFlags">Animation and extra data for the image. Bit 6 specifies an animated image, bits 0-4 are used as the frame number.</param>
+        /// <param name="flags">Flags for the image.</param>
+        /// <param name="averageIndex">Index of the image's average color in the palette.</param>
+        /// <param name="dataOffset">Offset to the data in the source file.</param>
+        /// <param name="name">Filename of the image.</param>
+        /// <param name="sizeExtra">Extra data to append to the base width and height. First four bits are appended to the width, last four are appended to the height.</param>
+        public PIGImage(int baseWidth, int baseHeight, byte dFlags, byte flags, byte averageIndex, int dataOffset, string name, byte sizeExtra)
         {
-            baseWidth = mx; baseHeight = my; flags = flag; averageIndex = average; frameData = framed; offset = dataOffset; this.extension = extension;
-            width = baseWidth + (((int)extension & 0x0f) << 8); height = baseHeight + (((int)extension & 0xf0) << 4);
-            name = imagename;
-            frame = ((int)frameData & (int)animdata);
+            this.baseWidth = baseWidth; this.baseHeight = baseHeight; this.flags = flags; this.averageIndex = averageIndex; frameData = dFlags; offset = dataOffset; this.extension = sizeExtra;
+            width = this.baseWidth + (((int)sizeExtra & 0x0f) << 8); height = this.baseHeight + (((int)sizeExtra & 0xf0) << 4);
+            this.name = name;
+            frame = ((int)frameData & (int)animMask);
             isAnimated = ((frameData & 64) != 0);
         }
 
         //Descent 1 version
         //This code seriously needs a cleanup
-        public PIGImage(int mx, int my, byte framed, byte flag, byte average, int dataOffset, string imagename)
+        /// <summary>
+        /// Creates a new PIG image that can be up to 511x255 in size. Used by Descent 1 PIG files.
+        /// </summary>
+        /// <param name="baseWidth">Base width of the image in the range 0-255</param>
+        /// <param name="baseHeight">Base height of the image in the range 0-255</param>
+        /// <param name="dFlags">Animation and extra data for the image. Bit 6 specifies an animated image, bits 0-4 are used as the frame number. Bit 7 adds 256 to the image's width.</param>
+        /// <param name="flags">Flags for the image.</param>
+        /// <param name="averageIndex">Index of the image's average color in the palette.</param>
+        /// <param name="dataOffset">Offset to the data in the source file.</param>
+        /// <param name="name">Filename of the image.</param>
+        public PIGImage(int baseWidth, int baseHeight, byte dFlags, byte flags, byte averageIndex, int dataOffset, string name)
         {
-            baseWidth = mx; baseHeight = my; flags = flag; averageIndex = average; frameData = framed; offset = dataOffset; this.extension = 0;
-            width = baseWidth; height = baseHeight;
+            this.baseWidth = baseWidth; this.baseHeight = baseHeight; this.flags = flags; this.averageIndex = averageIndex; frameData = dFlags; offset = dataOffset; this.extension = 0;
+            width = this.baseWidth; height = this.baseHeight;
             if ((frameData & 128) != 0)
                 width += 256;
-            name = imagename;
-            frame = ((int)frameData & (int)animdata);
+            this.name = name;
+            frame = ((int)frameData & (int)animMask);
             isAnimated = ((frameData & 64) != 0);
         }
 
+        /// <summary>
+        /// Gets the size of the data stored on disk.
+        /// </summary>
+        /// <returns>The size of the data stored on disk, in bytes.</returns>
         public int GetSize()
         {
             if ((flags & BM_FLAG_RLE) != 0)
@@ -105,6 +223,10 @@ namespace LibDescent.Data
             return width * height;
         }
 
+        /// <summary>
+        /// Decompresses the image if needed and returns the raw bitmap data.
+        /// </summary>
+        /// <returns>A byte array containing the raw bitmap data.</returns>
         public byte[] GetData()
         {
             if ((flags & BM_FLAG_RLE) != 0)
@@ -136,7 +258,10 @@ namespace LibDescent.Data
 
                 return expand;
             }
-            return data;
+            //Return a copy rather than the original data, like with compressed images. 
+            byte[] buffer = new byte[data.Length];
+            Array.Copy(data, buffer, data.Length);
+            return buffer;
         }
 
         public void WriteImage(BinaryWriter bw)

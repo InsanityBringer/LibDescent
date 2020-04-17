@@ -27,7 +27,7 @@ using System.IO;
 
 namespace LibDescent.Data
 {
-    public class HAMFile : IElementManager
+    public class HAMFile : IDataFile
     {
         /// <summary>
         /// Version of the archive, needed for writing back. Version 2 has sound information, version 3 is latest supported, used by the release game.
@@ -156,7 +156,7 @@ namespace LibDescent.Data
             BitmapXLATData = new ushort[2620];
         }
 
-        public int Read(Stream stream)
+        public void Read(Stream stream)
         {
             BinaryReader br;
             br = new BinaryReader(stream);
@@ -166,13 +166,13 @@ namespace LibDescent.Data
             if (sig != 0x214D4148)
             {
                 br.Dispose();
-                return -1;
+                throw new InvalidDataException("HAMFile::Read: HAM file has bad header.");
             }
             version = br.ReadInt32();
             if (version < 2 || version > 3)
             {
                 br.Dispose();
-                return -2;
+                throw new InvalidDataException(string.Format("HAMFile::Read: HAM file has bad version. Got {0}, but expected \"2\" or \"3\"", version));
             }
             int sndptr = 0;
             if (version == 2)
@@ -369,11 +369,9 @@ namespace LibDescent.Data
 
             hasRead = true;
             //br.Dispose();
-
-            return 0;
         }
 
-        public void Write(Stream stream, bool compatObjBitmaps)
+        public void Write(Stream stream)
         {
             HAMDataWriter writer = new HAMDataWriter();
             BinaryWriter bw = new BinaryWriter(stream);
