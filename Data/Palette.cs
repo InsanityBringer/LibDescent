@@ -24,30 +24,29 @@ namespace LibDescent.Data
 {
     public class Palette
     {
-        public byte[,] palette = new byte[256, 3];
+        private byte[] palette = new byte[768];
 
         public Palette()
         {
-            for (int x = 0; x < 3; x++)
+            for (int c = 0; c < 255; c++)
             {
-                for (int c = 0; c < 255; c++)
+                for (int x = 0; x < 3; x++)
                 {
-                    palette[c, x] = (byte)c;
+                    palette[c * 3] = (byte)c;
+                    palette[c * 3 + 1] = (byte)c;
+                    palette[c * 3 + 2] = (byte)c;
                 }
             }
         }
 
         public Palette(byte[] data, bool rescale = true)
         {
-            for (int c = 0; c < 255; c++)
+            for (int c = 0; c < 768; c++)
             {
-                for (int x = 0; x < 3; x++)
-                {
-                    if (rescale)
-                        palette[c, x] = (byte)(data[c * 3 + x] * 255 / 63);
-                    else
-                        palette[c, x] = data[c * 3 + x];
-                }
+                if (rescale)
+                    palette[c] = (byte)(data[c] * 255 / 63);
+                else
+                    palette[c] = data[c];
             }
         }
 
@@ -55,21 +54,28 @@ namespace LibDescent.Data
         {
             get
             {
-                return palette[index, channel];
+                if (channel < 0 || channel >= 3) channel = 0; //simple validation
+                if (index < 0 || index >= 768) index = 0;
+                return palette[index * 3 + channel];
             }
         }
 
-        public byte[] GetLinear()
+        public byte this[int index]
+        {
+            get
+            {
+                return palette[index];
+            }
+        }
+
+        public byte[] GetLinear() //basically a copy function tbh
         {
             byte[] linearPal = new byte[768];
 
             int offset = 0;
-            for (int x = 0; x < 256; x++)
+            for (int x = 0; x < 768; x++)
             {
-                for (int c = 0; c < 3; c++)
-                {
-                    linearPal[offset++] = palette[x, c];
-                }
+                linearPal[offset++] = palette[x];
             }
 
             return linearPal;
@@ -83,7 +89,7 @@ namespace LibDescent.Data
 
             for (int i = 0; i < 255; i++)
             {
-                dist = (r - palette[i, 0]) * (r - palette[i, 0]) + (g - palette[i, 1]) * (g - palette[i, 1]) + (b - palette[i, 2]) * (b - palette[i, 2]);
+                dist = (r - palette[i * 3]) * (r - palette[i * 3]) + (g - palette[i * 3 + 1]) * (g - palette[i * 3 + 1]) + (b - palette[i * 3 + 2]) * (b - palette[i * 3 + 2]);
                 if (dist == 0) return i;
                 if (dist < bestdist)
                 {
@@ -94,10 +100,10 @@ namespace LibDescent.Data
             return bestcolor;
         }
 
-        public int GetDrawingColorH(int id)
+        public int GetRGBAValue(int id)
         {
             int a = id == 255 ? 0 : 255;
-            return ((a << 24) + (palette[id, 0] << 16) + (palette[id, 1] << 8) + (palette[id, 2]));
+            return ((a << 24) + (palette[id * 3] << 16) + (palette[id * 3 + 1] << 8) + (palette[id * 3 + 2]));
         }
 
         public static Palette defaultPalette = new Palette();
