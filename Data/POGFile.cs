@@ -42,9 +42,15 @@ namespace LibDescent.Data
             version = br.ReadInt32();
 
             if (header != 1196380228)
+            {
+                br.Dispose();
                 throw new InvalidDataException("POGFile::Read: POG file has bad header.");
+            }
             if (version != 1)
+            {
+                br.Dispose();
                 throw new InvalidDataException(string.Format("POGFile::Read: POG file has bad version. Got {0}, but expected 1", version));
+            }
 
             int textureCount = br.ReadInt32();
             ushort[] replacements = new ushort[textureCount];

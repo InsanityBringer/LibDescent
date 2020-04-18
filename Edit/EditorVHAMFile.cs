@@ -6,7 +6,7 @@ using LibDescent.Data;
 
 namespace LibDescent.Edit
 {
-    public class EditorVHAMFile
+    public class EditorVHAMFile : IDataFile
     {
         public VHAMFile BaseFile { get; private set; }
         public EditorHAMFile BaseHAM { get; private set; }
@@ -36,16 +36,15 @@ namespace LibDescent.Edit
             ObjBitmapPointers = new List<ushort>();
         }
 
-        public EditorVHAMFile(EditorHAMFile baseHAM) : this(new VHAMFile(baseHAM.BaseFile), baseHAM)
+        public EditorVHAMFile(EditorHAMFile baseHAM) : this(new VHAMFile(), baseHAM)
         {
         }
 
-        public int Read(Stream stream)
+        public void Read(Stream stream)
         {
             //If a namefile isn't present, automatically generate namelists for our convenience. 
             bool generateNameLists = true;
-            int res = BaseFile.Read(stream);
-            if (res != 0) return res;
+            BaseFile.Read(stream);
             CreateLocalLists();
 
             foreach (Robot robot in Robots)
@@ -69,8 +68,6 @@ namespace LibDescent.Edit
                     ModelNames.Add(String.Format("New Model {0}", i + 1));
                 }
             }
-
-            return 0;
         }
 
         private void CreateLocalLists()
@@ -309,5 +306,9 @@ namespace LibDescent.Edit
             return VHAMFile.N_D2_POLYGON_MODELS + Models.Count;
         }
 
+        public void Write(Stream stream)
+        {
+            throw new NotImplementedException();
+        }
     }
 }

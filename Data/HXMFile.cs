@@ -34,7 +34,7 @@ namespace LibDescent.Data
         public int replacementID;
         public ushort data; 
     }
-    public class HXMFile
+    public class HXMFile : IDataFile
     {
         public int sig, ver;
         public List<Robot> replacedRobots { get; private set; }
@@ -60,8 +60,7 @@ namespace LibDescent.Data
         /// Loads an HXM file from a given stream.
         /// </summary>
         /// <param name="stream">The stream to load the HXM data from.</param>
-        /// <returns></returns>
-        public int Read(Stream stream)
+        public void Read(Stream stream)
         {
             BinaryReader br;
             br = new BinaryReader(stream);
@@ -70,6 +69,17 @@ namespace LibDescent.Data
 
             sig = br.ReadInt32();
             ver = br.ReadInt32();
+
+            if (sig != 559435080)
+            {
+                br.Dispose();
+                throw new InvalidDataException("HXMFile::Read: HXM file has bad header.");
+            }
+            if (ver != 1)
+            {
+                br.Dispose();
+                throw new InvalidDataException(string.Format("HXMFile::Read: HXM file has bad version. Got {0}, but expected 1", ver));
+            }
 
             int replacedRobotCount = br.ReadInt32();
             for (int x = 0; x < replacedRobotCount; x++)
@@ -119,7 +129,6 @@ namespace LibDescent.Data
                 objBitmap.data = br.ReadUInt16();
                 replacedObjBitmapPtrs.Add(objBitmap);
             }
-            return 0;
         }
 
         /// <summary>

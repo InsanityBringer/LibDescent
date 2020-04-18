@@ -6,7 +6,7 @@ using LibDescent.Data;
 
 namespace LibDescent.Edit
 {
-    public class EditorHXMFile
+    public class EditorHXMFile : IDataFile
     {
         public HXMFile BaseFile { get; private set; }
         public EditorHAMFile BaseHAM { get; private set; }
@@ -44,10 +44,9 @@ namespace LibDescent.Edit
         // LOADING
         //---------------------------------------------------------------------
 
-        public int Read(Stream stream)
+        public void Read(Stream stream)
         {
-            int res = BaseFile.Read(stream);
-            if (res != 0) return res;
+            BaseFile.Read(stream);
 
             CreateLocalLists();
             GenerateNameTable();
@@ -56,7 +55,6 @@ namespace LibDescent.Edit
             {
                 BuildModelAnimation(robot);
             }
-            return 0;
         }
 
         private void CreateLocalLists()

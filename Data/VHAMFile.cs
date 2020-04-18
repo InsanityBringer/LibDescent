@@ -26,10 +26,8 @@ using System.IO;
 
 namespace LibDescent.Data
 {
-    public class VHAMFile
+    public class VHAMFile : IDataFile
     {
-        public HAMFile baseFile;
-
         public List<Robot> Robots { get; private set; }
         public List<Weapon> Weapons { get; private set; }
         public List<Polymodel> Models { get; private set; }
@@ -50,9 +48,8 @@ namespace LibDescent.Data
         public int NumWeapons { get { return Weapons.Count + N_D2_WEAPON_TYPES; } }
         public int NumModels { get { return Models.Count + N_D2_POLYGON_MODELS; } }
 
-        public VHAMFile(HAMFile baseFile)
+        public VHAMFile()
         {
-            this.baseFile = baseFile;
             Robots = new List<Robot>();
             Weapons = new List<Weapon>();
             Models = new List<Polymodel>();
@@ -61,7 +58,7 @@ namespace LibDescent.Data
             ObjBitmapPointers = new List<ushort>();
         }
 
-        public int Read(Stream stream)
+        public void Read(Stream stream)
         {
             BinaryReader br;
 
@@ -71,16 +68,14 @@ namespace LibDescent.Data
             int sig = br.ReadInt32();
             if (sig != 0x5848414D)
             {
-                br.Close();
                 br.Dispose();
-                return -1;
+                throw new InvalidDataException("VHAMFile::Read: V-HAM file has bad header.");
             }
             int version = br.ReadInt32();
             if (version != 1)
             {
-                br.Close();
                 br.Dispose();
-                return -2;
+                throw new InvalidDataException(string.Format("VHAMFile::Read: V-HAM file has bad version. Got {0}, but expected 1", version));
             }
 
             int numWeapons = br.ReadInt32();
@@ -135,8 +130,11 @@ namespace LibDescent.Data
             }
 
             br.Dispose();
+        }
 
-            return 0;
+        public void Write(Stream stream)
+        {
+            throw new NotImplementedException();
         }
     }
 }

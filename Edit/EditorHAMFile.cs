@@ -6,7 +6,7 @@ using LibDescent.Data;
 
 namespace LibDescent.Edit
 {
-    public class EditorHAMFile
+    public class EditorHAMFile : IDataFile
     {
         public HAMFile BaseFile { get; private set; }
 
@@ -123,6 +123,9 @@ namespace LibDescent.Edit
         public List<string> PowerupNames { get; private set; }
 
         private int NumRobotJoints;
+
+        public bool ExportExtraData { get; set; } = true;
+        public bool CompatObjBitmaps { get; set; } = false;
 
         public EditorHAMFile(HAMFile baseFile, PIGFile piggyFile)
         {
@@ -369,8 +372,7 @@ namespace LibDescent.Edit
         /// Reads the base HAM file from a given stream, and then the additional data used by the editor.
         /// </summary>
         /// <param name="stream">The stream to read from.</param>
-        /// <returns>0 on success, -1 if bad sig, -2 on bad version.</returns>
-        public int Read(Stream stream)
+        public void Read(Stream stream)
         {
             BaseFile.Read(stream);
 
@@ -412,8 +414,6 @@ namespace LibDescent.Edit
             }
             BuildModelGunsFromShip(PlayerShip);
             BuildModelTextureTables();
-
-            return 0;
         }
 
         /// <summary>
@@ -811,7 +811,7 @@ namespace LibDescent.Edit
         //SAVING
         //---------------------------------------------------------------------
 
-        public void Write(Stream stream, bool compatObjBitmaps, bool exportExtraData = true)
+        public void Write(Stream stream)
         {
             //Brute force solution
             //RenumberElements(HAMType.EClip);
@@ -819,7 +819,7 @@ namespace LibDescent.Edit
             //RenumberElements(HAMType.Robot);
             //RenumberElements(HAMType.Model);
             //Science experiment
-            GenerateObjectBitmapTables(compatObjBitmaps);
+            GenerateObjectBitmapTables(CompatObjBitmaps);
             NumRobotJoints = 0;
             Console.WriteLine("Loaded {0} joints", Joints.Count);
             Joints.Clear();
@@ -837,7 +837,7 @@ namespace LibDescent.Edit
             CreateDataLists();
             BaseFile.Write(stream);
 
-            if (exportExtraData)
+            if (ExportExtraData)
             {
                 BinaryWriter bw = new BinaryWriter(stream);
                 SaveNamefile(bw);

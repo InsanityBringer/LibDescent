@@ -60,9 +60,15 @@ namespace LibDescent.Data
             version = br.ReadInt32();
 
             if (header != 1195987024)
+            {
+                br.Dispose();
                 throw new InvalidDataException("PIGFile::Read: PIG file has bad header.");
+            }
             if (version != 2)
+            {
+                br.Dispose();
                 throw new InvalidDataException(string.Format("PIGFile::Read: PIG file has bad version. Got {0}, but expected 2", version));
+            }
 
             int textureCount = br.ReadInt32();
 
