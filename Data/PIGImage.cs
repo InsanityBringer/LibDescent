@@ -36,10 +36,18 @@ namespace LibDescent.Data
 
         //Metaflags, not for use in the game data, but needed for managing data
         public const int BM_META_LOADED = 1;
+        private string mName;
         /// <summary>
         /// Name of the image in the Piggy archive
         /// </summary>
-        public string Name { get; set; }
+        public string Name 
+        {
+            get => mName;
+            set
+            {
+                mName = value.Substring(0, Math.Min(8, value.Length)).ToLowerInvariant();
+            } 
+        }
         /// <summary>
         /// Base width of the image, before the extra bits are added
         /// </summary>
@@ -208,7 +216,7 @@ namespace LibDescent.Data
         {
             this.BaseWidth = baseWidth; this.BaseHeight = baseHeight; this.Flags = flags; this.AverageIndex = averageIndex; DFlags = dFlags; Offset = dataOffset; this.ExtraData = sizeExtra;
             Width = baseWidth | (((int)sizeExtra & 0x0f) << 8); Height = baseHeight | (((int)sizeExtra & 0xf0) << 4);
-            Name = name.Substring(0, Math.Min(8, name.Length));
+            Name = name;
         }
 
         /// <summary>
@@ -227,7 +235,7 @@ namespace LibDescent.Data
             Width = imageWidth; Height = imageHeight;
             if ((DFlags & 128) != 0)
                 Width += 256;
-            Name = name.Substring(0, Math.Min(8, name.Length));
+            Name = name;
 
             ExtraData = (byte)((imageWidth >> 8) & 15);
             ExtraData |= (byte)((imageHeight >> 8 & 15) << 4);
