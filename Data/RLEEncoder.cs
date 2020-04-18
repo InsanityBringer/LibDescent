@@ -67,7 +67,7 @@ namespace LibDescent.Data
             int size = 0;
             int pointer = 0;
             int count = 1;
-            byte c = 0, oc;
+            byte c, oc;
 
             oc = input[pointer++];
             //assumption: input is as wide as the image is
@@ -78,7 +78,7 @@ namespace LibDescent.Data
                 {
                     if (count > 0)
                     {
-                        if (count == 1 && (c & 0xE0) != 0xE0)
+                        if (count == 1 && (oc & 0xE0) != 0xE0)
                         {
                             size++;
                         }
@@ -99,7 +99,7 @@ namespace LibDescent.Data
 
             if (count > 0)
             {
-                if (count == 1 && (c & 0xE0) != 0xE0)
+                if (count == 1 && (oc & 0xE0) != 0xE0)
                 {
                     size++;
                 }
@@ -122,7 +122,7 @@ namespace LibDescent.Data
             int pointer = 0;
             int destPointer = 0;
             int count = 1;
-            byte c = 0, oc;
+            byte c, oc;
 
             oc = input[pointer++];
             //assumption: input is as wide as the image is
@@ -133,7 +133,7 @@ namespace LibDescent.Data
                 {
                     if (count > 0)
                     {
-                        if (count == 1 && (c & 0xE0) != 0xE0)
+                        if (count == 1 && (oc & 0xE0) != 0xE0)
                         {
                             output[destPointer++] = oc;
                         }
@@ -160,7 +160,7 @@ namespace LibDescent.Data
 
             if (count > 0)
             {
-                if (count == 1 && (c & 0xE0) != 0xE0)
+                if (count == 1 && (oc & 0xE0) != 0xE0)
                 {
                     output[destPointer++] = oc;
                 }
