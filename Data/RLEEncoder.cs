@@ -19,6 +19,7 @@
     OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
     SOFTWARE.
 */
+using System;
 
 namespace LibDescent.Data
 {
@@ -42,7 +43,7 @@ namespace LibDescent.Data
             {
                 curdata = input[position++];
                 if (curdata == 0xE0)
-                    continue;
+                    break;
 
                 if (curdata > 0xE0)
                 {
@@ -59,6 +60,174 @@ namespace LibDescent.Data
                     output[linelocation++] = curdata;
                 }
             }
+        }
+
+        private static int MeasureScanline(byte[] input)
+        {
+            int size = 0;
+            int pointer = 0;
+            int count = 1;
+            byte c = 0, oc;
+
+            oc = input[pointer++];
+            //assumption: input is as wide as the image is
+            for (int i = 1; i < input.Length; i++)
+            {
+                c = input[pointer++];
+                if (c != oc)
+                {
+                    if (count > 0)
+                    {
+                        if (count == 1 && (c & 0xE0) != 0xE0)
+                        {
+                            size++;
+                        }
+                        else
+                            size += 2;
+                    }
+                    oc = c;
+                    count = 0;
+                }
+                count++;
+                if (count == 31)
+                {
+                    size += 2;
+                    count = 0;
+                }
+
+            }
+
+            if (count > 0)
+            {
+                if (count == 1 && (c & 0xE0) != 0xE0)
+                {
+                    size++;
+                }
+                else
+                    size += 2;
+            }
+            size++;
+
+            return size;
+        }
+
+        /// <summary>
+        /// Compresses a raw scanline to RLE compressed data.
+        /// </summary>
+        /// <param name="input">The input uncompressed scanline.</param>
+        /// <param name="output">The output buffer. This must have been sized properly with MeasureScanline.</param>
+        public static void EncodeScanline(byte[] input, byte[] output)
+        {
+            int size = 0;
+            int pointer = 0;
+            int destPointer = 0;
+            int count = 1;
+            byte c = 0, oc;
+
+            oc = input[pointer++];
+            //assumption: input is as wide as the image is
+            for (int i = 1; i < input.Length; i++)
+            {
+                c = input[pointer++];
+                if (c != oc)
+                {
+                    if (count > 0)
+                    {
+                        if (count == 1 && (c & 0xE0) != 0xE0)
+                        {
+                            output[destPointer++] = oc;
+                        }
+                        else
+                        {
+                            count |= 0xE0;
+                            output[destPointer++] = (byte)count;
+                            output[destPointer++] = oc;
+                        }
+                    }
+                    oc = c;
+                    count = 0;
+                }
+                count++;
+                if (count == 31)
+                {
+                    count |= 0xE0;
+                    output[destPointer++] = (byte)count;
+                    output[destPointer++] = oc;
+                    count = 0;
+                }
+
+            }
+
+            if (count > 0)
+            {
+                if (count == 1 && (c & 0xE0) != 0xE0)
+                {
+                    output[destPointer++] = oc;
+                }
+                else
+                {
+                    count |= 0xE0;
+                    output[destPointer++] = (byte)count;
+                    output[destPointer++] = oc;
+                }
+            }
+            output[destPointer++] = 0xE0;
+        }
+
+        public static byte[] EncodeImage(int width, int height, byte[] buffer, out bool big)
+        {
+            big = false;
+            if (width < 4) throw new System.Exception("Image is too narrow to encode.");
+            short[] linesizes = new short[height];
+
+            byte[][] scanlines = new byte[height][];
+            byte[][] compressedScanlines = new byte[height][];
+            for (int y = 0; y < height; y++)
+            {
+                scanlines[y] = new byte[width];
+                Array.Copy(buffer, y * width, scanlines[y], 0, width); //TODO: slow. Unsafe would be much faster for all of this, but is it worth? Or am I missing something obvious?
+
+                linesizes[y] = (short)MeasureScanline(scanlines[y]);
+                if (linesizes[y] > 255) big = true;
+            }
+
+            int baseOffset = height * (big ? 2 : 1);
+            for (int y = 0; y < height; y++)
+            {
+                if (baseOffset + linesizes[y] > width * height) throw new Exception("Image cannot compress efficiently.");
+                compressedScanlines[y] = new byte[linesizes[y]];
+                EncodeScanline(scanlines[y], compressedScanlines[y]);
+
+                baseOffset += linesizes[y];
+            }
+
+            byte[] finalBuffer = new byte[baseOffset];
+            int finalOffset = 0;
+            //Add line sizes
+            if (big)
+            {
+                for (int y = 0; y < height; y++)
+                {
+                    Array.Copy(BitConverter.GetBytes(linesizes[y]), 0, finalBuffer, finalOffset, 2);
+                    finalOffset += 2;
+                }
+            }
+            else
+            {
+                for (int y = 0; y < height; y++)
+                {
+                    finalBuffer[finalOffset] = (byte)linesizes[y];
+                    finalOffset++;
+                }
+            }
+            //Add scanlines
+            for (int y = 0; y < height; y++)
+            {
+                Array.Copy(compressedScanlines[y], 0, finalBuffer, finalOffset, linesizes[y]);
+                finalOffset += linesizes[y];
+            }
+
+            return finalBuffer;
         }
     }
 }

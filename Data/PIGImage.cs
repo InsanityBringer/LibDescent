@@ -135,10 +135,23 @@ namespace LibDescent.Data
             }
             set
             {
-                if (value) //TODO: This should either strip or remove compression as set. 
-                    flags |= BM_FLAG_RLE;
+                if (value)
+                {
+                    if ((flags & BM_FLAG_RLE) == 0)
+                    {
+                        CompressImage();
+                        flags |= BM_FLAG_RLE;
+                    }
+                }
                 else
-                    flags = (byte)(flags & ~BM_FLAG_RLE);
+                {
+                    if ((flags & BM_FLAG_RLE) != 0)
+                    {
+                        DecompressImage();
+                        flags = (byte)(flags & ~BM_FLAG_RLE);
+                        RLECompressedBig = false;
+                    }
+                }
             }
         }
         /// <summary>
@@ -297,6 +310,20 @@ namespace LibDescent.Data
             bw.Write(flags);
             bw.Write(averageIndex);
             bw.Write(offset);
+        }
+
+        private void DecompressImage()
+        {
+            byte[] newdata = GetData();
+            data = newdata; //heh
+        }
+
+        private void CompressImage()
+        {
+            bool big;
+            byte[] newdata = RLEEncoder.EncodeImage(width, height, data, out big);
+            if (big) RLECompressedBig = true;
+            data = newdata;
         }
     }
 }
