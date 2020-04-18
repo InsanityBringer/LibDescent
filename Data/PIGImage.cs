@@ -208,7 +208,7 @@ namespace LibDescent.Data
         {
             this.BaseWidth = baseWidth; this.BaseHeight = baseHeight; this.Flags = flags; this.AverageIndex = averageIndex; DFlags = dFlags; Offset = dataOffset; this.ExtraData = sizeExtra;
             Width = baseWidth | (((int)sizeExtra & 0x0f) << 8); Height = baseHeight | (((int)sizeExtra & 0xf0) << 4);
-            this.Name = name;
+            Name = name.Substring(0, Math.Min(8, name.Length));
         }
 
         /// <summary>
@@ -227,7 +227,7 @@ namespace LibDescent.Data
             Width = imageWidth; Height = imageHeight;
             if ((DFlags & 128) != 0)
                 Width += 256;
-            this.Name = name;
+            Name = name.Substring(0, Math.Min(8, name.Length));
 
             ExtraData = (byte)((imageWidth >> 8) & 15);
             ExtraData |= (byte)((imageHeight >> 8 & 15) << 4);
