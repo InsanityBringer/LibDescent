@@ -27,8 +27,6 @@ namespace LibDescent.Data
 {
     public class PIGImage
     {
-        private const byte animMask = 1 | 2 | 4 | 8 | 16;
-
         public const int BM_FLAG_TRANSPARENT = 1;
         public const int BM_FLAG_SUPER_TRANSPARENT = 2;
         public const int BM_FLAG_NO_LIGHTING = 4;
@@ -41,31 +39,27 @@ namespace LibDescent.Data
         /// <summary>
         /// Name of the image in the Piggy archive
         /// </summary>
-        public string name;
-        /// <summary>
-        /// Animation flags for the image
-        /// </summary>
-        public byte frameData;
+        public string Name { get; set; }
         /// <summary>
         /// Base width of the image, before the extra bits are added
         /// </summary>
-        public int baseWidth;
+        public int BaseWidth { get; }
         /// <summary>
         /// Base height of the image, before the extra bits are added
         /// </summary>
-        public int baseHeight;
+        public int BaseHeight { get; }
         /// <summary>
         /// Final width of the image.
         /// </summary>
-        public int width;
+        public int Width { get; }
         /// <summary>
         /// Final height of the image.
         /// </summary>
-        public int height; 
+        public int Height { get; }
         /// <summary>
         /// Raw image data.
         /// </summary>
-        public byte[] data;
+        public byte[] Data { get; set; }
         /// <summary>
         /// Used for POG files, which base PIG bitmap this replaces.
         /// </summary>
@@ -79,14 +73,14 @@ namespace LibDescent.Data
         {
             get
             {
-                return (flags & BM_FLAG_TRANSPARENT) != 0;
+                return (Flags & BM_FLAG_TRANSPARENT) != 0;
             }
             set
             {
                 if (value)
-                    flags |= BM_FLAG_TRANSPARENT;
+                    Flags |= BM_FLAG_TRANSPARENT;
                 else
-                    flags = (byte)(flags & ~BM_FLAG_TRANSPARENT);
+                    Flags = (byte)(Flags & ~BM_FLAG_TRANSPARENT);
             }
         }
         /// <summary>
@@ -96,14 +90,14 @@ namespace LibDescent.Data
         {
             get
             {
-                return (flags & BM_FLAG_SUPER_TRANSPARENT) != 0;
+                return (Flags & BM_FLAG_SUPER_TRANSPARENT) != 0;
             }
             set
             {
                 if (value)
-                    flags |= BM_FLAG_SUPER_TRANSPARENT;
+                    Flags |= BM_FLAG_SUPER_TRANSPARENT;
                 else
-                    flags = (byte)(flags & ~BM_FLAG_SUPER_TRANSPARENT);
+                    Flags = (byte)(Flags & ~BM_FLAG_SUPER_TRANSPARENT);
             }
         }
 
@@ -114,14 +108,14 @@ namespace LibDescent.Data
         {
             get
             {
-                return (flags & BM_FLAG_NO_LIGHTING) != 0;
+                return (Flags & BM_FLAG_NO_LIGHTING) != 0;
             }
             set
             {
                 if (value)
-                    flags |= BM_FLAG_NO_LIGHTING;
+                    Flags |= BM_FLAG_NO_LIGHTING;
                 else
-                    flags = (byte)(flags & ~BM_FLAG_NO_LIGHTING);
+                    Flags = (byte)(Flags & ~BM_FLAG_NO_LIGHTING);
             }
         }
         /// <summary>
@@ -131,24 +125,24 @@ namespace LibDescent.Data
         {
             get
             {
-                return (flags & BM_FLAG_RLE) != 0;
+                return (Flags & BM_FLAG_RLE) != 0;
             }
             set
             {
                 if (value)
                 {
-                    if ((flags & BM_FLAG_RLE) == 0)
+                    if ((Flags & BM_FLAG_RLE) == 0)
                     {
                         CompressImage();
-                        flags |= BM_FLAG_RLE;
+                        Flags |= BM_FLAG_RLE;
                     }
                 }
                 else
                 {
-                    if ((flags & BM_FLAG_RLE) != 0)
+                    if ((Flags & BM_FLAG_RLE) != 0)
                     {
                         DecompressImage();
-                        flags = (byte)(flags & ~BM_FLAG_RLE);
+                        Flags = (byte)(Flags & ~BM_FLAG_RLE);
                         RLECompressedBig = false;
                     }
                 }
@@ -161,24 +155,43 @@ namespace LibDescent.Data
         {
             get
             {
-                return (flags & BM_FLAG_RLE_BIG) != 0;
+                return (Flags & BM_FLAG_RLE_BIG) != 0;
             }
             private set //Not exposed as it should only be managed by the internal compression code to avoid issues. 
             {
                 if (value) 
-                    flags |= BM_FLAG_RLE_BIG;
+                    Flags |= BM_FLAG_RLE_BIG;
                 else
-                    flags = (byte)(flags & ~BM_FLAG_RLE_BIG);
+                    Flags = (byte)(Flags & ~BM_FLAG_RLE_BIG);
             }
         }
 
-        public byte flags;
-        public byte averageIndex;
-        public int offset;
-        public int frame;
-        public Palette paletteData;
-        public byte extension;
-        public bool isAnimated;
+        public byte Flags { get; set; }
+        public byte AverageIndex { get; set; }
+        public int Offset { get; set; }
+        public int DFlags { get; set; }
+        public byte ExtraData { get; }
+        public bool IsAnimated
+        {
+            get
+            {
+                return ((DFlags & 64) != 0);
+            }
+        }
+        public int Frame
+        {
+            get
+            {
+                return DFlags & 31;
+            }
+            set
+            {
+                if (value >= 0 && value < 32)
+                {
+                    DFlags = value | (DFlags & 0xE0);
+                }
+            }
+        }
 
         /// <summary>
         /// Creates a new PIG image that can be up to 1024x1024 in size. Used by Descent 2 PIG and POG files.
@@ -193,34 +206,31 @@ namespace LibDescent.Data
         /// <param name="sizeExtra">Extra data to append to the base width and height. First four bits are appended to the width, last four are appended to the height.</param>
         public PIGImage(int baseWidth, int baseHeight, byte dFlags, byte flags, byte averageIndex, int dataOffset, string name, byte sizeExtra)
         {
-            this.baseWidth = baseWidth; this.baseHeight = baseHeight; this.flags = flags; this.averageIndex = averageIndex; frameData = dFlags; offset = dataOffset; this.extension = sizeExtra;
-            width = this.baseWidth + (((int)sizeExtra & 0x0f) << 8); height = this.baseHeight + (((int)sizeExtra & 0xf0) << 4);
-            this.name = name;
-            frame = ((int)frameData & (int)animMask);
-            isAnimated = ((frameData & 64) != 0);
+            this.BaseWidth = baseWidth; this.BaseHeight = baseHeight; this.Flags = flags; this.AverageIndex = averageIndex; DFlags = dFlags; Offset = dataOffset; this.ExtraData = sizeExtra;
+            Width = baseWidth | (((int)sizeExtra & 0x0f) << 8); Height = baseHeight | (((int)sizeExtra & 0xf0) << 4);
+            this.Name = name;
         }
 
-        //Descent 1 version
-        //This code seriously needs a cleanup
         /// <summary>
-        /// Creates a new PIG image that can be up to 511x255 in size. Used by Descent 1 PIG files.
+        /// Creates a new PIG image that can be up to 4095x4095 in size, automatically setting the extension field as needed. 
         /// </summary>
-        /// <param name="baseWidth">Base width of the image in the range 0-255</param>
-        /// <param name="baseHeight">Base height of the image in the range 0-255</param>
+        /// <param name="imageWidth">Base width of the image in the range 0-4095</param>
+        /// <param name="imageHeight">Base height of the image in the range 0-4095</param>
         /// <param name="dFlags">Animation and extra data for the image. Bit 6 specifies an animated image, bits 0-4 are used as the frame number. Bit 7 adds 256 to the image's width.</param>
         /// <param name="flags">Flags for the image.</param>
         /// <param name="averageIndex">Index of the image's average color in the palette.</param>
         /// <param name="dataOffset">Offset to the data in the source file.</param>
         /// <param name="name">Filename of the image.</param>
-        public PIGImage(int baseWidth, int baseHeight, byte dFlags, byte flags, byte averageIndex, int dataOffset, string name)
+        public PIGImage(int imageWidth, int imageHeight, byte dFlags, byte flags, byte averageIndex, int dataOffset, string name)
         {
-            this.baseWidth = baseWidth; this.baseHeight = baseHeight; this.flags = flags; this.averageIndex = averageIndex; frameData = dFlags; offset = dataOffset; this.extension = 0;
-            width = this.baseWidth; height = this.baseHeight;
-            if ((frameData & 128) != 0)
-                width += 256;
-            this.name = name;
-            frame = ((int)frameData & (int)animMask);
-            isAnimated = ((frameData & 64) != 0);
+            BaseWidth = imageWidth & 255; BaseHeight = imageHeight & 255; Flags = flags; AverageIndex = averageIndex; DFlags = dFlags; Offset = dataOffset; ExtraData = 0;
+            Width = imageWidth; Height = imageHeight;
+            if ((DFlags & 128) != 0)
+                Width += 256;
+            this.Name = name;
+
+            ExtraData = (byte)((imageWidth >> 8) & 15);
+            ExtraData |= (byte)((imageHeight >> 8 & 15) << 4);
         }
 
         /// <summary>
@@ -229,11 +239,11 @@ namespace LibDescent.Data
         /// <returns>The size of the data stored on disk, in bytes.</returns>
         public int GetSize()
         {
-            if ((flags & BM_FLAG_RLE) != 0)
+            if ((Flags & BM_FLAG_RLE) != 0)
             {
-                return data.Length + 4;
+                return Data.Length + 4;
             }
-            return width * height;
+            return Width * Height;
         }
 
         /// <summary>
@@ -242,51 +252,51 @@ namespace LibDescent.Data
         /// <returns>A byte array containing the raw bitmap data.</returns>
         public byte[] GetData()
         {
-            if ((flags & BM_FLAG_RLE) != 0)
+            if ((Flags & BM_FLAG_RLE) != 0)
             {
-                byte[] expand = new byte[width * height];
-                byte[] scanline = new byte[width];
+                byte[] expand = new byte[Width * Height];
+                byte[] scanline = new byte[Width];
 
-                for (int cury = 0; cury < height; cury++)
+                for (int cury = 0; cury < Height; cury++)
                 {
-                    if ((flags & BM_FLAG_RLE_BIG) != 0)
+                    if ((Flags & BM_FLAG_RLE_BIG) != 0)
                     {
-                        offset = height * 2;
+                        Offset = Height * 2;
                         for (int i = 0; i < cury; i++)
                         {
-                            offset += data[i * 2] + (data[i * 2 + 1] << 8);
+                            Offset += Data[i * 2] + (Data[i * 2 + 1] << 8);
                         }
                     }
                     else
                     {
-                        offset = height;
+                        Offset = Height;
                         for (int i = 0; i < cury; i++)
                         {
-                            offset += data[i];
+                            Offset += Data[i];
                         }
                     }
-                    RLEEncoder.DecodeScanline(data, scanline, offset, width);
-                    Array.Copy(scanline, 0, expand, cury * width, width);
+                    RLEEncoder.DecodeScanline(Data, scanline, Offset, Width);
+                    Array.Copy(scanline, 0, expand, cury * Width, Width);
                 }
 
                 return expand;
             }
             //Return a copy rather than the original data, like with compressed images. 
-            byte[] buffer = new byte[data.Length];
-            Array.Copy(data, buffer, data.Length);
+            byte[] buffer = new byte[Data.Length];
+            Array.Copy(Data, buffer, Data.Length);
             return buffer;
         }
 
         public void WriteImage(BinaryWriter bw)
         {
-            if ((flags & BM_FLAG_RLE) != 0)
+            if ((Flags & BM_FLAG_RLE) != 0)
             {
-                bw.Write(data.Length+4); //okay maybe this was a bad idea...
-                bw.Write(data);
+                bw.Write(Data.Length+4); //okay maybe this was a bad idea...
+                bw.Write(Data);
             }
             else
             {
-                bw.Write(data);
+                bw.Write(Data);
             }
         }
 
@@ -294,36 +304,36 @@ namespace LibDescent.Data
         {
             for (int sx = 0; sx < 8; sx++)
             {
-                if (sx < name.Length)
+                if (sx < Name.Length)
                 {
-                    bw.Write((byte)name[sx]);
+                    bw.Write((byte)Name[sx]);
                 }
                 else
                 {
                     bw.Write((byte)0);
                 }
             }
-            bw.Write(frameData);
-            bw.Write((byte)baseWidth);
-            bw.Write((byte)baseHeight);
-            bw.Write(extension);
-            bw.Write(flags);
-            bw.Write(averageIndex);
-            bw.Write(offset);
+            bw.Write((byte)DFlags);
+            bw.Write((byte)BaseWidth);
+            bw.Write((byte)BaseHeight);
+            bw.Write(ExtraData);
+            bw.Write(Flags);
+            bw.Write(AverageIndex);
+            bw.Write(Offset);
         }
 
         private void DecompressImage()
         {
             byte[] newdata = GetData();
-            data = newdata; //heh
+            Data = newdata; //heh
         }
 
         private void CompressImage()
         {
             bool big;
-            byte[] newdata = RLEEncoder.EncodeImage(width, height, data, out big);
+            byte[] newdata = RLEEncoder.EncodeImage(Width, Height, Data, out big);
             if (big) RLECompressedBig = true;
-            data = newdata;
+            Data = newdata;
         }
     }
 }

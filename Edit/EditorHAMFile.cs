@@ -642,8 +642,8 @@ namespace LibDescent.Edit
                 bitmap = BaseFile.ObjBitmaps[i];
                 //if (bitmap == 0) continue; //UNDONE: it's entirely valid something could have referred to bogus
                 PIGImage image = piggyFile.Bitmaps[bitmap];
-                name = image.name.ToLower();
-                if (!image.isAnimated)
+                name = image.Name.ToLower();
+                if (!image.IsAnimated)
                 {
                     TextureNames.Add(i, name);
                     if (!ObjBitmapMapping.ContainsKey(name))

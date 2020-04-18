@@ -96,8 +96,8 @@ namespace LibDescent.Edit
                 bitmap = GetObjBitmap(i);
                 //if (bitmap == 0) continue;
                 PIGImage image = BaseHAM.piggyFile.Bitmaps[bitmap];
-                name = image.name.ToLower();
-                if (!image.isAnimated)
+                name = image.Name.ToLower();
+                if (!image.IsAnimated)
                 {
                     TextureNames.Add(i, name);
                 }
@@ -323,8 +323,8 @@ namespace LibDescent.Edit
             for (int i = 0; i < BaseHAM.BaseFile.ObjBitmaps.Count; i++)
             {
                 img = BaseHAM.piggyFile.GetImage(BaseHAM.BaseFile.ObjBitmaps[i]);
-                if (!img.isAnimated && !textureMapping.ContainsKey(img.name))
-                    textureMapping.Add(img.name, i);
+                if (!img.IsAnimated && !textureMapping.ContainsKey(img.Name))
+                    textureMapping.Add(img.Name, i);
             }
             //Add EClip names
             for (int i = 0; i < BaseHAM.EClips.Count; i++)
@@ -339,8 +339,8 @@ namespace LibDescent.Edit
                 for (int i = 0; i < augmentFile.ObjBitmaps.Count; i++)
                 {
                     img = BaseHAM.piggyFile.GetImage(augmentFile.ObjBitmaps[i]);
-                    if (!textureMapping.ContainsKey(img.name))
-                        textureMapping.Add(img.name, i + VHAMFile.N_D2_OBJBITMAPS);
+                    if (!textureMapping.ContainsKey(img.Name))
+                        textureMapping.Add(img.Name, i + VHAMFile.N_D2_OBJBITMAPS);
                 }
             }
 
@@ -383,8 +383,8 @@ namespace LibDescent.Edit
             {
                 bm = replacedObjBitmaps[i];
                 img = BaseHAM.piggyFile.GetImage(bm.data);
-                if (!textureMapping.ContainsKey(img.name))
-                    textureMapping.Add(img.name, bm.replacementID);
+                if (!textureMapping.ContainsKey(img.Name))
+                    textureMapping.Add(img.Name, bm.replacementID);
             }
 
             //Final stage: generate new ObjBitmapPointers

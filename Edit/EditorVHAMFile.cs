@@ -164,8 +164,8 @@ namespace LibDescent.Edit
                 bitmap = GetObjBitmap(i);
                 //if (bitmap == 0) continue;
                 PIGImage image = BaseHAM.piggyFile.Bitmaps[bitmap];
-                name = image.name.ToLower();
-                if (!image.isAnimated)
+                name = image.Name.ToLower();
+                if (!image.IsAnimated)
                 {
                     TextureNames.Add(i, name);
                 }

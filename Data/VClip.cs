@@ -79,7 +79,7 @@ namespace LibDescent.Data
             int numFrames = 0;
             int nextFrame = 0;
             PIGImage img = piggyFile.Bitmaps[firstFrame];
-            if (img.isAnimated)
+            if (img.IsAnimated)
             {
                 //Clear the old animation
                 for (int i = 0; i < 30; i++) Frames[i] = 0;
@@ -87,7 +87,7 @@ namespace LibDescent.Data
                 Frames[numFrames] = (ushort)(firstFrame + numFrames);
                 img = piggyFile.Bitmaps[firstFrame + numFrames + 1];
                 numFrames++;
-                while (img.frame == numFrames)
+                while (img.DFlags == numFrames)
                 {
                     if (firstFrame + numFrames + 1 >= piggyFile.Bitmaps.Count) break; 
                     Frames[numFrames] = (ushort)(firstFrame + numFrames);

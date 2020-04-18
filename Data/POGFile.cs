@@ -89,15 +89,15 @@ namespace LibDescent.Data
 
             for (int i = 1; i < Bitmaps.Count; i++)
             {
-                br.BaseStream.Seek(startptr + Bitmaps[i].offset, SeekOrigin.Begin);
-                if ((Bitmaps[i].flags & PIGImage.BM_FLAG_RLE) != 0)
+                br.BaseStream.Seek(startptr + Bitmaps[i].Offset, SeekOrigin.Begin);
+                if ((Bitmaps[i].Flags & PIGImage.BM_FLAG_RLE) != 0)
                 {
                     int compressedSize = br.ReadInt32();
-                    Bitmaps[i].data = br.ReadBytes(compressedSize - 4);
+                    Bitmaps[i].Data = br.ReadBytes(compressedSize - 4);
                 }
                 else
                 {
-                    Bitmaps[i].data = br.ReadBytes(Bitmaps[i].width * Bitmaps[i].height);
+                    Bitmaps[i].Data = br.ReadBytes(Bitmaps[i].Width * Bitmaps[i].Height);
                 }
             }
         }

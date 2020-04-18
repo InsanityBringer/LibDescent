@@ -132,7 +132,7 @@ namespace LibDescent.Edit
                             if (clip.CriticalClip != -1)
                                 stringBuilder.AppendFormat("crit_clip={0} ", clip.CriticalClip);
                             if (clip.DestroyedBitmapNum != -1)
-                                stringBuilder.AppendFormat("dest_bm={0}.bbm ", piggyFile.Bitmaps[datafile.Textures[clip.DestroyedBitmapNum]].name);
+                                stringBuilder.AppendFormat("dest_bm={0}.bbm ", piggyFile.Bitmaps[datafile.Textures[clip.DestroyedBitmapNum]].Name);
                             if (clip.ExplosionVClip != 0)
                                 stringBuilder.AppendFormat("dest_vclip={0} ", clip.ExplosionVClip);
                             if (clip.ExplosionEClip != -1)
@@ -146,10 +146,10 @@ namespace LibDescent.Edit
                         }
                         else if (clip.ChangingObjectTexture != -1)
                             stringBuilder.Append("obj_eclip=1 ");
-                        if ((img.flags & PIGImage.BM_FLAG_NO_LIGHTING) != 0)
+                        if ((img.Flags & PIGImage.BM_FLAG_NO_LIGHTING) != 0)
                             stringBuilder.Append("vlighting=-1 ");
 
-                        stringBuilder.AppendFormat("\n{0}.abm ", img.name);
+                        stringBuilder.AppendFormat("\n{0}.abm ", img.Name);
 
                         if (extra)
                         {
@@ -167,7 +167,7 @@ namespace LibDescent.Edit
                                 stringBuilder.Append("water ");
                             if ((info.Flags & TMAPInfo.TMI_FORCE_FIELD) != 0)
                                 stringBuilder.Append("force_field ");
-                            if ((img.flags & PIGImage.BM_FLAG_SUPER_TRANSPARENT) != 0)
+                            if ((img.Flags & PIGImage.BM_FLAG_SUPER_TRANSPARENT) != 0)
                                 stringBuilder.Append("superx=254 ");
                             if (info.SlideU != 0 || info.SlideV != 0)
                                 stringBuilder.AppendFormat("slide={0:F1} {1:F1} ", info.SlideU / 256.0f, info.SlideV / 256.0f);
@@ -188,10 +188,10 @@ namespace LibDescent.Edit
                         stringBuilder.AppendFormat("$ECLIP clip_num={0} time={1} abm_flag=1 ", clip.ID, clip.vc.PlayTime);
                         img = piggyFile.Bitmaps[clip.vc.Frames[0]];
                         stringBuilder.Append("obj_eclip=1 ");
-                        if ((img.flags & PIGImage.BM_FLAG_NO_LIGHTING) != 0)
+                        if ((img.Flags & PIGImage.BM_FLAG_NO_LIGHTING) != 0)
                             stringBuilder.Append("vlighting=-1 ");
 
-                        stringBuilder.AppendFormat("\n{0}.abm ", img.name);
+                        stringBuilder.AppendFormat("\n{0}.abm ", img.Name);
                         stringBuilder.Append("\n");
                     }
                 }
@@ -218,7 +218,7 @@ namespace LibDescent.Edit
                         stringBuilder.AppendFormat("open_sound={0} ", clip.OpenSound);
                     if (clip.CloseSound != -1)
                         stringBuilder.AppendFormat("close_sound={0} ", clip.CloseSound);
-                    if ((img.flags & PIGImage.BM_FLAG_NO_LIGHTING) != 0)
+                    if ((img.Flags & PIGImage.BM_FLAG_NO_LIGHTING) != 0)
                         stringBuilder.Append("vlighting=-1 ");
                     else
                         stringBuilder.Append("vlighting=0 ");
@@ -230,7 +230,7 @@ namespace LibDescent.Edit
                         stringBuilder.Append("explodes=1 ");
                     if ((clip.Flags & WClip.WCF_HIDDEN) != 0)
                         stringBuilder.Append("hidden=1 ");
-                    stringBuilder.AppendFormat("\n{0}.abm ", img.name);
+                    stringBuilder.AppendFormat("\n{0}.abm ", img.Name);
                     if (info.Lighting > 0)
                         stringBuilder.AppendFormat("lighting={0} ", info.Lighting);
                     if (info.Damage > 0)
@@ -248,7 +248,7 @@ namespace LibDescent.Edit
                     for (int f = 0; f < clip.NumFrames; f++) //Need to scan all frames for superx
                     {
                         frame = piggyFile.Bitmaps[datafile.Textures[clip.Frames[f]]];
-                        if ((frame.flags & PIGImage.BM_FLAG_SUPER_TRANSPARENT) != 0)
+                        if ((frame.Flags & PIGImage.BM_FLAG_SUPER_TRANSPARENT) != 0)
                             superx = true;
                     }
                     if (superx)
@@ -273,11 +273,11 @@ namespace LibDescent.Edit
                 extra = false;
                 img = piggyFile.Bitmaps[datafile.Textures[i]];
                 info = datafile.TMapInfo[i];
-                if (img.isAnimated && info.EClipNum == -1) //Probably a WClip so don't write yet. 
+                if (img.IsAnimated && info.EClipNum == -1) //Probably a WClip so don't write yet. 
                     continue;
                 if (info.EClipNum == -1 && i < firstEClip)
                 {
-                    stringBuilder.AppendFormat("{0}.bbm ", img.name);
+                    stringBuilder.AppendFormat("{0}.bbm ", img.Name);
                     extra = true;
                 }
                 else if (info.EClipNum != -1)
@@ -301,14 +301,14 @@ namespace LibDescent.Edit
                         stringBuilder.Append("water ");
                     if ((info.Flags & TMAPInfo.TMI_FORCE_FIELD) != 0)
                         stringBuilder.Append("force_field ");
-                    if ((img.flags & PIGImage.BM_FLAG_SUPER_TRANSPARENT) != 0)
+                    if ((img.Flags & PIGImage.BM_FLAG_SUPER_TRANSPARENT) != 0)
                         stringBuilder.Append("superx=254 ");
                     if (info.SlideU != 0 || info.SlideV != 0)
                         stringBuilder.AppendFormat("slide={0:F1} {1:F1} ", info.SlideU / 256.0f, info.SlideV / 256.0f);
                     if (info.DestroyedID != -1)
                     {
                         img = piggyFile.Bitmaps[datafile.Textures[info.DestroyedID]];
-                        stringBuilder.AppendFormat("destroyed={0}.bbm ", img.name);
+                        stringBuilder.AppendFormat("destroyed={0}.bbm ", img.Name);
                         i++;
                     }
                     stringBuilder.Append("\n");
@@ -336,7 +336,7 @@ namespace LibDescent.Edit
                 stringBuilder.AppendFormat("$VCLIP clip_num={0} time={1} abm_flag=1 vlighting={2} sound_num={3} ", id, clip.PlayTime, clip.LightValue, clip.SoundNum);
                 if ((clip.Flags & 1) != 0)
                     stringBuilder.Append("rod_flag=1");
-                stringBuilder.AppendFormat("\n{0}.abm\n", piggyFile.Bitmaps[clip.Frames[0]].name);
+                stringBuilder.AppendFormat("\n{0}.abm\n", piggyFile.Bitmaps[clip.Frames[0]].Name);
             }
         }
 
@@ -349,7 +349,7 @@ namespace LibDescent.Edit
                 stringBuilder.Append("$WEAPON ");
                 if (weapon.RenderType == WeaponRenderType.Sprite)
                 {
-                    stringBuilder.AppendFormat("blob_bmp={0}.bbm ", piggyFile.Bitmaps[weapon.Bitmap].name);
+                    stringBuilder.AppendFormat("blob_bmp={0}.bbm ", piggyFile.Bitmaps[weapon.Bitmap].Name);
                 }
                 else if (weapon.RenderType == WeaponRenderType.Object)
                 {
@@ -368,7 +368,7 @@ namespace LibDescent.Edit
                 }
                 else if (weapon.RenderType == WeaponRenderType.Invisible)
                 {
-                    stringBuilder.AppendFormat("none_bmp={0}.bbm ", piggyFile.Bitmaps[weapon.Bitmap].name);
+                    stringBuilder.AppendFormat("none_bmp={0}.bbm ", piggyFile.Bitmaps[weapon.Bitmap].Name);
                 }
                 stringBuilder.AppendFormat("mass={0} ", weapon.Mass);
                 stringBuilder.AppendFormat("drag={0} ", weapon.Drag);
@@ -419,9 +419,9 @@ namespace LibDescent.Edit
                 if (weapon.Flash != 0)
                     stringBuilder.AppendFormat("flash={0} ", weapon.Flash);
                 if (weapon.CockpitPicture != 0)
-                    stringBuilder.AppendFormat("picture={0}.bbm ", piggyFile.Bitmaps[weapon.CockpitPicture].name);
+                    stringBuilder.AppendFormat("picture={0}.bbm ", piggyFile.Bitmaps[weapon.CockpitPicture].Name);
                 if (weapon.HiresCockpitPicture != 0)
-                    stringBuilder.AppendFormat("hires_picture={0}.bbm ", piggyFile.Bitmaps[weapon.HiresCockpitPicture].name);
+                    stringBuilder.AppendFormat("hires_picture={0}.bbm ", piggyFile.Bitmaps[weapon.HiresCockpitPicture].Name);
 
                 stringBuilder.AppendFormat(" ;{0}", datafile.WeaponNames[id]);
 
@@ -434,7 +434,7 @@ namespace LibDescent.Edit
             stringBuilder.Append("$COCKPIT\n");
             foreach (ushort index in datafile.Cockpits)
             {
-                stringBuilder.AppendFormat("{0}.bbm\n", piggyFile.Bitmaps[index].name);
+                stringBuilder.AppendFormat("{0}.bbm\n", piggyFile.Bitmaps[index].Name);
             }
         }
 
@@ -471,10 +471,10 @@ namespace LibDescent.Edit
                 {
                     PIGImage img = piggyFile.Bitmaps[id];
                     lastname = name;
-                    name = img.name;
+                    name = img.Name;
                     if (lastname != name)
                     {
-                        if (img.isAnimated)
+                        if (img.IsAnimated)
                         {
                             stringBuilder.AppendFormat(" abm_flag=1\n{0}.abm", name);
                         }
@@ -500,10 +500,10 @@ namespace LibDescent.Edit
                 {
                     PIGImage img = piggyFile.Bitmaps[id];
                     lastname = name;
-                    name = img.name;
+                    name = img.Name;
                     if (lastname != name)
                     {
-                        if (img.isAnimated)
+                        if (img.IsAnimated)
                         {
                             stringBuilder.AppendFormat(" abm_flag=1\n{0}.abm", name);
                         }
@@ -549,7 +549,7 @@ namespace LibDescent.Edit
             for (int i = 0; i < 14; i++)
             {
                 int bitmapID = datafile.ObjBitmaps[datafile.ObjBitmapPointers[datafile.FirstMultiBitmapNum + i]];
-                string name = pigFile.Bitmaps[bitmapID].name;
+                string name = pigFile.Bitmaps[bitmapID].Name;
                 stringBuilder.AppendFormat("{0}.bbm ", name);
             }
             stringBuilder.Append("\n");

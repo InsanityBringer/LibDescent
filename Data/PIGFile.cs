@@ -38,16 +38,16 @@ namespace LibDescent.Data
             Bitmaps = new List<PIGImage>(2620);
             //Init a bogus texture for all piggyfiles
             PIGImage bogusTexture = new PIGImage(64, 64, 0, 0, 0, 0, "bogus", 0);
-            bogusTexture.data = new byte[64 * 64];
+            bogusTexture.Data = new byte[64 * 64];
             //Create an X using descent 1 palette indicies. For accuracy. Heh
             for (int i = 0; i < 4096; i++)
             {
-                bogusTexture.data[i] = 85;
+                bogusTexture.Data[i] = 85;
             }
             for (int i = 0; i < 64; i++)
             {
-                bogusTexture.data[i * 64 + i] = 193;
-                bogusTexture.data[i * 64 + (63 - i)] = 193;
+                bogusTexture.Data[i * 64 + i] = 193;
+                bogusTexture.Data[i * 64 + (63 - i)] = 193;
             }
             Bitmaps.Add(bogusTexture);
         }
@@ -101,15 +101,15 @@ namespace LibDescent.Data
 
             for (int i = 1; i < Bitmaps.Count; i++)
             {
-                br.BaseStream.Seek(startptr + Bitmaps[i].offset, SeekOrigin.Begin);
-                if ((Bitmaps[i].flags & PIGImage.BM_FLAG_RLE) != 0)
+                br.BaseStream.Seek(startptr + Bitmaps[i].Offset, SeekOrigin.Begin);
+                if ((Bitmaps[i].Flags & PIGImage.BM_FLAG_RLE) != 0)
                 {
                     int compressedSize = br.ReadInt32();
-                    Bitmaps[i].data = br.ReadBytes(compressedSize - 4);
+                    Bitmaps[i].Data = br.ReadBytes(compressedSize - 4);
                 }
                 else
                 {
-                    Bitmaps[i].data = br.ReadBytes(Bitmaps[i].width * Bitmaps[i].height);
+                    Bitmaps[i].Data = br.ReadBytes(Bitmaps[i].Width * Bitmaps[i].Height);
                 }
                 //images[i].LoadData(br);
             }
@@ -126,7 +126,7 @@ namespace LibDescent.Data
             bw.Write(Bitmaps.Count-1); //Start from 1 to avoid writing the bogus image
             for (int i = 1; i < Bitmaps.Count; i++)
             {
-                Bitmaps[i].offset = offset;
+                Bitmaps[i].Offset = offset;
                 offset += Bitmaps[i].GetSize();
                 Bitmaps[i].WriteImageHeader(bw);
             }
@@ -149,7 +149,7 @@ namespace LibDescent.Data
             for (int x = 0; x < Bitmaps.Count; x++)
             {
                 //todo: Dictionary
-                if (Bitmaps[x].name.Equals(name, StringComparison.OrdinalIgnoreCase))
+                if (Bitmaps[x].Name.Equals(name, StringComparison.OrdinalIgnoreCase))
                 {
                     return Bitmaps[x];
                 }
@@ -169,7 +169,7 @@ namespace LibDescent.Data
             for (int x = 0; x < Bitmaps.Count; x++)
             {
                 //todo: Dictionary
-                if (Bitmaps[x].name.Equals(name, StringComparison.OrdinalIgnoreCase))
+                if (Bitmaps[x].Name.Equals(name, StringComparison.OrdinalIgnoreCase))
                 {
                     return GetBitmap(x);
                 }
@@ -181,7 +181,7 @@ namespace LibDescent.Data
         {
             for (int x = 0; x < Bitmaps.Count; x++)
             {
-                if (Bitmaps[x].name.Equals(name, StringComparison.OrdinalIgnoreCase))
+                if (Bitmaps[x].Name.Equals(name, StringComparison.OrdinalIgnoreCase))
                 {
                     return x;
                 }
