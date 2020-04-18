@@ -51,6 +51,14 @@ namespace LibDescent.Data
             }
         }
 
+        public byte this[int index, int channel]
+        {
+            get
+            {
+                return palette[index, channel];
+            }
+        }
+
         public byte[] GetLinear()
         {
             byte[] linearPal = new byte[768];
@@ -67,15 +75,24 @@ namespace LibDescent.Data
             return linearPal;
         }
 
-        /*public void CreateDrawingPalette(ColorPalette colorPalette)
+        public int GetNearestColor(int r, int g, int b)
         {
-            //.NET's System.Drawing library seems like one of the most poorly thought out libraries of all time tbh
-            for (int i = 0; i < 256; i++)
+            int bestcolor = 0;
+            int bestdist = int.MaxValue;
+            int dist;
+
+            for (int i = 0; i < 255; i++)
             {
-                Color color = Color.FromArgb(palette[i, 0], palette[i, 1], palette[i, 2]);
-                colorPalette.Entries[i] = color;
+                dist = (r - palette[i, 0]) * (r - palette[i, 0]) + (g - palette[i, 1]) * (g - palette[i, 1]) + (b - palette[i, 2]) * (b - palette[i, 2]);
+                if (dist == 0) return i;
+                if (dist < bestdist)
+                {
+                    bestcolor = i;
+                    bestdist = dist;
+                }
             }
-        }*/
+            return bestcolor;
+        }
 
         public int GetDrawingColorH(int id)
         {
