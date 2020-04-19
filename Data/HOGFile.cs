@@ -370,6 +370,20 @@ namespace LibDescent.Data
         }
 
         /// <summary>
+        /// Adds a lump to the HOG file at a given index.
+        /// </summary>
+        /// <param name="lump">The lump to add.</param>
+        /// <param name="index">The index to add at.</param>
+        public void AddLumpAt(HOGLump lump, int index)
+        {
+            lumps.Insert(index, lump);
+            if (lumpNameMap != null && !lumpNameMap.ContainsKey(lump.name))
+            {
+                lumpNameMap[lump.name] = index;
+            }
+        }
+
+        /// <summary>
         /// Adds a file from disk to the HOG file.
         /// </summary>
         /// <param name="filename">The path to the file to add.</param>
