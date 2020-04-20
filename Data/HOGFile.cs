@@ -377,10 +377,9 @@ namespace LibDescent.Data
         public void AddLumpAt(HOGLump lump, int index)
         {
             lumps.Insert(index, lump);
-            if (lumpNameMap != null && !lumpNameMap.ContainsKey(lump.name))
-            {
-                lumpNameMap[lump.name] = index;
-            }
+            //For now, invalidate the lump map when adding a lump at a given location
+            //since otherwise the old indicies would be messed up.
+            lumpNameMap = null;
         }
 
         /// <summary>
