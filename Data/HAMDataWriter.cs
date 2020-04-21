@@ -168,11 +168,11 @@ namespace LibDescent.Data
             bw.Write(robot.TauntSound);
 
             bw.Write((sbyte)robot.BossFlag);
-            bw.Write((sbyte)(robot.Companion ? 0 : 1));
+            bw.Write((sbyte)(robot.Companion ? 1 : 0));
             bw.Write(robot.SmartBlobsOnDeath);
             bw.Write(robot.SmartBlobsOnHit);
 
-            bw.Write((sbyte)(robot.Thief ? 0 : 1));
+            bw.Write((sbyte)(robot.Thief ? 1 : 0));
             bw.Write(robot.Pursuit);
             bw.Write(robot.LightCast);
             bw.Write(robot.DeathRollTime);
