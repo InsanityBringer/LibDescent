@@ -54,7 +54,7 @@ namespace LibDescent.Data
 
         public void WriteEClip(EClip clip, BinaryWriter bw)
         {
-            WriteVClip(clip.vc, bw);
+            WriteVClip(clip.Clip, bw);
             bw.Write(clip.TimeLeft);
             bw.Write(clip.FrameCount);
             bw.Write(clip.ChangingWallTexture);

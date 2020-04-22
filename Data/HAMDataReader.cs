@@ -75,16 +75,16 @@ namespace LibDescent.Data
         public EClip ReadEClip(BinaryReader br)
         {
             EClip clip = new EClip();
-            clip.vc.PlayTime = new Fix(br.ReadInt32());
-            clip.vc.NumFrames = br.ReadInt32();
-            clip.vc.FrameTime = new Fix(br.ReadInt32());
-            clip.vc.Flags = br.ReadInt32();
-            clip.vc.SoundNum = br.ReadInt16();
+            clip.Clip.PlayTime = new Fix(br.ReadInt32());
+            clip.Clip.NumFrames = br.ReadInt32();
+            clip.Clip.FrameTime = new Fix(br.ReadInt32());
+            clip.Clip.Flags = br.ReadInt32();
+            clip.Clip.SoundNum = br.ReadInt16();
             for (int f = 0; f < 30; f++)
             {
-                clip.vc.Frames[f] = br.ReadUInt16();
+                clip.Clip.Frames[f] = br.ReadUInt16();
             }
-            clip.vc.LightValue = new Fix(br.ReadInt32());
+            clip.Clip.LightValue = new Fix(br.ReadInt32());
             clip.TimeLeft = br.ReadInt32();
             clip.FrameCount = br.ReadInt32();
             clip.ChangingWallTexture = br.ReadInt16();

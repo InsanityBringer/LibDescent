@@ -123,10 +123,10 @@ namespace LibDescent.Edit
                 {
                     clip = datafile.EClips[datafile.TMapInfo[i].EClipNum];
                     extra = false;
-                    if (clip.vc.PlayTime > 0)
+                    if (clip.Clip.PlayTime > 0)
                     {
-                        stringBuilder.AppendFormat("$ECLIP clip_num={0} time={1} abm_flag=1 ", clip.ID, clip.vc.PlayTime);
-                        img = piggyFile.Bitmaps[clip.vc.Frames[0]];
+                        stringBuilder.AppendFormat("$ECLIP clip_num={0} time={1} abm_flag=1 ", clip.ID, clip.Clip.PlayTime);
+                        img = piggyFile.Bitmaps[clip.Clip.Frames[0]];
                         if (clip.ChangingWallTexture != -1)
                         {
                             if (clip.CriticalClip != -1)
@@ -183,10 +183,10 @@ namespace LibDescent.Edit
                 if (clip.ChangingObjectTexture != -1)
                 {
                     extra = false;
-                    if (clip.vc.PlayTime > 0)
+                    if (clip.Clip.PlayTime > 0)
                     {
-                        stringBuilder.AppendFormat("$ECLIP clip_num={0} time={1} abm_flag=1 ", clip.ID, clip.vc.PlayTime);
-                        img = piggyFile.Bitmaps[clip.vc.Frames[0]];
+                        stringBuilder.AppendFormat("$ECLIP clip_num={0} time={1} abm_flag=1 ", clip.ID, clip.Clip.PlayTime);
+                        img = piggyFile.Bitmaps[clip.Clip.Frames[0]];
                         stringBuilder.Append("obj_eclip=1 ");
                         if ((img.Flags & PIGImage.BM_FLAG_NO_LIGHTING) != 0)
                             stringBuilder.Append("vlighting=-1 ");
@@ -323,7 +323,7 @@ namespace LibDescent.Edit
             int count = 0;
             foreach (EClip clip in datafile.EClips)
             {
-                if (clip.vc.PlayTime > 0)
+                if (clip.Clip.PlayTime > 0)
                     count++;
             }
             return count;

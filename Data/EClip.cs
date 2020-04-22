@@ -28,7 +28,7 @@ namespace LibDescent.Data
         /// <summary>
         /// Embedded vclip, contains information about the animation itself.
         /// </summary>
-        public VClip vc = new VClip();
+        public VClip Clip { get; } = new VClip();
         /// <summary>
         /// Time left for the current animation frame, useless for definitons.
         /// </summary>
