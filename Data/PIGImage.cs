@@ -229,13 +229,28 @@ namespace LibDescent.Data
         /// <param name="averageIndex">Index of the image's average color in the palette.</param>
         /// <param name="dataOffset">Offset to the data in the source file.</param>
         /// <param name="name">Filename of the image.</param>
-        public PIGImage(int imageWidth, int imageHeight, byte dFlags, byte flags, byte averageIndex, int dataOffset, string name)
+        /// <param name="big">Set to true if the image should be resized for Mac Descent 1 PIGs.</param>
+        public PIGImage(int imageWidth, int imageHeight, byte dFlags, byte flags, byte averageIndex, int dataOffset, string name, bool big = false)
         {
             BaseWidth = imageWidth & 255; BaseHeight = imageHeight & 255; Flags = flags; AverageIndex = averageIndex; DFlags = dFlags; Offset = dataOffset; ExtraData = 0;
             Width = imageWidth; Height = imageHeight;
             if ((DFlags & 128) != 0)
                 Width += 256;
             Name = name;
+
+            //This is one of the monst annoying hacks I'm committing to Descent 2 Workshop
+            if (big)
+            {
+                if (name == "cockpit" || name == "rearview")
+                {
+                    Width = 640; Height = 480;
+                    RLECompressedBig = true;
+                }
+                else if (name == "status")
+                {
+                    Width = 640;
+                }
+            }
 
             ExtraData = (byte)((imageWidth >> 8) & 15);
             ExtraData |= (byte)((imageHeight >> 8 & 15) << 4);

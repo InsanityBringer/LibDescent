@@ -30,6 +30,7 @@ namespace LibDescent.Data
     public class Descent1PIGFile
     {
         private int DataPointer;
+        private bool big;
         public List<PIGImage> Bitmaps { get; private set; }
         public List<SoundData> PIGSounds { get; private set; }
 
@@ -166,7 +167,7 @@ namespace LibDescent.Data
 
         public int exitModelnum, destroyedExitModelnum;
 
-        public Descent1PIGFile()
+        public Descent1PIGFile(bool macPig = false)
         {
             Textures = new ushort[800];
             TMapInfo = new TMAPInfo[800];
@@ -190,6 +191,8 @@ namespace LibDescent.Data
 
             Bitmaps = new List<PIGImage>();
             PIGSounds = new List<SoundData>();
+
+            this.big = macPig;
         }
 
         public int Read(Stream stream)
@@ -388,7 +391,7 @@ namespace LibDescent.Data
                 byte average = br.ReadByte();
                 int offset = br.ReadInt32();
 
-                PIGImage image = new PIGImage(lx, ly, framedata, flags, average, offset, imagename);
+                PIGImage image = new PIGImage(lx, ly, framedata, flags, average, offset, imagename, big);
                 Bitmaps.Add(image);
             }
 
