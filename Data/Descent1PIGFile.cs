@@ -180,7 +180,10 @@ namespace LibDescent.Data
             Joints = new JointPos[600];
             Weapons = new Weapon[30];
             Models = new Polymodel[85];
-            Gauges = new ushort[80];
+            if (macPig)
+                Gauges = new ushort[85];
+            else
+                Gauges = new ushort[80];
             ObjBitmaps = new ushort[210];
             ObjBitmapPointers = new ushort[210];
             Cockpits = new ushort[4];
@@ -273,7 +276,7 @@ namespace LibDescent.Data
             {
                 Models[i].InterpreterData = br.ReadBytes(Models[i].ModelIDTASize);
             }
-            for (int i = 0; i < 80; i++)
+            for (int i = 0; i < Gauges.Length; i++)
             {
                 Gauges[i] = br.ReadUInt16();
             }
