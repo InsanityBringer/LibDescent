@@ -323,7 +323,7 @@ namespace LibDescent.Edit
         /// <summary>
         /// Converts all the base file's data classes into the editor class for that type.
         /// </summary>
-        private void CreateLocalLists()
+        public void CreateLocalLists()
         {
             //TODO: This is just passthrough for now, need "editor" classes
             foreach (ushort texture in BaseFile.Textures)
@@ -397,6 +397,11 @@ namespace LibDescent.Edit
             if (generateNameLists)
                 GenerateDefaultNamelists();
 
+            TranslateData();
+        }
+
+        public void TranslateData()
+        {
             UpdateEClipMapping();
 
             for (int i = 0; i < 14; i++)
@@ -641,6 +646,8 @@ namespace LibDescent.Edit
             {
                 bitmap = BaseFile.ObjBitmaps[i];
                 //if (bitmap == 0) continue; //UNDONE: it's entirely valid something could have referred to bogus
+                //hack
+                if (bitmap == 65535) bitmap = 0;
                 PIGImage image = piggyFile.Bitmaps[bitmap];
                 name = image.Name.ToLower();
                 if (!image.IsAnimated)
@@ -665,6 +672,10 @@ namespace LibDescent.Edit
                     else if (TextureNames.ContainsKey(pointer))
                     {
                         model.TextureList.Add(TextureNames[pointer]);
+                    }
+                    else
+                    {
+                        model.TextureList.Add("bogus");
                     }
                 }
                 Console.Write("Model texture list: [");
@@ -781,7 +792,7 @@ namespace LibDescent.Edit
             return 0;
         }
 
-        private void GenerateDefaultNamelists()
+        public void GenerateDefaultNamelists()
         {
             for (int i = 0; i < BaseFile.VClips.Count; i++)
                 VClipNames.Add(ElementLists.GetVClipName(i));
