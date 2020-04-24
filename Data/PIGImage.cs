@@ -200,6 +200,7 @@ namespace LibDescent.Data
                 }
             }
         }
+        public bool Swap255 { get; }
 
         /// <summary>
         /// Creates a new PIG image that can be up to 1024x1024 in size. Used by Descent 2 PIG and POG files.
@@ -241,6 +242,7 @@ namespace LibDescent.Data
             //This is one of the monst annoying hacks I'm committing to Descent 2 Workshop
             if (big)
             {
+                Swap255 = true;
                 if (name == "cockpit" || name == "rearview")
                 {
                     Width = 640; Height = 480;
@@ -302,11 +304,25 @@ namespace LibDescent.Data
                     Array.Copy(scanline, 0, expand, cury * Width, Width);
                 }
 
+                if (Swap255)
+                    for (int i = 0; i < expand.Length; i++)
+                    {
+                        if (expand[i] == 0) expand[i] = 255;
+                        else if (expand[i] == 255) expand[i] = 0;
+                    }
                 return expand;
             }
             //Return a copy rather than the original data, like with compressed images. 
             byte[] buffer = new byte[Data.Length];
             Array.Copy(Data, buffer, Data.Length);
+
+            if (Swap255)
+                for (int i = 0; i < buffer.Length; i++)
+                {
+                    if (buffer[i] == 0) buffer[i] = 255;
+                    else if (buffer[i] == 255) buffer[i] = 0;
+                }
+
             return buffer;
         }
 
