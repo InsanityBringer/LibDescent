@@ -28,7 +28,7 @@ using System.Text;
 
 namespace LibDescent.Data
 {
-    internal struct FileInfo
+    internal class FileInfo
     {
         public ushort signature;
         public ushort version;
@@ -64,6 +64,10 @@ namespace LibDescent.Data
         public int deltaLightsOffset;
         public int deltaLightsCount;
         public int deltaLightsSize;
+        public int equipMakerOffset;
+        public int equipMakerCount;
+        public int equipMakerSize;
+        public readonly FogPreset[] fogPresets = new FogPreset[4];
     }
 
     internal abstract class DescentLevelReader
@@ -78,6 +82,8 @@ namespace LibDescent.Data
         /// 5 -> 6  added Secret_return_segment and Secret_return_orient
         /// 6 -> 7  added flickering lights
         /// 7 -> 8  made version 8 to be not compatible with D2 1.0 & 1.1
+        ///
+        /// Versions 9-27 are used by D2X-XL.
         /// </summary>
         protected int _levelVersion;
         protected int _mineDataOffset;
@@ -361,6 +367,27 @@ namespace LibDescent.Data
                 _fileInfo.deltaLightsOffset = reader.ReadInt32();
                 _fileInfo.deltaLightsCount = reader.ReadInt32();
                 _fileInfo.deltaLightsSize = reader.ReadInt32();
+            }
+
+            // D2X-XL extensions
+
+            if (_levelVersion >= 16)
+            {
+                _fileInfo.equipMakerOffset = reader.ReadInt32();
+                _fileInfo.equipMakerCount = reader.ReadInt32();
+                _fileInfo.equipMakerSize = reader.ReadInt32();
+            }
+
+            if(_levelVersion >= 27)
+            {
+                for (int i = 0; i < _fileInfo.fogPresets.Length; i++)
+                {
+                    _fileInfo.fogPresets[i].color.R = reader.ReadByte();
+                    _fileInfo.fogPresets[i].color.G = reader.ReadByte();
+                    _fileInfo.fogPresets[i].color.B = reader.ReadByte();
+                    // Density is encoded as byte values from 1-20, where 20 is most dense
+                    _fileInfo.fogPresets[i].density = ((float)reader.ReadByte()) / 20;
+                }
             }
 
             // Level name (as seen in automap)
@@ -1212,7 +1239,7 @@ namespace LibDescent.Data
             fileInfo.levelNumber = 0; // Doesn't seem to be used by Descent
 
             // We'll have to rewrite FileInfo later, but write it now to make space
-            WriteFileInfo(writer, ref fileInfo);
+            WriteFileInfo(writer, fileInfo);
 
             if (GameDataVersion >= 14)
             {
@@ -1365,15 +1392,15 @@ namespace LibDescent.Data
 
             if (GameDataVersion >= 29)
             {
-                WriteDynamicLights(writer, ref fileInfo);
+                WriteDynamicLights(writer, fileInfo);
             }
 
             // Rewrite FileInfo with updated data
             writer.BaseStream.Seek(fileInfoOffset, SeekOrigin.Begin);
-            WriteFileInfo(writer, ref fileInfo);
+            WriteFileInfo(writer, fileInfo);
         }
 
-        private void WriteFileInfo(BinaryWriter writer, ref FileInfo fileInfo)
+        private void WriteFileInfo(BinaryWriter writer, FileInfo fileInfo)
         {
             writer.Write(fileInfo.signature);
             writer.Write(fileInfo.version);
@@ -1412,6 +1439,26 @@ namespace LibDescent.Data
                 writer.Write(fileInfo.deltaLightsOffset);
                 writer.Write(fileInfo.deltaLightsCount);
                 writer.Write(fileInfo.deltaLightsSize);
+            }
+
+            // D2X-XL extensions
+
+            if (LevelVersion >= 16)
+            {
+                writer.Write(fileInfo.equipMakerOffset);
+                writer.Write(fileInfo.equipMakerCount);
+                writer.Write(fileInfo.equipMakerSize);
+            }
+
+            if (LevelVersion >= 27)
+            {
+                for (int i = 0; i < fileInfo.fogPresets.Length; i++)
+                {
+                    writer.Write((byte)fileInfo.fogPresets[i].color.R);
+                    writer.Write((byte)fileInfo.fogPresets[i].color.G);
+                    writer.Write((byte)fileInfo.fogPresets[i].color.B);
+                    writer.Write((byte)(fileInfo.fogPresets[i].density * 20));
+                }
             }
         }
 
@@ -1545,7 +1592,7 @@ namespace LibDescent.Data
 
         protected abstract void WriteVersionSpecificLevelInfo(BinaryWriter writer);
         protected abstract void WriteTrigger(BinaryWriter writer, ITrigger trigger);
-        protected abstract void WriteDynamicLights(BinaryWriter writer, ref FileInfo fileInfo);
+        protected abstract void WriteDynamicLights(BinaryWriter writer, FileInfo fileInfo);
     }
 
     internal class D1LevelWriter : DescentLevelWriter
@@ -1562,7 +1609,7 @@ namespace LibDescent.Data
             _level = level;
         }
 
-        protected override void WriteDynamicLights(BinaryWriter writer, ref FileInfo fileInfo)
+        protected override void WriteDynamicLights(BinaryWriter writer, FileInfo fileInfo)
         {
             // Only needed for D2, shouldn't be called for D1
             throw new NotImplementedException();
@@ -1681,7 +1728,7 @@ namespace LibDescent.Data
             }
         }
 
-        protected override void WriteDynamicLights(BinaryWriter writer, ref FileInfo fileInfo)
+        protected override void WriteDynamicLights(BinaryWriter writer, FileInfo fileInfo)
         {
             // Need to concatenate all light deltas for all dynamic lights into a list
             var lightDeltas = new List<LightDelta>();

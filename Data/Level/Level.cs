@@ -137,6 +137,20 @@ namespace LibDescent.Data
         }
     }
 
+    public enum FogType
+    {
+        Water = 0,
+        Lava = 1,
+        LightFog = 2,
+        HeavyFog = 3
+    }
+
+    public struct FogPreset
+    {
+        public Color color;
+        public float density;
+    }
+
     public static partial class Extensions
     {
         // It's not clear why .NET doesn't define this already, but it doesn't.
