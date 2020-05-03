@@ -34,7 +34,7 @@ namespace LibDescent.Data
         List<Wall> Walls { get; }
         IReadOnlyList<ITrigger> Triggers { get; }
         List<Side> ReactorTriggerTargets { get; }
-        List<MatCenter> MatCenters { get; }
+        IReadOnlyList<IMatCenter> MatCenters { get; }
 
         void WriteToStream(Stream stream);
     }
@@ -53,8 +53,6 @@ namespace LibDescent.Data
 
         public const int MaxReactorTriggerTargets = 10;
         public List<Side> ReactorTriggerTargets { get; } = new List<Side>(MaxReactorTriggerTargets);
-
-        public List<MatCenter> MatCenters { get; } = new List<MatCenter>();
     }
 
     public class D1Level : ILevel
@@ -62,6 +60,8 @@ namespace LibDescent.Data
         private DescentLevelCommon _commonData = new DescentLevelCommon();
 
         public List<D1Trigger> Triggers { get; } = new List<D1Trigger>();
+
+        public List<MatCenter> MatCenters { get; } = new List<MatCenter>();
 
         #region ILevel implementation
         public string LevelName { get => _commonData.LevelName; set => _commonData.LevelName = value; }
@@ -71,7 +71,7 @@ namespace LibDescent.Data
         public List<Wall> Walls => _commonData.Walls;
         IReadOnlyList<ITrigger> ILevel.Triggers => Triggers;
         public List<Side> ReactorTriggerTargets => _commonData.ReactorTriggerTargets;
-        public List<MatCenter> MatCenters => _commonData.MatCenters;
+        IReadOnlyList<IMatCenter> ILevel.MatCenters => MatCenters;
         #endregion
 
         public static D1Level CreateFromStream(Stream stream)
@@ -90,6 +90,8 @@ namespace LibDescent.Data
         private DescentLevelCommon _commonData = new DescentLevelCommon();
 
         public List<D2Trigger> Triggers { get; } = new List<D2Trigger>();
+
+        public List<MatCenter> MatCenters { get; } = new List<MatCenter>();
 
         public string PaletteName { get; set; }
 
@@ -123,7 +125,7 @@ namespace LibDescent.Data
         public List<Wall> Walls => _commonData.Walls;
         IReadOnlyList<ITrigger> ILevel.Triggers => Triggers;
         public List<Side> ReactorTriggerTargets => _commonData.ReactorTriggerTargets;
-        public List<MatCenter> MatCenters => _commonData.MatCenters;
+        IReadOnlyList<IMatCenter> ILevel.MatCenters => MatCenters;
         #endregion
 
         public static D2Level CreateFromStream(Stream stream)
@@ -149,6 +151,59 @@ namespace LibDescent.Data
     {
         public Color color;
         public float density;
+    }
+
+    public class D2XXLLevel : D2Level, ILevel
+    {
+        public new List<D2XXLTrigger> Triggers { get; } = new List<D2XXLTrigger>();
+
+        public new List<IMatCenter> MatCenters { get; } = new List<IMatCenter>();
+
+#pragma warning disable CA1819 // Callers can modify the contents of the array; this is by design.
+        public FogPreset[] FogPresets { get; } = new FogPreset[]
+#pragma warning restore CA1819
+        {
+            // Default values are adapted from DLE.
+            // Water
+            new FogPreset
+            {
+                color = new Color{ A = 255, R = (int)(255.0f * 0.2f), G = (int)(255.0f * 0.4f), B = (int)(255.0f * 0.6f) },
+                density = (11f / 20f)
+            },
+            // Lava
+            new FogPreset
+            {
+                color = new Color{ A = 255, R = (int)(255.0f * 0.8f), G = (int)(255.0f * 0.4f), B = (int)(255.0f * 0.0f) },
+                density = (2f / 20f)
+            },
+            // LightFog
+            new FogPreset
+            {
+                color = new Color{ A = 255, R = (int)(255.0f * 0.7f), G = (int)(255.0f * 0.7f), B = (int)(255.0f * 0.7f) },
+                density = (4f / 20f)
+            },
+            // HeavyFog
+            new FogPreset
+            {
+                color = new Color{ A = 255, R = (int)(255.0f * 0.7f), G = (int)(255.0f * 0.7f), B = (int)(255.0f * 0.7f) },
+                density = (11f / 20f)
+            }
+        };
+
+        #region ILevel implementation
+        IReadOnlyList<ITrigger> ILevel.Triggers => Triggers;
+        IReadOnlyList<IMatCenter> ILevel.MatCenters => MatCenters;
+        #endregion
+
+        public static new D2XXLLevel CreateFromStream(Stream stream)
+        {
+            return new D2XXLLevelReader(stream).Load();
+        }
+
+        public new void WriteToStream(Stream stream)
+        {
+            new D2XXLLevelWriter(this, stream).Write();
+        }
     }
 
     public static partial class Extensions

@@ -27,6 +27,7 @@ namespace LibDescent.Tests
             }
             Assert.NotNull(level);
             Assert.IsInstanceOf<D2Level>(level);
+            Assert.IsNotInstanceOf<D2XXLLevel>(level);
         }
 
         // Levels saved by DEVIL (and apparently beta versions of DMB) have some differences;
@@ -48,8 +49,7 @@ namespace LibDescent.Tests
             var hogFile = new HOGFile(TestUtils.GetResourceStream("d2x-xl.hog"));
             ILevel level = LevelFactory.CreateFromStream(hogFile.GetLumpAsStream("level3.rl2"));
             Assert.NotNull(level);
-            //Assert.IsInstanceOf<D2XXLLevel>(level);
-            Assert.Fail();
+            Assert.IsInstanceOf<D2XXLLevel>(level);
         }
     }
 }

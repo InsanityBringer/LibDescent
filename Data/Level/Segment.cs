@@ -66,7 +66,7 @@ namespace LibDescent.Data
 
         public Side[] Sides { get; }
         public LevelVertex[] Vertices { get; }
-        public MatCenter MatCenter { get; set; }
+        public IMatCenter MatCenter { get; set; }
         public SegFunction Function
         {
             get => (SegFunction)special;

@@ -7,7 +7,7 @@ namespace LibDescent.Tests
     [TestFixtureSource("TestData")]
     class Rl2XLTests
     {
-        private readonly D2Level level;
+        private readonly D2XXLLevel level;
 
         public static IEnumerable TestData
         {
@@ -15,12 +15,12 @@ namespace LibDescent.Tests
             {
                 // First case - test level (saved by DLE)
                 var hogFile = new HOGFile(TestUtils.GetResourceStream("d2x-xl.hog"));
-                var level = D2Level.CreateFromStream(hogFile.GetLumpAsStream("level3.rl2"));
+                var level = D2XXLLevel.CreateFromStream(hogFile.GetLumpAsStream("level3.rl2"));
                 yield return new TestFixtureData(level);
             }
         }
 
-        public Rl2XLTests(D2Level level)
+        public Rl2XLTests(D2XXLLevel level)
         {
             this.level = level;
         }

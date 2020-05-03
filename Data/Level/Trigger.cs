@@ -69,13 +69,19 @@ namespace LibDescent.Data
         NoMessage = 0x1,
         OneShot = 0x2,
         Disabled = 0x4, // D2 sets this on a one-shot trigger when activated
-#if false
+    }
+
+    [Flags]
+    public enum D2XXLTriggerFlags
+    {
+        NoMessage = 0x1,
+        OneShot = 0x2,
+        Disabled = 0x4, // D2 sets this on a one-shot trigger when activated
         Permanent = 0x8, // D2X-XL only; control panel not destroyed when activated
         Alternate = 0x10, // D2X-XL only; trigger type inverts between activations
         SetOrient = 0x20, // D2X-XL only
         Silent = 0x40, // D2X-XL only
         AutoPlay = 0x80, // D2X-XL only
-#endif
     }
 
     public interface ITrigger
@@ -155,6 +161,30 @@ namespace LibDescent.Data
         public ValueType Value { get => fixValue; set => fixValue = (Fix)value; }
 
         public D2TriggerFlags Flags { get; set; }
+
+        /// <summary>
+        /// Appears to have been intended to govern the "cooldown" time of repeatable triggers.
+        /// Descent does not actually make use of this value.
+        /// </summary>
+        public int Time { get; set; }
+    }
+
+    public class D2XXLTrigger : ITrigger
+    {
+        public const int MaxWallsPerLink = 10;
+
+        private Fix fixValue;
+
+        public TriggerType Type { get; set; }
+
+        public List<Side> Targets { get; } = new List<Side>();
+
+        /// <summary>
+        /// Descent 2 does not have any trigger types that use Value.
+        /// </summary>
+        public ValueType Value { get => fixValue; set => fixValue = (Fix)value; }
+
+        public D2XXLTriggerFlags Flags { get; set; }
 
         /// <summary>
         /// Appears to have been intended to govern the "cooldown" time of repeatable triggers.

@@ -64,9 +64,9 @@ namespace LibDescent.Data
         public int deltaLightsOffset;
         public int deltaLightsCount;
         public int deltaLightsSize;
-        public int equipMakerOffset;
-        public int equipMakerCount;
-        public int equipMakerSize;
+        public int powerupMatcenOffset;
+        public int powerupMatcenCount;
+        public int powerupMatcenSize;
         public readonly FogPreset[] fogPresets = new FogPreset[4];
     }
 
@@ -86,9 +86,11 @@ namespace LibDescent.Data
         /// Versions 9-27 are used by D2X-XL.
         /// </summary>
         protected int _levelVersion;
+        // Standard D2 = 7, Vertigo = 8, XL = up to 27
+        public const int MaximumSupportedLevelVersion = 27;
         protected int _mineDataOffset;
         protected int _gameDataOffset;
-        protected FileInfo _fileInfo;
+        protected FileInfo _fileInfo = new FileInfo();
         private Dictionary<Side, uint> _sideWallLinks = new Dictionary<Side, uint>();
         private Dictionary<Segment, uint> _segmentMatcenLinks = new Dictionary<Segment, uint>();
         private Dictionary<Wall, byte> _wallTriggerLinks = new Dictionary<Wall, byte>();
@@ -373,9 +375,9 @@ namespace LibDescent.Data
 
             if (_levelVersion >= 16)
             {
-                _fileInfo.equipMakerOffset = reader.ReadInt32();
-                _fileInfo.equipMakerCount = reader.ReadInt32();
-                _fileInfo.equipMakerSize = reader.ReadInt32();
+                _fileInfo.powerupMatcenOffset = reader.ReadInt32();
+                _fileInfo.powerupMatcenCount = reader.ReadInt32();
+                _fileInfo.powerupMatcenSize = reader.ReadInt32();
             }
 
             if(_levelVersion >= 27)
@@ -518,7 +520,7 @@ namespace LibDescent.Data
                     matcen.InitializeSpawnedRobots(robotFlags);
                     matcen.HitPoints = hitPoints;
                     matcen.Interval = interval;
-                    Level.MatCenters.Add(matcen);
+                    AddMatcen(matcen);
                 }
 
                 foreach (var segmentMatcenLink in _segmentMatcenLinks)
@@ -672,6 +674,7 @@ namespace LibDescent.Data
         protected abstract void LoadVersionSpecificMineData(BinaryReader reader);
         protected abstract ITrigger ReadTrigger(BinaryReader reader);
         protected abstract void AddTrigger(ITrigger trigger);
+        protected abstract void AddMatcen(IMatCenter matcen);
         protected abstract void LoadVersionSpecificGameInfo(BinaryReader reader);
     }
 
@@ -733,6 +736,11 @@ namespace LibDescent.Data
             (Level as D1Level).Triggers.Add(trigger as D1Trigger);
         }
 
+        protected override void AddMatcen(IMatCenter matcen)
+        {
+            (Level as D1Level).MatCenters.Add(matcen as MatCenter);
+        }
+
         protected override void LoadVersionSpecificGameInfo(BinaryReader reader)
         {
         }
@@ -740,10 +748,7 @@ namespace LibDescent.Data
 
     internal class D2LevelReader : DescentLevelReader
     {
-        // Standard D2 = 7, Vertigo = 8, XL = up to 27
-        public const int MaximumSupportedLevelVersion = 27;
-
-        private readonly D2Level _level = new D2Level();
+        protected D2Level _level;
         private List<(short segmentNum, short sideNum, uint mask, Fix timer, Fix delay)> _flickeringLights =
             new List<(short, short, uint, Fix, Fix)>();
         private int _secretReturnSegmentNum = 0;
@@ -758,6 +763,7 @@ namespace LibDescent.Data
 
         public D2Level Load()
         {
+            _level = new D2Level();
             LoadLevel();
             return _level;
         }
@@ -873,6 +879,11 @@ namespace LibDescent.Data
             (Level as D2Level).Triggers.Add(trigger as D2Trigger);
         }
 
+        protected override void AddMatcen(IMatCenter matcen)
+        {
+            (Level as D2Level).MatCenters.Add(matcen as MatCenter);
+        }
+
         protected override void LoadVersionSpecificGameInfo(BinaryReader reader)
         {
             // Delta lights (D2)
@@ -916,6 +927,71 @@ namespace LibDescent.Data
         }
     }
 
+    internal class D2XXLLevelReader : D2LevelReader
+    {
+        private D2XXLLevel _xlLevel;
+        private Dictionary<Segment, uint> _segmentPowerupMatcenLinks = new Dictionary<Segment, uint>();
+
+        public D2XXLLevelReader(Stream stream) : base(stream)
+        {
+        }
+
+        public new D2XXLLevel Load()
+        {
+            _xlLevel = new D2XXLLevel();
+            _level = _xlLevel;
+            LoadLevel();
+            return _xlLevel;
+        }
+
+        protected override void CheckLevelVersion()
+        {
+            if (_levelVersion < 9 || _levelVersion > 27)
+            {
+                throw new InvalidDataException($"Level version should be between 9 and 27 but was {_levelVersion}.");
+            }
+        }
+
+        protected override void AddMatcen(IMatCenter matcen)
+        {
+            _xlLevel.MatCenters.Add(matcen);
+        }
+
+        protected override void LoadVersionSpecificGameInfo(BinaryReader reader)
+        {
+            base.LoadVersionSpecificGameInfo(reader);
+
+            _fileInfo.fogPresets.CopyTo(_xlLevel.FogPresets, 0);
+
+            // Powerup matcens
+            if (_fileInfo.powerupMatcenOffset != -1)
+            {
+                reader.BaseStream.Seek(_fileInfo.powerupMatcenOffset, SeekOrigin.Begin);
+                for (int i = 0; i < _fileInfo.powerupMatcenCount; i++)
+                {
+                    var powerupFlags = new uint[2];
+                    powerupFlags[0] = reader.ReadUInt32();
+                    powerupFlags[1] = reader.ReadUInt32();
+                    var hitPoints = reader.ReadInt32();
+                    var interval = reader.ReadInt32();
+                    var segmentNum = reader.ReadInt16();
+                    _ = reader.ReadInt16(); // fuelcen number - not needed
+
+                    var matcen = new PowerupMatCenter(Level.Segments[segmentNum]);
+                    matcen.InitializeSpawnedPowerups(powerupFlags);
+                    matcen.HitPoints = hitPoints;
+                    matcen.Interval = interval;
+                    AddMatcen(matcen);
+                }
+
+                foreach (var segmentPowerupMatcenLink in _segmentPowerupMatcenLinks)
+                {
+                    segmentPowerupMatcenLink.Key.MatCenter = Level.MatCenters[(int)segmentPowerupMatcenLink.Value];
+                }
+            }
+        }
+    }
+
     public class LevelFactory
     {
         public static ILevel CreateFromStream(Stream stream)
@@ -946,6 +1022,10 @@ namespace LibDescent.Data
             else if (levelVersion >= 2 && levelVersion <= 8)
             {
                 return new D2LevelReader(stream).Load();
+            }
+            else if (levelVersion >= 9 && levelVersion <= 27)
+            {
+                return new D2XXLLevelReader(stream).Load();
             }
             else
             {
@@ -1359,10 +1439,10 @@ namespace LibDescent.Data
                 (int)writer.BaseStream.Position - fileInfo.reactorTriggersOffset : 0;
 
             // Matcens
-            fileInfo.matcenOffset = (Level.MatCenters.Count > 0) ?
-                (int)writer.BaseStream.Position : -1;
-            fileInfo.matcenCount = Level.MatCenters.Count;
-            foreach (var matcen in Level.MatCenters)
+            var matcens = Level.MatCenters.Where(m => m is MatCenter).Cast<MatCenter>().ToList();
+            fileInfo.matcenOffset = (matcens.Count > 0) ? (int)writer.BaseStream.Position : -1;
+            fileInfo.matcenCount = matcens.Count;
+            foreach (var matcen in matcens)
             {
                 var robotFlags = new uint[2];
                 foreach (uint robotId in matcen.SpawnedRobotIds)
@@ -1387,12 +1467,18 @@ namespace LibDescent.Data
                 writer.Write((short)Level.Segments.IndexOf(matcen.Segment));
                 writer.Write((short)_fuelcens.IndexOf(matcen.Segment));
             }
-            fileInfo.matcenSize = (Level.MatCenters.Count > 0) ?
+            fileInfo.matcenSize = (matcens.Count > 0) ?
                 (int)writer.BaseStream.Position - fileInfo.matcenOffset : 0;
 
             if (GameDataVersion >= 29)
             {
                 WriteDynamicLights(writer, fileInfo);
+            }
+
+            // Powerup matcens (D2X-XL)
+            if (LevelVersion >= 16)
+            {
+                WritePowerupMatcens(writer, fileInfo);
             }
 
             // Rewrite FileInfo with updated data
@@ -1445,9 +1531,9 @@ namespace LibDescent.Data
 
             if (LevelVersion >= 16)
             {
-                writer.Write(fileInfo.equipMakerOffset);
-                writer.Write(fileInfo.equipMakerCount);
-                writer.Write(fileInfo.equipMakerSize);
+                writer.Write(fileInfo.powerupMatcenOffset);
+                writer.Write(fileInfo.powerupMatcenCount);
+                writer.Write(fileInfo.powerupMatcenSize);
             }
 
             if (LevelVersion >= 27)
@@ -1593,6 +1679,7 @@ namespace LibDescent.Data
         protected abstract void WriteVersionSpecificLevelInfo(BinaryWriter writer);
         protected abstract void WriteTrigger(BinaryWriter writer, ITrigger trigger);
         protected abstract void WriteDynamicLights(BinaryWriter writer, FileInfo fileInfo);
+        protected abstract void WritePowerupMatcens(BinaryWriter writer, FileInfo fileInfo);
     }
 
     internal class D1LevelWriter : DescentLevelWriter
@@ -1650,6 +1737,10 @@ namespace LibDescent.Data
         }
 
         protected override void WriteVersionSpecificLevelInfo(BinaryWriter writer)
+        {
+        }
+
+        protected override void WritePowerupMatcens(BinaryWriter writer, FileInfo fileInfo)
         {
         }
     }
@@ -1771,6 +1862,55 @@ namespace LibDescent.Data
             }
             fileInfo.deltaLightsSize = (lightDeltas.Count > 0) ?
                 (int)writer.BaseStream.Position - fileInfo.deltaLightsOffset : 0;
+        }
+
+        protected override void WritePowerupMatcens(BinaryWriter writer, FileInfo fileInfo)
+        {
+        }
+    }
+
+    internal class D2XXLLevelWriter : D2LevelWriter
+    {
+        private readonly D2XXLLevel _xlLevel;
+
+        protected override int LevelVersion => 27;
+
+        public D2XXLLevelWriter(D2XXLLevel level, Stream stream) : base(level, stream, true)
+        {
+            _xlLevel = level;
+        }
+
+        protected override void WritePowerupMatcens(BinaryWriter writer, FileInfo fileInfo)
+        {
+            var powerupMatcens = Level.MatCenters.Where(m => m is PowerupMatCenter).Cast<PowerupMatCenter>().ToList();
+
+            fileInfo.powerupMatcenOffset = (powerupMatcens.Count > 0) ?
+                (int)writer.BaseStream.Position : -1;
+            fileInfo.powerupMatcenCount = powerupMatcens.Count;
+            foreach (var matcen in powerupMatcens)
+            {
+                var powerupFlags = new uint[2];
+                foreach (uint powerupId in matcen.SpawnedPowerupIds)
+                {
+                    if (powerupId < 32)
+                    {
+                        powerupFlags[0] |= 1u << (int)powerupId;
+                    }
+                    else if (powerupId < 64)
+                    {
+                        powerupFlags[1] |= 1u << (int)(powerupId - 32);
+                    }
+                }
+
+                writer.Write(powerupFlags[0]);
+                writer.Write(powerupFlags[1]);
+                writer.Write(matcen.HitPoints.value);
+                writer.Write(matcen.Interval.value);
+                writer.Write((short)Level.Segments.IndexOf(matcen.Segment));
+                writer.Write((short)_fuelcens.IndexOf(matcen.Segment));
+            }
+            fileInfo.matcenSize = (powerupMatcens.Count > 0) ?
+                (int)writer.BaseStream.Position - fileInfo.matcenOffset : 0;
         }
     }
 }
