@@ -55,6 +55,20 @@ namespace LibDescent.Data
             return mapinfo;
         }
 
+        public TMAPInfo ReadTMAPInfoDescentPSX(BinaryReader br)
+        {
+            TMAPInfo mapinfo = new TMAPInfo();
+            byte[] temp = br.ReadBytes(13);
+            Array.Copy(temp, mapinfo.filename, 13);
+            mapinfo.Flags = br.ReadByte();
+            short unk1 = br.ReadInt16();
+            mapinfo.Lighting = new Fix(br.ReadInt32());
+            mapinfo.Damage = new Fix(br.ReadInt32());
+            mapinfo.EClipNum = (short)br.ReadInt32();
+
+            return mapinfo;
+        }
+
         public VClip ReadVClip(BinaryReader br)
         {
             VClip clip = new VClip();
@@ -72,6 +86,24 @@ namespace LibDescent.Data
             return clip;
         }
 
+        public VClip ReadVClipPSX(BinaryReader br)
+        {
+            VClip clip = new VClip();
+            clip.PlayTime = new Fix(br.ReadInt32());
+            clip.NumFrames = br.ReadInt32();
+            clip.FrameTime = new Fix(br.ReadInt32());
+            clip.Flags = br.ReadInt32();
+            clip.SoundNum = br.ReadInt16();
+            for (int f = 0; f < 30; f++)
+            {
+                clip.Frames[f] = br.ReadUInt16();
+            }
+            short unk1 = br.ReadInt16();
+            clip.LightValue = new Fix(br.ReadInt32());
+
+            return clip;
+        }
+
         public EClip ReadEClip(BinaryReader br)
         {
             EClip clip = new EClip();
@@ -84,6 +116,37 @@ namespace LibDescent.Data
             {
                 clip.Clip.Frames[f] = br.ReadUInt16();
             }
+            clip.Clip.LightValue = new Fix(br.ReadInt32());
+            clip.TimeLeft = br.ReadInt32();
+            clip.FrameCount = br.ReadInt32();
+            clip.ChangingWallTexture = br.ReadInt16();
+            clip.ChangingObjectTexture = br.ReadInt16();
+            clip.Flags = br.ReadInt32();
+            clip.CriticalClip = br.ReadInt32();
+            clip.DestroyedBitmapNum = br.ReadInt32();
+            clip.ExplosionVClip = br.ReadInt32();
+            clip.ExplosionEClip = br.ReadInt32();
+            clip.ExplosionSize = new Fix(br.ReadInt32());
+            clip.SoundNum = br.ReadInt32();
+            clip.SegNum = br.ReadInt32();
+            clip.SideNum = br.ReadInt32();
+
+            return clip;
+        }
+
+        public EClip ReadEClipPSX(BinaryReader br)
+        {
+            EClip clip = new EClip();
+            clip.Clip.PlayTime = new Fix(br.ReadInt32());
+            clip.Clip.NumFrames = br.ReadInt32();
+            clip.Clip.FrameTime = new Fix(br.ReadInt32());
+            clip.Clip.Flags = br.ReadInt32();
+            clip.Clip.SoundNum = br.ReadInt16();
+            for (int f = 0; f < 30; f++)
+            {
+                clip.Clip.Frames[f] = br.ReadUInt16();
+            }
+            short unk1 = br.ReadInt16();
             clip.Clip.LightValue = new Fix(br.ReadInt32());
             clip.TimeLeft = br.ReadInt32();
             clip.FrameCount = br.ReadInt32();
@@ -137,9 +200,31 @@ namespace LibDescent.Data
             clip.Flags = br.ReadInt16();
             for (int c = 0; c < 13; c++)
             {
-                clip.Filename[c] = br.ReadChar();
+                clip.Filename[c] = (char)br.ReadByte();
             }
             clip.Pad = br.ReadByte();
+
+            return clip;
+        }
+
+        public WClip ReadWClipPSX(BinaryReader br)
+        {
+            WClip clip = new WClip();
+            clip.PlayTime = new Fix(br.ReadInt32());
+            clip.NumFrames = br.ReadInt16();
+            for (int f = 0; f < 20; f++)
+            {
+                clip.Frames[f] = br.ReadUInt16();
+            }
+            clip.OpenSound = br.ReadInt16();
+            clip.CloseSound = br.ReadInt16();
+            clip.Flags = br.ReadInt16();
+            for (int c = 0; c < 13; c++)
+            {
+                clip.Filename[c] = (char)br.ReadByte();
+            }
+            clip.Pad = br.ReadByte();
+            short unk1 = br.ReadInt16();
 
             return clip;
         }
@@ -279,6 +364,98 @@ namespace LibDescent.Data
 
             robot.ContainsProbability = br.ReadSByte();
             robot.ContainsType = br.ReadSByte();
+
+            robot.ScoreValue = (short)br.ReadInt32();
+
+            robot.Lighting = new Fix(br.ReadInt32());
+            robot.Strength = new Fix(br.ReadInt32());
+
+            robot.Mass = new Fix(br.ReadInt32());
+            robot.Drag = new Fix(br.ReadInt32());
+            for (int s = 0; s < Robot.NUM_DIFFICULTY_LEVELS; s++)
+            {
+                robot.FieldOfView[s] = new Fix(br.ReadInt32());
+            }
+            for (int s = 0; s < Robot.NUM_DIFFICULTY_LEVELS; s++)
+            {
+                robot.FiringWait[s] = new Fix(br.ReadInt32());
+            }
+            for (int s = 0; s < Robot.NUM_DIFFICULTY_LEVELS; s++)
+            {
+                robot.TurnTime[s] = new Fix(br.ReadInt32());
+            }
+            for (int s = 0; s < Robot.NUM_DIFFICULTY_LEVELS; s++)
+            {
+                robot.FirePower[s] = new Fix(br.ReadInt32());
+            }
+            for (int s = 0; s < Robot.NUM_DIFFICULTY_LEVELS; s++)
+            {
+                robot.Shield[s] = new Fix(br.ReadInt32());
+            }
+            for (int s = 0; s < Robot.NUM_DIFFICULTY_LEVELS; s++)
+            {
+                robot.MaxSpeed[s] = new Fix(br.ReadInt32());
+            }
+            for (int s = 0; s < Robot.NUM_DIFFICULTY_LEVELS; s++)
+            {
+                robot.CircleDistance[s] = new Fix(br.ReadInt32());
+            }
+            for (int s = 0; s < Robot.NUM_DIFFICULTY_LEVELS; s++)
+            {
+                robot.RapidfireCount[s] = br.ReadSByte();
+            }
+            for (int s = 0; s < Robot.NUM_DIFFICULTY_LEVELS; s++)
+            {
+                robot.EvadeSpeed[s] = br.ReadSByte();
+            }
+            robot.CloakType = (RobotCloakType)br.ReadSByte();
+            robot.AttackType = (RobotAttackType)br.ReadSByte();
+            robot.BossFlag = (RobotBossType)br.ReadSByte();
+            robot.SeeSound = br.ReadByte();
+            robot.AttackSound = br.ReadByte();
+            robot.ClawSound = br.ReadByte();
+
+            for (int v = 0; v < 9; v++)
+            {
+                for (int u = 0; u < 5; u++)
+                {
+                    robot.AnimStates[v, u].n_joints = br.ReadInt16();
+                    robot.AnimStates[v, u].offset = br.ReadInt16();
+                }
+            }
+            robot.Always0xABCD = br.ReadInt32();
+
+            return robot;
+        }
+
+        public Robot ReadRobotPSX(BinaryReader br)
+        {
+            Robot robot = new Robot();
+            robot.ModelNum = br.ReadInt32();
+            robot.NumGuns = (sbyte)br.ReadInt32();
+
+            for (int s = 0; s < Polymodel.MAX_GUNS; s++)
+            {
+                robot.GunPoints[s] = FixVector.FromRawValues(br.ReadInt32(), br.ReadInt32(), br.ReadInt32());
+            }
+            for (int s = 0; s < 8; s++)
+            {
+                robot.GunSubmodels[s] = br.ReadByte();
+            }
+            robot.HitVClipNum = br.ReadInt16();
+            robot.HitSoundNum = br.ReadInt16();
+
+            robot.DeathVClipNum = br.ReadInt16();
+            robot.DeathSoundNum = br.ReadInt16();
+
+            robot.WeaponType = (sbyte)br.ReadInt16();
+            robot.ContainsID = br.ReadSByte();
+            robot.ContainsCount = br.ReadSByte();
+
+            robot.ContainsProbability = br.ReadSByte();
+            robot.ContainsType = br.ReadSByte();
+
+            short unk1 = br.ReadInt16();
 
             robot.ScoreValue = (short)br.ReadInt32();
 
@@ -536,6 +713,67 @@ namespace LibDescent.Data
             return weapon;
         }
 
+        public Weapon ReadWeaponInfoPSX(BinaryReader br)
+        {
+            Weapon weapon = new Weapon();
+            weapon.RenderType = (WeaponRenderType)br.ReadByte();
+            weapon.ModelNum = br.ReadByte();
+            weapon.ModelNumInner = br.ReadByte();
+            weapon.Persistent = br.ReadByte() != 0 ? true : false;
+
+            weapon.MuzzleFlashVClip = (sbyte)br.ReadInt16();
+            weapon.FiringSound = br.ReadInt16();
+
+            weapon.RobotHitVClip = (sbyte)br.ReadInt16();
+            weapon.RobotHitSound = br.ReadInt16();
+
+            weapon.WallHitVclip = (sbyte)br.ReadInt16();
+            weapon.WallHitSound = br.ReadInt16();
+
+            weapon.FireCount = br.ReadByte();
+            weapon.AmmoUsage = br.ReadByte();
+            weapon.WeaponVClip = br.ReadSByte();
+            weapon.Destroyable = br.ReadByte() != 0 ? true : false;
+
+            weapon.Matter = br.ReadInt16() != 0 ? true : false;
+            weapon.Bounce = (WeaponBounceType)br.ReadInt16();
+            weapon.HomingFlag = br.ReadInt16() != 0 ? true : false;
+            short unk1 = br.ReadInt16();
+
+            weapon.EnergyUsage = new Fix(br.ReadInt32());
+            weapon.FireWait = new Fix(br.ReadInt32());
+
+            weapon.MultiDamageScale = 1;
+
+            weapon.Bitmap = (ushort)br.ReadUInt32();
+
+            weapon.BlobSize = new Fix(br.ReadInt32());
+            weapon.FlashSize = new Fix(br.ReadInt32());
+            weapon.ImpactSize = new Fix(br.ReadInt32());
+
+            for (int s = 0; s < 5; s++)
+            {
+                weapon.Strength[s] = new Fix(br.ReadInt32());
+            }
+            for (int s = 0; s < 5; s++)
+            {
+                weapon.Speed[s] = new Fix(br.ReadInt32());
+            }
+
+            weapon.Mass = new Fix(br.ReadInt32());
+            weapon.Drag = new Fix(br.ReadInt32());
+            weapon.Thrust = new Fix(br.ReadInt32());
+            weapon.POLenToWidthRatio = new Fix(br.ReadInt32());
+            weapon.Light = new Fix(br.ReadInt32());
+            weapon.Lifetime = new Fix(br.ReadInt32());
+            weapon.DamageRadius = new Fix(br.ReadInt32());
+
+            weapon.CockpitPicture = (ushort)br.ReadUInt32();
+            weapon.HiresCockpitPicture = weapon.CockpitPicture;
+
+            return weapon;
+        }
+
         public Polymodel ReadPolymodelInfo(BinaryReader br)
         {
             Polymodel model = new Polymodel(Polymodel.MAX_SUBMODELS);
@@ -593,6 +831,69 @@ namespace LibDescent.Data
             model.NumTextures = br.ReadByte();
             model.FirstTexture = br.ReadUInt16();
             model.SimplerModels = br.ReadByte();
+
+            return model;
+        }
+
+        public Polymodel ReadPolymodelInfoPSX(BinaryReader br)
+        {
+            Polymodel model = new Polymodel(Polymodel.MAX_SUBMODELS);
+            model.NumSubmodels = br.ReadInt32();
+            model.ModelIDTASize = br.ReadInt32();
+            model.ModelIDTAPointer = br.ReadInt32();
+            for (int s = 0; s < Polymodel.MAX_SUBMODELS; s++)
+            {
+                model.Submodels[s].Pointer = br.ReadInt32();
+            }
+            for (int s = 0; s < Polymodel.MAX_SUBMODELS; s++)
+            {
+                model.Submodels[s].Offset.x = new Fix(br.ReadInt32());
+                model.Submodels[s].Offset.y = new Fix(br.ReadInt32());
+                model.Submodels[s].Offset.z = new Fix(br.ReadInt32());
+            }
+            for (int s = 0; s < Polymodel.MAX_SUBMODELS; s++)
+            {
+                model.Submodels[s].Normal.x = new Fix(br.ReadInt32());
+                model.Submodels[s].Normal.y = new Fix(br.ReadInt32());
+                model.Submodels[s].Normal.z = new Fix(br.ReadInt32());
+            }
+            for (int s = 0; s < Polymodel.MAX_SUBMODELS; s++)
+            {
+                model.Submodels[s].Point.x = new Fix(br.ReadInt32());
+                model.Submodels[s].Point.y = new Fix(br.ReadInt32());
+                model.Submodels[s].Point.z = new Fix(br.ReadInt32());
+            }
+            for (int s = 0; s < Polymodel.MAX_SUBMODELS; s++)
+            {
+                model.Submodels[s].Radius = new Fix(br.ReadInt32());
+            }
+            for (int s = 0; s < Polymodel.MAX_SUBMODELS; s++)
+            {
+                byte parent = br.ReadByte();
+                model.Submodels[s].Parent = parent;
+                if (parent != 255)
+                    model.Submodels[parent].Children.Add(model.Submodels[s]);
+            }
+            short unk1 = br.ReadInt16();
+            for (int s = 0; s < Polymodel.MAX_SUBMODELS; s++)
+            {
+                model.Submodels[s].Mins.x = new Fix(br.ReadInt32());
+                model.Submodels[s].Mins.y = new Fix(br.ReadInt32());
+                model.Submodels[s].Mins.z = new Fix(br.ReadInt32());
+            }
+            for (int s = 0; s < Polymodel.MAX_SUBMODELS; s++)
+            {
+                model.Submodels[s].Maxs.x = new Fix(br.ReadInt32());
+                model.Submodels[s].Maxs.y = new Fix(br.ReadInt32());
+                model.Submodels[s].Maxs.z = new Fix(br.ReadInt32());
+            }
+            model.Mins = new FixVector(new Fix(br.ReadInt32()), new Fix(br.ReadInt32()), new Fix(br.ReadInt32()));
+            model.Maxs = new FixVector(new Fix(br.ReadInt32()), new Fix(br.ReadInt32()), new Fix(br.ReadInt32()));
+            model.Radius = new Fix(br.ReadInt32());
+            model.NumTextures = (byte)br.ReadInt16();
+            model.FirstTexture = br.ReadUInt16();
+            model.SimplerModels = (byte)br.ReadInt16();
+            short unk2 = br.ReadInt16();
 
             return model;
         }
