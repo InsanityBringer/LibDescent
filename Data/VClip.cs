@@ -87,7 +87,7 @@ namespace LibDescent.Data
                 Frames[numFrames] = (ushort)(firstFrame + numFrames);
                 img = piggyFile.Bitmaps[firstFrame + numFrames + 1];
                 numFrames++;
-                while (img.DFlags == numFrames)
+                while (img.Frame == numFrames)
                 {
                     if (firstFrame + numFrames + 1 >= piggyFile.Bitmaps.Count) break; 
                     Frames[numFrames] = (ushort)(firstFrame + numFrames);
