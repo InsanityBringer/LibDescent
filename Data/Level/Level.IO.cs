@@ -1,5 +1,5 @@
 ﻿/*
-    Copyright (c) 2019 SaladBadger
+    Copyright (c) 2019 The LibDescent Team
 
     Permission is hereby granted, free of charge, to any person obtaining a copy
     of this software and associated documentation files (the "Software"), to deal
@@ -514,8 +514,8 @@ namespace LibDescent.Data
             levelObject.attachedObject = -1;
             levelObject.position = ReadFixVector(reader);
             levelObject.orientation = ReadFixMatrix(reader);
-            levelObject.size = reader.ReadInt32();
-            levelObject.shields = reader.ReadInt32();
+            levelObject.size = new Fix(reader.ReadInt32());
+            levelObject.shields = new Fix(reader.ReadInt32());
             levelObject.lastPos = ReadFixVector(reader);
             levelObject.containsType = reader.ReadByte();
             levelObject.containsId = reader.ReadByte();
@@ -526,9 +526,9 @@ namespace LibDescent.Data
                 case MovementType.Physics:
                     levelObject.physicsInfo.velocity = ReadFixVector(reader);
                     levelObject.physicsInfo.thrust = ReadFixVector(reader);
-                    levelObject.physicsInfo.mass = reader.ReadInt32();
-                    levelObject.physicsInfo.drag = reader.ReadInt32();
-                    levelObject.physicsInfo.brakes = reader.ReadInt32();
+                    levelObject.physicsInfo.mass = new Fix(reader.ReadInt32());
+                    levelObject.physicsInfo.drag = new Fix(reader.ReadInt32());
+                    levelObject.physicsInfo.brakes = new Fix(reader.ReadInt32());
                     levelObject.physicsInfo.angVel = ReadFixVector(reader);
                     levelObject.physicsInfo.rotThrust = ReadFixVector(reader);
                     levelObject.physicsInfo.turnroll = reader.ReadInt16();
@@ -556,8 +556,8 @@ namespace LibDescent.Data
                     }
                     break;
                 case ControlType.Explosion:
-                    levelObject.explosionInfo.SpawnTime = reader.ReadInt32();
-                    levelObject.explosionInfo.DeleteTime = reader.ReadInt32();
+                    levelObject.explosionInfo.SpawnTime = new Fix(reader.ReadInt32());
+                    levelObject.explosionInfo.DeleteTime = new Fix(reader.ReadInt32());
                     levelObject.explosionInfo.DeleteObject = reader.ReadInt16();
                     break;
                 case ControlType.Powerup:
@@ -585,7 +585,7 @@ namespace LibDescent.Data
                 case RenderType.Powerup:
                 case RenderType.Fireball:
                     levelObject.spriteInfo.vclipNum = reader.ReadInt32();
-                    levelObject.spriteInfo.frameTime = reader.ReadInt32();
+                    levelObject.spriteInfo.frameTime = new Fix(reader.ReadInt32());
                     levelObject.spriteInfo.frameNumber = reader.ReadByte();
                     break;
             }
@@ -1426,8 +1426,8 @@ namespace LibDescent.Data
             writer.Write(levelObject.segnum);
             WriteFixVector(writer, levelObject.position);
             WriteFixMatrix(writer, levelObject.orientation);
-            writer.Write(levelObject.size);
-            writer.Write(levelObject.shields);
+            writer.Write(levelObject.size.value);
+            writer.Write(levelObject.shields.value);
             WriteFixVector(writer, levelObject.lastPos);
             writer.Write(levelObject.containsType);
             writer.Write(levelObject.containsId);
@@ -1438,9 +1438,9 @@ namespace LibDescent.Data
                 case MovementType.Physics:
                     WriteFixVector(writer, levelObject.physicsInfo.velocity);
                     WriteFixVector(writer, levelObject.physicsInfo.thrust);
-                    writer.Write(levelObject.physicsInfo.mass);
-                    writer.Write(levelObject.physicsInfo.drag);
-                    writer.Write(levelObject.physicsInfo.brakes);
+                    writer.Write(levelObject.physicsInfo.mass.value);
+                    writer.Write(levelObject.physicsInfo.drag.value);
+                    writer.Write(levelObject.physicsInfo.brakes.value);
                     WriteFixVector(writer, levelObject.physicsInfo.angVel);
                     WriteFixVector(writer, levelObject.physicsInfo.rotThrust);
                     writer.Write(levelObject.physicsInfo.turnroll);
@@ -1471,8 +1471,8 @@ namespace LibDescent.Data
 
                     break;
                 case ControlType.Explosion:
-                    writer.Write(levelObject.explosionInfo.SpawnTime);
-                    writer.Write(levelObject.explosionInfo.DeleteTime);
+                    writer.Write(levelObject.explosionInfo.SpawnTime.value);
+                    writer.Write(levelObject.explosionInfo.DeleteTime.value);
                     writer.Write(levelObject.explosionInfo.DeleteObject);
                     break;
                 case ControlType.Powerup:
@@ -1500,7 +1500,7 @@ namespace LibDescent.Data
                 case RenderType.Powerup:
                 case RenderType.Fireball:
                     writer.Write(levelObject.spriteInfo.vclipNum);
-                    writer.Write(levelObject.spriteInfo.frameTime);
+                    writer.Write(levelObject.spriteInfo.frameTime.value);
                     writer.Write(levelObject.spriteInfo.frameNumber);
                     break;
             }

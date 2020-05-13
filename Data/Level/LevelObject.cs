@@ -1,5 +1,5 @@
 ﻿/*
-    Copyright (c) 2019 SaladBadger
+    Copyright (c) 2019 The LibDescent Team
 
     Permission is hereby granted, free of charge, to any person obtaining a copy
     of this software and associated documentation files (the "Software"), to deal
@@ -94,9 +94,9 @@ namespace LibDescent.Data
     {
         public FixVector velocity;
         public FixVector thrust;
-        public int mass;
-        public int drag;
-        public int brakes;
+        public Fix mass;
+        public Fix drag;
+        public Fix brakes;
         public FixVector angVel;
         public FixVector rotThrust;
         public short turnroll; //fixang
@@ -120,8 +120,8 @@ namespace LibDescent.Data
 
     public struct ExplosionInfo
     {
-        public int SpawnTime;
-        public int DeleteTime;
+        public Fix SpawnTime;
+        public Fix DeleteTime;
         public short DeleteObject;
     }
 
@@ -134,7 +134,6 @@ namespace LibDescent.Data
     public class PolymodelInfo
     {
         public int modelNum;
-        //*drools*
         public FixAngles[] animAngles = new FixAngles[Polymodel.MAX_SUBMODELS];
         public int flags;
         public int textureOverride;
@@ -143,7 +142,7 @@ namespace LibDescent.Data
     public struct SpriteInfo
     {
         public int vclipNum;
-        public int frameTime;
+        public Fix frameTime;
         public byte frameNumber;
     }
 
@@ -162,8 +161,8 @@ namespace LibDescent.Data
 
         public FixVector position;
         public FixMatrix orientation;
-        public int size;
-        public int shields;
+        public Fix size;
+        public Fix shields;
         public FixVector lastPos;
 
         public byte containsType;
