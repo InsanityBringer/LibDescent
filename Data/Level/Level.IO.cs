@@ -158,8 +158,8 @@ namespace LibDescent.Data
             // Allocate segments/sides before reading data so we don't need a separate linking phase for them
             for (int i = 0; i < numSegments; i++)
             {
-                var segment = new Segment();
-                for (uint sideNum = 0; sideNum < Segment.MaxSegmentSides; sideNum++)
+                var segment = (_levelVersion < 9) ? new Segment() : new D2XXLSegment();
+                for (uint sideNum = 0; sideNum < Segment.MaxSides; sideNum++)
                 {
                     segment.Sides[sideNum] = new Side(segment, sideNum);
                 }
@@ -168,6 +168,11 @@ namespace LibDescent.Data
             // Now read segment data
             foreach (var segment in Level.Segments)
             {
+                if (segment is D2XXLSegment xlSegment)
+                {
+                    ReadXLSegmentData(reader, xlSegment);
+                }
+
                 byte segmentBitMask = reader.ReadByte();
                 if (_levelVersion == 5)
                 {
@@ -209,7 +214,7 @@ namespace LibDescent.Data
 
         internal void ReadSegmentConnections(BinaryReader reader, Segment segment, byte segmentBitMask)
         {
-            for (int sideNum = 0; sideNum < Segment.MaxSegmentSides; sideNum++)
+            for (int sideNum = 0; sideNum < Segment.MaxSides; sideNum++)
             {
                 if ((segmentBitMask & (1 << sideNum)) != 0)
                 {
@@ -228,7 +233,7 @@ namespace LibDescent.Data
 
         private void ReadSegmentVertices(BinaryReader reader, Segment segment)
         {
-            for (uint i = 0; i < Segment.MaxSegmentVerts; i++)
+            for (uint i = 0; i < Segment.MaxVertices; i++)
             {
                 var vertexNum = reader.ReadInt16();
                 segment.Vertices[i] = Level.Vertices[vertexNum];
@@ -247,13 +252,15 @@ namespace LibDescent.Data
 
         private void ReadSegmentWalls(BinaryReader reader, Segment segment)
         {
+            var emptyWallNum = (_levelVersion < 13) ? 255 : 2047;
+
             byte wallsBitMask = reader.ReadByte();
-            for (uint sideNum = 0; sideNum < Segment.MaxSegmentSides; sideNum++)
+            for (uint sideNum = 0; sideNum < Segment.MaxSides; sideNum++)
             {
                 if ((wallsBitMask & (1 << (int)sideNum)) != 0)
                 {
-                    byte wallNum = reader.ReadByte();
-                    if (wallNum != 255)
+                    var wallNum = (_levelVersion < 13) ? reader.ReadByte() : reader.ReadUInt16();
+                    if (wallNum != emptyWallNum)
                     {
                         // Walls haven't been read yet so we need to record the numbers and link later
                         _sideWallLinks[segment.Sides[sideNum]] = wallNum;
@@ -264,7 +271,7 @@ namespace LibDescent.Data
 
         private static bool SegmentHasSpecialData(byte segmentBitMask)
         {
-            return (segmentBitMask & (1 << Segment.MaxSegmentSides)) != 0;
+            return (segmentBitMask & (1 << Segment.MaxSides)) != 0;
         }
 
         private void ReadSegmentSpecial(BinaryReader reader, Segment segment)
@@ -288,9 +295,21 @@ namespace LibDescent.Data
 
         private void ReadSegmentTextures(BinaryReader reader, Segment segment)
         {
-            for (int sideNum = 0; sideNum < Segment.MaxSegmentSides; sideNum++)
+            for (int sideNum = 0; sideNum < Segment.MaxSides; sideNum++)
             {
                 var side = segment.Sides[sideNum];
+
+                if (_levelVersion > 24)
+                {
+                    // D2X-XL also has a list of the segment vertex IDs for the side here.
+                    // This is for non-cubic segment support (not implemented yet).
+                    for (int i = 0; i < Side.MaxVertices; i++)
+                    {
+                        _ = reader.ReadByte();
+                    }
+                }
+
+                // Only read textures if this side has any
                 if ((side.ConnectedSegment == null && !side.Exit) || _sideWallLinks.ContainsKey(side))
                 {
                     var rawTextureIndex = reader.ReadUInt16();
@@ -306,7 +325,7 @@ namespace LibDescent.Data
                         side.OverlayRotation = (OverlayRotation)((rawTextureIndex & 0xc000u) >> 14);
                     }
 
-                    for (int uv = 0; uv < side.GetNumVertices(); uv++)
+                    for (int uv = 0; uv < Side.MaxVertices; uv++)
                     {
                         var uvl = Uvl.FromRawValues(reader.ReadInt16(), reader.ReadInt16(), reader.ReadUInt16());
                         side.Uvls[uv] = uvl;
@@ -380,7 +399,7 @@ namespace LibDescent.Data
                 _fileInfo.powerupMatcenSize = reader.ReadInt32();
             }
 
-            if(_levelVersion >= 27)
+            if (_levelVersion >= 27)
             {
                 for (int i = 0; i < _fileInfo.fogPresets.Length; i++)
                 {
@@ -439,7 +458,7 @@ namespace LibDescent.Data
                         wall.HitPoints = new Fix(reader.ReadInt32());
                         _ = reader.ReadInt32(); // opposite wall - will recalculate
                         wall.Type = (WallType)reader.ReadByte();
-                        wall.Flags = (WallFlags)reader.ReadByte();
+                        wall.Flags = (WallFlags)((_fileInfo.version < 37) ? reader.ReadByte() : reader.ReadUInt16());
                         wall.State = (WallState)reader.ReadByte();
                         var triggerNum = reader.ReadByte();
                         if (triggerNum != 0xFF)
@@ -477,6 +496,11 @@ namespace LibDescent.Data
                 foreach (var wallTriggerLink in _wallTriggerLinks)
                 {
                     wallTriggerLink.Key.Trigger = Level.Triggers[wallTriggerLink.Value];
+                }
+
+                if (_fileInfo.version >= 33)
+                {
+                    ReadXLObjectTriggers(reader);
                 }
             }
 
@@ -671,9 +695,11 @@ namespace LibDescent.Data
 
         protected abstract void CheckLevelVersion();
         protected abstract void LoadVersionSpecificLevelInfo(BinaryReader reader);
+        protected abstract void ReadXLSegmentData(BinaryReader reader, D2XXLSegment xlSegment);
         protected abstract void LoadVersionSpecificMineData(BinaryReader reader);
         protected abstract ITrigger ReadTrigger(BinaryReader reader);
         protected abstract void AddTrigger(ITrigger trigger);
+        protected abstract void ReadXLObjectTriggers(BinaryReader reader);
         protected abstract void AddMatcen(IMatCenter matcen);
         protected abstract void LoadVersionSpecificGameInfo(BinaryReader reader);
     }
@@ -703,13 +729,11 @@ namespace LibDescent.Data
             }
         }
 
-        protected override void LoadVersionSpecificLevelInfo(BinaryReader reader)
-        {
-        }
+        protected override void LoadVersionSpecificLevelInfo(BinaryReader reader) { }
 
-        protected override void LoadVersionSpecificMineData(BinaryReader reader)
-        {
-        }
+        protected override void ReadXLSegmentData(BinaryReader reader, D2XXLSegment xlSegment) { }
+
+        protected override void LoadVersionSpecificMineData(BinaryReader reader) { }
 
         protected override ITrigger ReadTrigger(BinaryReader reader)
         {
@@ -736,14 +760,14 @@ namespace LibDescent.Data
             (Level as D1Level).Triggers.Add(trigger as D1Trigger);
         }
 
+        protected override void ReadXLObjectTriggers(BinaryReader reader) { }
+
         protected override void AddMatcen(IMatCenter matcen)
         {
             (Level as D1Level).MatCenters.Add(matcen as MatCenter);
         }
 
-        protected override void LoadVersionSpecificGameInfo(BinaryReader reader)
-        {
-        }
+        protected override void LoadVersionSpecificGameInfo(BinaryReader reader) { }
     }
 
     internal class D2LevelReader : DescentLevelReader
@@ -836,6 +860,8 @@ namespace LibDescent.Data
             }
         }
 
+        protected override void ReadXLSegmentData(BinaryReader reader, D2XXLSegment xlSegment) { }
+
         protected override void LoadVersionSpecificMineData(BinaryReader reader)
         {
             // Nothing to actually read, but we do need to set up some links
@@ -879,6 +905,8 @@ namespace LibDescent.Data
             (Level as D2Level).Triggers.Add(trigger as D2Trigger);
         }
 
+        protected override void ReadXLObjectTriggers(BinaryReader reader) { }
+
         protected override void AddMatcen(IMatCenter matcen)
         {
             (Level as D2Level).MatCenters.Add(matcen as MatCenter);
@@ -895,7 +923,13 @@ namespace LibDescent.Data
                 {
                     var segmentNum = reader.ReadInt16();
                     var sideNum = reader.ReadByte();
-                    var lightDelta = new LightDelta(Level.Segments[segmentNum].Sides[sideNum]);
+                    Side side = null;
+                    // DLE can save light deltas pointing to non-existent sides, so we need to check just in case
+                    if (Level.Segments.Count > segmentNum && Level.Segments[segmentNum].Sides.Length > sideNum)
+                    {
+                        side = Level.Segments[segmentNum].Sides[sideNum];
+                    }
+                    var lightDelta = new LightDelta(side);
                     _ = reader.ReadByte(); // dummy - probably used for dword alignment
                     // Vertex deltas scaled by 2048 - see DL_SCALE in segment.h
                     lightDelta.vertexDeltas[0] = new Fix(reader.ReadByte() * 2048);
@@ -909,19 +943,40 @@ namespace LibDescent.Data
             // Delta light indices (D2)
             if (_fileInfo.deltaLightIndicesOffset != -1)
             {
+                var xlFormat = (_levelVersion >= 15) && (_fileInfo.version >= 34);
+
                 reader.BaseStream.Seek(_fileInfo.deltaLightIndicesOffset, SeekOrigin.Begin);
                 for (int i = 0; i < _fileInfo.deltaLightIndicesCount; i++)
                 {
                     var segmentNum = reader.ReadInt16();
-                    var sideNum = reader.ReadByte();
-                    var count = reader.ReadByte();
+                    byte sideNum;
+                    ushort count;
+                    if (xlFormat)
+                    {
+                        // XL does some shenanigans with the layout to increase the number of sides
+                        // a light can affect
+                        var data = reader.ReadUInt16();
+                        sideNum = (byte)(data & 0x0007);
+                        count = (ushort)((data >> 3) & 0x1FFF);
+                    }
+                    else
+                    {
+                        sideNum = reader.ReadByte();
+                        count = reader.ReadByte();
+                    }
                     var index = reader.ReadInt16();
 
-                    var side = Level.Segments[segmentNum].Sides[sideNum];
-                    var dynamicLight = new DynamicLight(side);
-                    dynamicLight.LightDeltas.AddRange(_lightDeltas.GetRange(index, count));
-                    _level.DynamicLights.Add(dynamicLight);
-                    side.DynamicLight = dynamicLight;
+                    // Need to check side validity here too
+                    if (Level.Segments.Count > segmentNum && Level.Segments[segmentNum].Sides.Length > sideNum)
+                    {
+                        var side = Level.Segments[segmentNum].Sides[sideNum];
+                        var dynamicLight = new DynamicLight(side);
+                        // Throw away light deltas with invalid targets
+                        dynamicLight.LightDeltas.AddRange(_lightDeltas.GetRange(index, count)
+                            .Where(delta => delta.targetSide != null));
+                        _level.DynamicLights.Add(dynamicLight);
+                        side.DynamicLight = dynamicLight;
+                    }
                 }
             }
         }
@@ -930,6 +985,7 @@ namespace LibDescent.Data
     internal class D2XXLLevelReader : D2LevelReader
     {
         private D2XXLLevel _xlLevel;
+        private Dictionary<uint, SegmentGroup> _segmentGroups = new Dictionary<uint, SegmentGroup>();
         private Dictionary<Segment, uint> _segmentPowerupMatcenLinks = new Dictionary<Segment, uint>();
 
         public D2XXLLevelReader(Stream stream) : base(stream)
@@ -950,6 +1006,68 @@ namespace LibDescent.Data
             {
                 throw new InvalidDataException($"Level version should be between 9 and 27 but was {_levelVersion}.");
             }
+        }
+
+        protected override void ReadXLSegmentData(BinaryReader reader, D2XXLSegment xlSegment)
+        {
+            xlSegment.Owner = (SegOwner)reader.ReadSByte();
+            var groupId = reader.ReadSByte();
+            if (groupId >= 0)
+            {
+                // We don't know in what order we'll encounter segment groups, and there might be
+                // gaps, so we're compiling them in a dictionary before converting to a list
+                var normalizedGroupId = (uint)groupId;
+                if (!_segmentGroups.ContainsKey(normalizedGroupId))
+                {
+                    _segmentGroups[normalizedGroupId] = new SegmentGroup();
+                }
+                _segmentGroups[normalizedGroupId].Add(xlSegment);
+                xlSegment.Group = _segmentGroups[normalizedGroupId];
+            }
+        }
+
+        protected override void LoadVersionSpecificMineData(BinaryReader reader)
+        {
+            base.LoadVersionSpecificMineData(reader);
+            foreach (var segmentGroup in _segmentGroups.Values)
+            {
+                _xlLevel.SegmentGroups.Add(segmentGroup);
+            }
+        }
+
+        protected override ITrigger ReadTrigger(BinaryReader reader)
+        {
+            var trigger = new D2XXLTrigger();
+            trigger.Type = (D2XXLTriggerType)reader.ReadByte();
+            trigger.Flags = (D2XXLTriggerFlags)reader.ReadByte();
+            var numLinks = reader.ReadSByte();
+            reader.ReadByte(); //padding byte
+            trigger.Value = new Fix(reader.ReadInt32());
+            if ((trigger.Type == D2XXLTriggerType.Exit && _levelVersion < 21) ||
+                (trigger.Type == D2XXLTriggerType.Master && _fileInfo.version < 39))
+            {
+                trigger.Value = 0;
+            }
+            trigger.Time = reader.ReadInt32();
+
+            var targets = ReadFixedLengthTargetList(reader, D2XXLTrigger.MaxWallsPerLink);
+            for (int i = 0; i < numLinks; i++)
+            {
+                var side = Level.Segments[targets[i].segmentNum].Sides[targets[i].sideNum];
+                trigger.Targets.Add(side);
+            }
+
+            return trigger;
+        }
+
+        protected override void AddTrigger(ITrigger trigger)
+        {
+            _xlLevel.Triggers.Add(trigger as D2XXLTrigger);
+        }
+
+        protected override void ReadXLObjectTriggers(BinaryReader reader)
+        {
+            var numObjectTriggers = reader.ReadInt32();
         }
 
         protected override void AddMatcen(IMatCenter matcen)
@@ -1162,7 +1280,7 @@ namespace LibDescent.Data
         {
             byte segmentBitMask = 0;
 
-            for (uint sideNum = 0; sideNum < Segment.MaxSegmentSides; sideNum++)
+            for (uint sideNum = 0; sideNum < Segment.MaxSides; sideNum++)
             {
                 var side = segment.Sides[sideNum];
                 if (side.ConnectedSegment != null || side.Exit)
@@ -1172,7 +1290,7 @@ namespace LibDescent.Data
 
                 if (SegmentHasSpecialData(segment))
                 {
-                    segmentBitMask |= (1 << Segment.MaxSegmentSides);
+                    segmentBitMask |= (1 << Segment.MaxSides);
                 }
             }
 
@@ -1259,7 +1377,7 @@ namespace LibDescent.Data
         private void WriteSegmentWalls(BinaryWriter writer, Segment segment)
         {
             byte wallsBitMask = 0;
-            for (int sideNum = 0; sideNum < Segment.MaxSegmentSides; sideNum++)
+            for (int sideNum = 0; sideNum < Segment.MaxSides; sideNum++)
             {
                 if (segment.Sides[sideNum].Wall != null)
                 {
@@ -1368,7 +1486,14 @@ namespace LibDescent.Data
                     writer.Write(wall.HitPoints.value);
                     writer.Write(wall.OppositeWall != null ? Level.Walls.IndexOf(wall.OppositeWall) : -1);
                     writer.Write((byte)wall.Type);
-                    writer.Write((byte)wall.Flags);
+                    if (GameDataVersion < 37)
+                    {
+                        writer.Write((byte)wall.Flags);
+                    }
+                    else
+                    {
+                        writer.Write((ushort)wall.Flags);
+                    }
                     writer.Write((byte)wall.State);
                     writer.Write((byte)(wall.Trigger != null ? Level.Triggers.IndexOf(wall.Trigger) : 0xFF));
                     writer.Write(wall.DoorClipNumber);
@@ -1439,7 +1564,7 @@ namespace LibDescent.Data
                 (int)writer.BaseStream.Position - fileInfo.reactorTriggersOffset : 0;
 
             // Matcens
-            var matcens = Level.MatCenters.Where(m => m is MatCenter).Cast<MatCenter>().ToList();
+            var matcens = Level.GetRobotMatCenters();
             fileInfo.matcenOffset = (matcens.Count > 0) ? (int)writer.BaseStream.Position : -1;
             fileInfo.matcenCount = matcens.Count;
             foreach (var matcen in matcens)
@@ -1874,6 +1999,7 @@ namespace LibDescent.Data
         private readonly D2XXLLevel _xlLevel;
 
         protected override int LevelVersion => 27;
+        protected override ushort GameDataVersion => 40;
 
         public D2XXLLevelWriter(D2XXLLevel level, Stream stream) : base(level, stream, true)
         {
@@ -1882,11 +2008,11 @@ namespace LibDescent.Data
 
         protected override void WritePowerupMatcens(BinaryWriter writer, FileInfo fileInfo)
         {
-            var powerupMatcens = Level.MatCenters.Where(m => m is PowerupMatCenter).Cast<PowerupMatCenter>().ToList();
-
+            var powerupMatcens = Level.GetPowerupMatCenters();
             fileInfo.powerupMatcenOffset = (powerupMatcens.Count > 0) ?
                 (int)writer.BaseStream.Position : -1;
             fileInfo.powerupMatcenCount = powerupMatcens.Count;
+
             foreach (var matcen in powerupMatcens)
             {
                 var powerupFlags = new uint[2];
@@ -1909,6 +2035,7 @@ namespace LibDescent.Data
                 writer.Write((short)Level.Segments.IndexOf(matcen.Segment));
                 writer.Write((short)_fuelcens.IndexOf(matcen.Segment));
             }
+
             fileInfo.matcenSize = (powerupMatcens.Count > 0) ?
                 (int)writer.BaseStream.Position - fileInfo.matcenOffset : 0;
         }

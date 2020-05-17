@@ -20,7 +20,6 @@
     SOFTWARE.
 */
 
-using System;
 using System.Collections.Generic;
 using System.Linq;
 
@@ -54,8 +53,8 @@ namespace LibDescent.Data
 
     public partial class Segment
     {
-        public const int MaxSegmentSides = 6;
-        public const int MaxSegmentVerts = 8;
+        public const int MaxSides = 6;
+        public const int MaxVertices = 8;
         private static readonly int[,] SideVerts = { { 7, 6, 2, 3 }, { 0, 4, 7, 3 }, { 0, 1, 5, 4 }, { 2, 6, 5, 1 }, { 4, 5, 6, 7 }, { 3, 2, 1, 0 } };
         private static readonly int[] OppositeSideTable = { 2, 3, 0, 1, 5, 4 };
         private static readonly int[,] SideNeighborTable = { { 4, 3, 5, 1 }, { 2, 4, 0, 5 }, { 5, 3, 4, 1 }, { 0, 4, 2, 5 }, { 2, 3, 0, 1 }, { 0, 3, 2, 1 } };
@@ -94,7 +93,7 @@ namespace LibDescent.Data
         public Fix Height => (GetSide(SegSide.Up).Center - GetSide(SegSide.Down).Center).Mag();
         #endregion
 
-        public Segment(uint numSides = MaxSegmentSides, uint numVertices = MaxSegmentVerts)
+        public Segment(uint numSides = MaxSides, uint numVertices = MaxVertices)
         {
             Sides = new Side[numSides];
             Vertices = new LevelVertex[numVertices];
@@ -113,5 +112,21 @@ namespace LibDescent.Data
 
         internal (Side side, Edge edge) GetSideNeighbor(uint sideNum, Edge atEdge)
             => (Sides[SideNeighborTable[sideNum, (int)atEdge]], (Edge)EdgeNeighborTable[sideNum, (int)atEdge]);
+    }
+
+    public enum SegOwner
+    {
+        Neutral = -1,
+        Unowned = 0,
+        BlueTeam = 1,
+        RedTeam = 2,
+    }
+
+    public class SegmentGroup : List<D2XXLSegment> { }
+
+    public class D2XXLSegment : Segment
+    {
+        public SegOwner Owner { get; set; } = SegOwner.Neutral;
+        public SegmentGroup Group { get; set; }
     }
 }

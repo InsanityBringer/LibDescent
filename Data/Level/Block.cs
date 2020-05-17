@@ -58,7 +58,7 @@ namespace LibDescent.Data
                 {
                     throw new InvalidDataException($"Encountered duplicate definition of segment {segmentId} at line {reader.LastLineNumber}.");
                 }
-                var segment = new Segment(Segment.MaxSegmentSides, Segment.MaxSegmentVerts);
+                var segment = new Segment(Segment.MaxSides, Segment.MaxVertices);
                 segments[segmentId] = segment;
 
                 // Read sides
@@ -85,7 +85,7 @@ namespace LibDescent.Data
                 segmentConnections[segmentId] = BlockCommon.ReadSegmentChildren(reader);
 
                 // Read vertices
-                for (uint vertexNum = 0; vertexNum < Segment.MaxSegmentVerts; vertexNum++)
+                for (uint vertexNum = 0; vertexNum < Segment.MaxVertices; vertexNum++)
                 {
                     (var vertexLocation, var fileVertexNum) = BlockCommon.ReadVertex(reader, false);
                     if (fileVertexNum != vertexNum)
@@ -304,7 +304,7 @@ namespace LibDescent.Data
                 {
                     throw new InvalidDataException($"Encountered duplicate definition of segment {segmentId} at line {reader.LastLineNumber}.");
                 }
-                var segment = new Segment(Segment.MaxSegmentSides, Segment.MaxSegmentVerts);
+                var segment = new Segment(Segment.MaxSides, Segment.MaxVertices);
                 segments[segmentId] = segment;
 
                 // Read sides
@@ -420,7 +420,7 @@ namespace LibDescent.Data
 
                 // Read vertices
                 /*pSegment->m_nShape = 0;*/ // DLE non-cuboid - for reference
-                for (uint vertexNum = 0; vertexNum < Segment.MaxSegmentVerts; vertexNum++)
+                for (uint vertexNum = 0; vertexNum < Segment.MaxVertices; vertexNum++)
                 {
                     (var vertexLocation, var fileVertexNum) = BlockCommon.ReadVertex(reader, true);
 

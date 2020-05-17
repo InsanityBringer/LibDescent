@@ -25,6 +25,9 @@ using System.Collections.Generic;
 
 namespace LibDescent.Data
 {
+    /// <summary>
+    /// The kind of action a trigger performs when activated.
+    /// </summary>
     public enum TriggerType
     {
         OpenDoor,
@@ -41,6 +44,48 @@ namespace LibDescent.Data
         IllusionWall,
         LightOff,
         LightOn,
+    }
+
+    public enum D2XXLTriggerType
+    {
+        OpenDoor,
+        CloseDoor,
+        Matcen,
+        Exit,
+        SecretExit,
+        IllusionOff,
+        IllusionOn,
+        UnlockDoor,
+        LockDoor,
+        OpenWall,
+        CloseWall,
+        IllusionWall,
+        LightOff,
+        LightOn,
+        // D2X-XL-specific types
+        Teleport,
+        SpeedBoost,
+        Camera,
+        ShieldDrain,
+        EnergyDrain,
+        ChangeTexture,
+        SmokeLife,
+        SmokeSpeed,
+        SmokeDensity,
+        SmokeSize,
+        SmokeDrift,
+        Countdown,
+        SpawnRobot,
+        SmokeBrightness,
+        MovePlayerStart,
+        Message,
+        Sound,
+        Master,
+        EnableTrigger,
+        DisableTrigger,
+        DisarmRobot,
+        ReprogramRobot,
+        ShakeMine,
     }
 
     [Flags]
@@ -86,11 +131,6 @@ namespace LibDescent.Data
 
     public interface ITrigger
     {
-        /// <summary>
-        /// The kind of action this trigger performs when activated.
-        /// </summary>
-        TriggerType Type { get; set; }
-
         /// <summary>
         /// A list of the sides this trigger acts on.
         /// </summary>
@@ -175,13 +215,10 @@ namespace LibDescent.Data
 
         private Fix fixValue;
 
-        public TriggerType Type { get; set; }
+        public D2XXLTriggerType Type { get; set; }
 
         public List<Side> Targets { get; } = new List<Side>();
 
-        /// <summary>
-        /// Descent 2 does not have any trigger types that use Value.
-        /// </summary>
         public ValueType Value { get => fixValue; set => fixValue = (Fix)value; }
 
         public D2XXLTriggerFlags Flags { get; set; }

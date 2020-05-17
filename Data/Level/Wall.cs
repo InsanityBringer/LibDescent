@@ -42,13 +42,13 @@ namespace LibDescent.Data
     {
         Blasted = 0x01, // Destroyed blastable wall
         DoorOpened = 0x02, // Door starts opened
-        //RenderAdditive = 0x04, // D2X-XL only
+        RenderAdditive = 0x04, // Wall is partially transparent (D2X-XL only)
         DoorLocked = 0x08, // Door starts locked
         DoorAuto = 0x10, // Door closes automatically
         IllusionOff = 0x20, // Illusionary wall starts invisible
-        WallSwitch = 0x40, // Opened by wall switch (D2 only; check source, doesn't sound necessary???)
+        WallSwitch = 0x40, // Opened by wall switch (D2 only; not actually used)
         BuddyProof = 0x80, // Guide-bot treats as impassible (D2 only)
-        //IgnoreMarker = 0x100, // D2X-XL only
+        IgnoreMarker = 0x100, // Door cannot be kept open by markers (D2X-XL only)
     }
 
     public enum WallState

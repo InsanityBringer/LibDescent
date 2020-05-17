@@ -30,7 +30,9 @@ namespace LibDescent.Data
 
     public class Side
     {
-        public Side(Segment parent, uint sideNum, uint numVertices = 4)
+        public const int MaxVertices = 4;
+
+        public Side(Segment parent, uint sideNum, uint numVertices = MaxVertices)
         {
             Segment = parent;
             SideNum = sideNum;

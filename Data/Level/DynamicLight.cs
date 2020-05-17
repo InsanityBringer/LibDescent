@@ -51,7 +51,7 @@ namespace LibDescent.Data
         public LightDelta(Side targetSide)
         {
             this.targetSide = targetSide;
-            vertexDeltas = new Fix[targetSide.GetNumVertices()];
+            vertexDeltas = new Fix[Side.MaxVertices];
         }
     }
 }

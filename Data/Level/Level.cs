@@ -22,6 +22,7 @@
 
 using System.Collections.Generic;
 using System.IO;
+using System.Linq;
 
 namespace LibDescent.Data
 {
@@ -159,6 +160,8 @@ namespace LibDescent.Data
 
         public new List<IMatCenter> MatCenters { get; } = new List<IMatCenter>();
 
+        public List<SegmentGroup> SegmentGroups { get; } = new List<SegmentGroup>();
+
 #pragma warning disable CA1819 // Callers can modify the contents of the array; this is by design.
         public FogPreset[] FogPresets { get; } = new FogPreset[]
 #pragma warning restore CA1819
@@ -220,6 +223,16 @@ namespace LibDescent.Data
                 }
             }
             return -1;
+        }
+
+        public static IReadOnlyList<MatCenter> GetRobotMatCenters(this ILevel level)
+        {
+            return level.MatCenters.Where(m => m is MatCenter).Cast<MatCenter>().ToList();
+        }
+
+        public static IReadOnlyList<PowerupMatCenter> GetPowerupMatCenters(this ILevel level)
+        {
+            return level.MatCenters.Where(m => m is PowerupMatCenter).Cast<PowerupMatCenter>().ToList();
         }
     }
 }
