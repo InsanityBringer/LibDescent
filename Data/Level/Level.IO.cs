@@ -496,6 +496,7 @@ namespace LibDescent.Data
                 foreach (var wallTriggerLink in _wallTriggerLinks)
                 {
                     wallTriggerLink.Key.Trigger = Level.Triggers[wallTriggerLink.Value];
+                    Level.Triggers[wallTriggerLink.Value].ConnectedWalls.Add(wallTriggerLink.Key);
                 }
 
                 if (_fileInfo.version >= 33)
@@ -1068,6 +1069,7 @@ namespace LibDescent.Data
                 var objectId = reader.ReadInt16();
                 var levelObject = Level.Objects[objectId];
                 levelObject.Trigger = trigger;
+                trigger.ConnectedObjects.Add(levelObject);
             }
             _xlLevel.Triggers.AddRange(objectTriggers);
 
@@ -1516,6 +1518,8 @@ namespace LibDescent.Data
             fileInfo.wallsOffset = (Level.Walls.Count > 0) ?
                 (int)writer.BaseStream.Position : -1;
             fileInfo.wallsCount = Level.Walls.Count;
+            // Wall triggers are written before object triggers, so we have to filter
+            var wallTriggers = Level.GetWallTriggers();
             if (GameDataVersion >= 20)
             {
                 foreach (var wall in Level.Walls)
@@ -1534,12 +1538,12 @@ namespace LibDescent.Data
                         writer.Write((ushort)wall.Flags);
                     }
                     writer.Write((byte)wall.State);
-                    writer.Write((byte)(wall.Trigger != null ? Level.Triggers.IndexOf(wall.Trigger) : 0xFF));
+                    writer.Write((byte)(wall.Trigger != null ? wallTriggers.IndexOf(wall.Trigger) : 0xFF));
                     writer.Write(wall.DoorClipNumber);
                     writer.Write((byte)wall.Keys);
                     // We can only write one controlling trigger, so use the first one
                     var controllingTriggerIndex = (wall.ControllingTriggers.Count > 0) ?
-                        Level.Triggers.IndexOf(wall.ControllingTriggers[0].trigger) : -1;
+                        wallTriggers.IndexOf(wall.ControllingTriggers[0].trigger) : -1;
                     writer.Write((byte)controllingTriggerIndex);
                     writer.Write(wall.CloakOpacity);
                 }
@@ -1552,15 +1556,23 @@ namespace LibDescent.Data
             fileInfo.doorsSize = 0;
 
             // Triggers
-            fileInfo.triggersOffset = (Level.Triggers.Count > 0) ?
+            fileInfo.triggersOffset = (wallTriggers.Count > 0) ?
                 (int)writer.BaseStream.Position : -1;
-            fileInfo.triggersCount = Level.Triggers.Count;
-            foreach (var trigger in Level.Triggers)
+            fileInfo.triggersCount = wallTriggers.Count;
+            foreach (var trigger in wallTriggers)
             {
                 WriteTrigger(writer, trigger);
             }
-            fileInfo.triggersSize = (Level.Triggers.Count > 0) ?
+            fileInfo.triggersSize = (wallTriggers.Count > 0) ?
                 (int)writer.BaseStream.Position - fileInfo.triggersOffset : 0;
+
+            // Object triggers (D2X-XL)
+            // These must be written immediately after wall triggers but are not counted
+            // in the same fileInfo block (for some reason)
+            if (LevelVersion >= 12)
+            {
+                WriteObjectTriggers(writer);
+            }
 
             fileInfo.linksOffset = -1;
             fileInfo.linksCount = 0;
@@ -1843,6 +1855,7 @@ namespace LibDescent.Data
         protected abstract void WriteVersionSpecificLevelInfo(BinaryWriter writer);
         protected abstract void WriteTrigger(BinaryWriter writer, ITrigger trigger);
         protected abstract void WriteDynamicLights(BinaryWriter writer, FileInfo fileInfo);
+        protected abstract void WriteObjectTriggers(BinaryWriter writer);
         protected abstract void WritePowerupMatcens(BinaryWriter writer, FileInfo fileInfo);
     }
 
@@ -1904,8 +1917,14 @@ namespace LibDescent.Data
         {
         }
 
+        protected override void WriteObjectTriggers(BinaryWriter writer)
+        {
+            throw new NotImplementedException();
+        }
+
         protected override void WritePowerupMatcens(BinaryWriter writer, FileInfo fileInfo)
         {
+            throw new NotImplementedException();
         }
     }
 
@@ -2028,8 +2047,14 @@ namespace LibDescent.Data
                 (int)writer.BaseStream.Position - fileInfo.deltaLightsOffset : 0;
         }
 
+        protected override void WriteObjectTriggers(BinaryWriter writer)
+        {
+            throw new NotImplementedException();
+        }
+
         protected override void WritePowerupMatcens(BinaryWriter writer, FileInfo fileInfo)
         {
+            throw new NotImplementedException();
         }
     }
 
@@ -2043,6 +2068,61 @@ namespace LibDescent.Data
         public D2XXLLevelWriter(D2XXLLevel level, Stream stream) : base(level, stream, true)
         {
             _xlLevel = level;
+        }
+
+        protected override void WriteTrigger(BinaryWriter writer, ITrigger trigger)
+        {
+            WriteXLTrigger(writer, trigger as D2XXLTrigger, isObjectTrigger: false);
+        }
+
+        protected override void WriteObjectTriggers(BinaryWriter writer)
+        {
+            var objectTriggers = _xlLevel.GetObjectTriggers();
+            // DLE code suggests this should be sorted by object ID, so let's do that
+            objectTriggers = objectTriggers.OrderBy(t => t.ConnectedObjects.Min(o => _xlLevel.Objects.IndexOf(o))).ToList();
+
+            writer.Write(objectTriggers.Count);
+            foreach (var trigger in objectTriggers)
+            {
+                WriteXLTrigger(writer, trigger as D2XXLTrigger, isObjectTrigger: true);
+            }
+            foreach (var trigger in objectTriggers)
+            {
+                var objectId = (short)_xlLevel.Objects.IndexOf(trigger.ConnectedObjects[0]);
+                writer.Write(objectId);
+            }
+        }
+
+        private void WriteXLTrigger(BinaryWriter writer, D2XXLTrigger trigger, bool isObjectTrigger)
+        {
+            writer.Write((byte)trigger.Type);
+            writer.Write(isObjectTrigger ? (ushort)trigger.Flags : (byte)trigger.Flags);
+            writer.Write((sbyte)trigger.Targets.Count);
+            writer.Write((byte)0); // padding byte
+            writer.Write(((Fix)trigger.Value).value);
+            writer.Write(trigger.Time);
+            for (int i = 0; i < D2XXLTrigger.MaxWallsPerLink; i++)
+            {
+                if (i < trigger.Targets.Count)
+                {
+                    writer.Write((short)Level.Segments.IndexOf(trigger.Targets[i].Segment));
+                }
+                else
+                {
+                    writer.Write((short)0);
+                }
+            }
+            for (int i = 0; i < D2XXLTrigger.MaxWallsPerLink; i++)
+            {
+                if (i < trigger.Targets.Count)
+                {
+                    writer.Write((short)trigger.Targets[i].SideNum);
+                }
+                else
+                {
+                    writer.Write((short)0);
+                }
+            }
         }
 
         protected override void WritePowerupMatcens(BinaryWriter writer, FileInfo fileInfo)

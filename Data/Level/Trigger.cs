@@ -140,6 +140,16 @@ namespace LibDescent.Data
         /// A value used by the trigger's action. Effect depends on trigger type.
         /// </summary>
         ValueType Value { get; set; }
+
+        /// <summary>
+        /// A list of the walls that activate this trigger.
+        /// </summary>
+        List<Wall> ConnectedWalls { get; }
+
+        /// <summary>
+        /// A list of the objects that activate this trigger. D2X-XL only.
+        /// </summary>
+        List<LevelObject> ConnectedObjects { get; }
     }
 
     /// <summary>
@@ -155,6 +165,10 @@ namespace LibDescent.Data
         public List<Side> Targets { get; } = new List<Side>();
 
         public ValueType Value { get => value; set => this.value = (int)value; }
+
+        public List<Wall> ConnectedWalls { get; } = new List<Wall>();
+
+        public List<LevelObject> ConnectedObjects => new List<LevelObject>();
 
         public ushort Flags { get; set; }
 
@@ -175,6 +189,10 @@ namespace LibDescent.Data
         public List<Side> Targets { get; } = new List<Side>();
 
         public ValueType Value { get => fixValue; set => fixValue = (Fix)value; }
+
+        public List<Wall> ConnectedWalls { get; } = new List<Wall>();
+
+        public List<LevelObject> ConnectedObjects => new List<LevelObject>();
 
         public D1TriggerFlags Flags { get; set; }
 
@@ -200,6 +218,10 @@ namespace LibDescent.Data
         /// </summary>
         public ValueType Value { get => fixValue; set => fixValue = (Fix)value; }
 
+        public List<Wall> ConnectedWalls { get; } = new List<Wall>();
+
+        public List<LevelObject> ConnectedObjects => new List<LevelObject>();
+
         public D2TriggerFlags Flags { get; set; }
 
         /// <summary>
@@ -220,6 +242,10 @@ namespace LibDescent.Data
         public List<Side> Targets { get; } = new List<Side>();
 
         public ValueType Value { get => fixValue; set => fixValue = (Fix)value; }
+
+        public List<Wall> ConnectedWalls { get; } = new List<Wall>();
+
+        public List<LevelObject> ConnectedObjects { get; } = new List<LevelObject>();
 
         public D2XXLTriggerFlags Flags { get; set; }
 

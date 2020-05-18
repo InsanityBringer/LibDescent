@@ -234,5 +234,15 @@ namespace LibDescent.Data
         {
             return level.MatCenters.Where(m => m is PowerupMatCenter).Cast<PowerupMatCenter>().ToList();
         }
+
+        public static IReadOnlyList<ITrigger> GetWallTriggers(this ILevel level)
+        {
+            return level.Triggers.Where(t => t.ConnectedWalls.Count > 0).ToList();
+        }
+
+        public static IReadOnlyList<ITrigger> GetObjectTriggers(this ILevel level)
+        {
+            return level.Triggers.Where(t => t.ConnectedObjects.Count > 0).ToList();
+        }
     }
 }
