@@ -1037,9 +1037,58 @@ namespace LibDescent.Data
 
         protected override ITrigger ReadTrigger(BinaryReader reader)
         {
+            return ReadXLTrigger(reader, false);
+        }
+
+        protected override void AddTrigger(ITrigger trigger)
+        {
+            _xlLevel.Triggers.Add(trigger as D2XXLTrigger);
+        }
+
+        protected override void ReadXLObjectTriggers(BinaryReader reader)
+        {
+            var objectTriggers = new List<D2XXLTrigger>();
+            var numObjectTriggers = reader.ReadInt32();
+            for (int i = 0; i < numObjectTriggers; i++)
+            {
+                var trigger = ReadXLTrigger(reader, true);
+                objectTriggers.Add(trigger);
+            }
+
+            foreach (var trigger in objectTriggers)
+            {
+                if (_fileInfo.version < 40)
+                {
+                    // Adapted from DLE code - don't know what these values were but
+                    // presumably they're obsolete
+                    reader.ReadInt16();
+                    reader.ReadInt16();
+                }
+
+                var objectId = reader.ReadInt16();
+                var levelObject = Level.Objects[objectId];
+                levelObject.Trigger = trigger;
+            }
+            _xlLevel.Triggers.AddRange(objectTriggers);
+
+            // Adapted from DLE code - this may not be necessary, presumably
+            // moves to the end of the triggers block
+            if (_fileInfo.version < 40)
+            {
+                var offset = (_fileInfo.version < 36) ?
+                    (700 * sizeof(short)) :
+                    (2 * sizeof(short) * reader.ReadInt16());
+                reader.BaseStream.Seek(offset, SeekOrigin.Current);
+            }
+        }
+
+        private D2XXLTrigger ReadXLTrigger(BinaryReader reader, bool isObjectTrigger)
+        {
             var trigger = new D2XXLTrigger();
             trigger.Type = (D2XXLTriggerType)reader.ReadByte();
-            trigger.Flags = (D2XXLTriggerFlags)reader.ReadByte();
+            // Object triggers have a wider bitfield for flags, but as far as I can tell,
+            // nothing above the first byte is actually used anyway
+            trigger.Flags = (D2XXLTriggerFlags)(isObjectTrigger ? reader.ReadUInt16() : reader.ReadByte());
             var numLinks = reader.ReadSByte();
             reader.ReadByte(); //padding byte
             trigger.Value = new Fix(reader.ReadInt32());
@@ -1058,16 +1107,6 @@ namespace LibDescent.Data
             }
 
             return trigger;
-        }
-
-        protected override void AddTrigger(ITrigger trigger)
-        {
-            _xlLevel.Triggers.Add(trigger as D2XXLTrigger);
-        }
-
-        protected override void ReadXLObjectTriggers(BinaryReader reader)
-        {
-            var numObjectTriggers = reader.ReadInt32();
         }
 
         protected override void AddMatcen(IMatCenter matcen)

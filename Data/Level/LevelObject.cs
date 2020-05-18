@@ -181,5 +181,10 @@ namespace LibDescent.Data
         public SpriteInfo spriteInfo;
 
         public int sig;
+
+        /// <summary>
+        /// The object trigger assigned to this object. D2X-XL only.
+        /// </summary>
+        public D2XXLTrigger Trigger { get; set; }
     }
 }
