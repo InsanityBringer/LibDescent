@@ -31,6 +31,7 @@ namespace LibDescent.Data
     {
         private int DataPointer;
         private bool big;
+        public bool LoadData { get; private set; }
         public List<PIGImage> Bitmaps { get; private set; }
         public List<SoundData> PIGSounds { get; private set; }
 
@@ -167,7 +168,7 @@ namespace LibDescent.Data
 
         public int exitModelnum, destroyedExitModelnum;
 
-        public Descent1PIGFile(bool macPig = false)
+        public Descent1PIGFile(bool macPig = false, bool loadData = true)
         {
             Textures = new ushort[800];
             TMapInfo = new TMAPInfo[800];
@@ -196,6 +197,7 @@ namespace LibDescent.Data
             PIGSounds = new List<SoundData>();
 
             this.big = macPig;
+            this.LoadData = loadData;
         }
 
         public int Read(Stream stream)
@@ -203,156 +205,159 @@ namespace LibDescent.Data
             BinaryReader br = new BinaryReader(stream);
             HAMDataReader reader = new HAMDataReader();
 
-            DataPointer = br.ReadInt32();
-            //So there's no sig, so we're going to take a guess based on the pointer. If it's greater than max bitmaps, we'll assume it's a descent 1 1.4+ piggy file
-            if (DataPointer <= 1800)
+            if (LoadData)
             {
-                br.Dispose();
-                return -1;
-            }
+                DataPointer = br.ReadInt32();
+                //So there's no sig, so we're going to take a guess based on the pointer. If it's greater than max bitmaps, we'll assume it's a descent 1 1.4+ piggy file
+                if (DataPointer <= 1800)
+                {
+                    br.Dispose();
+                    return -1;
+                }
 
-            numTextures = br.ReadInt32();
-            for (int i = 0; i < 800; i++)
-            {
-                Textures[i] = br.ReadUInt16();
-            }
-            for (int i = 0; i < 800; i++)
-            {
-                TMapInfo[i] = reader.ReadTMAPInfoDescent1(br);
-            }
-            Sounds = br.ReadBytes(250);
-            AltSounds = br.ReadBytes(250);
-            numVClips = br.ReadInt32(); //this value is bogus. rip
-            for (int i = 0; i < 70; i++)
-            {
-                VClips[i] = reader.ReadVClip(br);
-            }
-            numEClips = br.ReadInt32();
-            for (int i = 0; i < 60; i++)
-            {
-                EClips[i] =  reader.ReadEClip(br);
-            }
-            numWClips = br.ReadInt32();
-            for (int i = 0; i < 30; i++)
-            {
-                WClips[i] = reader.ReadWClipDescent1(br);
-            }
-            numRobots = br.ReadInt32();
-            for (int i = 0; i < 30; i++)
-            {
-                Robots[i] = reader.ReadRobotDescent1(br);
-            }
-            numJoints = br.ReadInt32();
-            for (int i = 0; i < 600; i++)
-            {
-                JointPos joint = new JointPos();
-                joint.jointnum = br.ReadInt16();
-                joint.angles.p = br.ReadInt16();
-                joint.angles.b = br.ReadInt16();
-                joint.angles.h = br.ReadInt16();
-                Joints[i] = joint;
-            }
-            numWeapons = br.ReadInt32();
-            for (int i = 0; i < 30; i++)
-            {
-                Weapons[i] = reader.ReadWeaponInfoDescent1(br);
-            }
-            numPowerups = br.ReadInt32();
-            for (int i = 0; i < 29; i++)
-            {
-                Powerup powerup = new Powerup();
-                powerup.VClipNum = br.ReadInt32();
-                powerup.HitSound = br.ReadInt32();
-                powerup.Size = new Fix(br.ReadInt32());
-                powerup.Light = new Fix(br.ReadInt32());
-                Powerups[i] = powerup;
-            }
-            numModels = br.ReadInt32();
-            for (int i = 0; i < numModels; i++)
-            {
-                Models[i] = reader.ReadPolymodelInfo(br);
-            }
-            for (int i = 0; i < numModels; i++)
-            {
-                Models[i].InterpreterData = br.ReadBytes(Models[i].ModelIDTASize);
-            }
-            for (int i = 0; i < Gauges.Length; i++)
-            {
-                Gauges[i] = br.ReadUInt16();
-            }
-            for (int i = 0; i < 85; i++)
-            {
-                int num = br.ReadInt32();
-                if (i < numModels)
-                    Models[i].DyingModelnum = num;
-            }
-            for (int i = 0; i < 85; i++)
-            {
-                int num = br.ReadInt32();
-                if (i < numModels)
-                    Models[i].DeadModelnum = num;
-            }
-            for (int i = 0; i < 210; i++)
-            {
-                ObjBitmaps[i] = br.ReadUInt16();
-            }
-            for (int i = 0; i < 210; i++)
-            {
-                ObjBitmapPointers[i] = br.ReadUInt16();
-            }
-            PlayerShip = new Ship();
-            PlayerShip.ModelNum = br.ReadInt32();
-            PlayerShip.DeathVClipNum = br.ReadInt32();
-            PlayerShip.Mass = new Fix(br.ReadInt32());
-            PlayerShip.Drag = new Fix(br.ReadInt32());
-            PlayerShip.MaxThrust = new Fix(br.ReadInt32());
-            PlayerShip.ReverseThrust = new Fix(br.ReadInt32());
-            PlayerShip.Brakes = new Fix(br.ReadInt32());
-            PlayerShip.Wiggle = new Fix(br.ReadInt32());
-            PlayerShip.MaxRotationThrust = new Fix(br.ReadInt32());
-            for (int x = 0; x < 8; x++)
-            {
-                PlayerShip.GunPoints[x] = FixVector.FromRawValues(br.ReadInt32(), br.ReadInt32(), br.ReadInt32());
-            }
-            numCockpits = br.ReadInt32();
-            for (int i = 0; i < 4; i++)
-            {
-                Cockpits[i] = br.ReadUInt16();
-            }
-            //heh
-            Sounds = br.ReadBytes(250);
-            AltSounds = br.ReadBytes(250);
+                numTextures = br.ReadInt32();
+                for (int i = 0; i < 800; i++)
+                {
+                    Textures[i] = br.ReadUInt16();
+                }
+                for (int i = 0; i < 800; i++)
+                {
+                    TMapInfo[i] = reader.ReadTMAPInfoDescent1(br);
+                }
+                Sounds = br.ReadBytes(250);
+                AltSounds = br.ReadBytes(250);
+                numVClips = br.ReadInt32(); //this value is bogus. rip
+                for (int i = 0; i < 70; i++)
+                {
+                    VClips[i] = reader.ReadVClip(br);
+                }
+                numEClips = br.ReadInt32();
+                for (int i = 0; i < 60; i++)
+                {
+                    EClips[i] = reader.ReadEClip(br);
+                }
+                numWClips = br.ReadInt32();
+                for (int i = 0; i < 30; i++)
+                {
+                    WClips[i] = reader.ReadWClipDescent1(br);
+                }
+                numRobots = br.ReadInt32();
+                for (int i = 0; i < 30; i++)
+                {
+                    Robots[i] = reader.ReadRobotDescent1(br);
+                }
+                numJoints = br.ReadInt32();
+                for (int i = 0; i < 600; i++)
+                {
+                    JointPos joint = new JointPos();
+                    joint.jointnum = br.ReadInt16();
+                    joint.angles.p = br.ReadInt16();
+                    joint.angles.b = br.ReadInt16();
+                    joint.angles.h = br.ReadInt16();
+                    Joints[i] = joint;
+                }
+                numWeapons = br.ReadInt32();
+                for (int i = 0; i < 30; i++)
+                {
+                    Weapons[i] = reader.ReadWeaponInfoDescent1(br);
+                }
+                numPowerups = br.ReadInt32();
+                for (int i = 0; i < 29; i++)
+                {
+                    Powerup powerup = new Powerup();
+                    powerup.VClipNum = br.ReadInt32();
+                    powerup.HitSound = br.ReadInt32();
+                    powerup.Size = new Fix(br.ReadInt32());
+                    powerup.Light = new Fix(br.ReadInt32());
+                    Powerups[i] = powerup;
+                }
+                numModels = br.ReadInt32();
+                for (int i = 0; i < numModels; i++)
+                {
+                    Models[i] = reader.ReadPolymodelInfo(br);
+                }
+                for (int i = 0; i < numModels; i++)
+                {
+                    Models[i].InterpreterData = br.ReadBytes(Models[i].ModelIDTASize);
+                }
+                for (int i = 0; i < Gauges.Length; i++)
+                {
+                    Gauges[i] = br.ReadUInt16();
+                }
+                for (int i = 0; i < 85; i++)
+                {
+                    int num = br.ReadInt32();
+                    if (i < numModels)
+                        Models[i].DyingModelnum = num;
+                }
+                for (int i = 0; i < 85; i++)
+                {
+                    int num = br.ReadInt32();
+                    if (i < numModels)
+                        Models[i].DeadModelnum = num;
+                }
+                for (int i = 0; i < 210; i++)
+                {
+                    ObjBitmaps[i] = br.ReadUInt16();
+                }
+                for (int i = 0; i < 210; i++)
+                {
+                    ObjBitmapPointers[i] = br.ReadUInt16();
+                }
+                PlayerShip = new Ship();
+                PlayerShip.ModelNum = br.ReadInt32();
+                PlayerShip.DeathVClipNum = br.ReadInt32();
+                PlayerShip.Mass = new Fix(br.ReadInt32());
+                PlayerShip.Drag = new Fix(br.ReadInt32());
+                PlayerShip.MaxThrust = new Fix(br.ReadInt32());
+                PlayerShip.ReverseThrust = new Fix(br.ReadInt32());
+                PlayerShip.Brakes = new Fix(br.ReadInt32());
+                PlayerShip.Wiggle = new Fix(br.ReadInt32());
+                PlayerShip.MaxRotationThrust = new Fix(br.ReadInt32());
+                for (int x = 0; x < 8; x++)
+                {
+                    PlayerShip.GunPoints[x] = FixVector.FromRawValues(br.ReadInt32(), br.ReadInt32(), br.ReadInt32());
+                }
+                numCockpits = br.ReadInt32();
+                for (int i = 0; i < 4; i++)
+                {
+                    Cockpits[i] = br.ReadUInt16();
+                }
+                //heh
+                Sounds = br.ReadBytes(250);
+                AltSounds = br.ReadBytes(250);
 
-            numObjects = br.ReadInt32();
-            for (int i = 0; i < 100; i++)
-            {
-                ObjectTypes[i].type = (EditorObjectType)(br.ReadSByte());
-            }
-            for (int i = 0; i < 100; i++)
-            {
-                ObjectTypes[i].id = br.ReadByte();
-            }
-            for (int i = 0; i < 100; i++)
-            {
-                ObjectTypes[i].strength = new Fix(br.ReadInt32());
-                //Console.WriteLine("type: {0}({3})\nid: {1}\nstr: {2}", ObjectTypes[i].type, ObjectTypes[i].id, ObjectTypes[i].strength, (int)ObjectTypes[i].type);
-            }
-            FirstMultiBitmapNum = br.ReadInt32();
-            reactor.NumGuns = br.ReadInt32();
-            for (int y = 0; y < 4; y++)
-            {
-                reactor.GunPoints[y] = FixVector.FromRawValues(br.ReadInt32(), br.ReadInt32(), br.ReadInt32());
-            }
-            for (int y = 0; y < 4; y++)
-            {
-                reactor.GunDirs[y] = FixVector.FromRawValues(br.ReadInt32(), br.ReadInt32(), br.ReadInt32());
-            }
-            exitModelnum = br.ReadInt32();
-            destroyedExitModelnum = br.ReadInt32();
+                numObjects = br.ReadInt32();
+                for (int i = 0; i < 100; i++)
+                {
+                    ObjectTypes[i].type = (EditorObjectType)(br.ReadSByte());
+                }
+                for (int i = 0; i < 100; i++)
+                {
+                    ObjectTypes[i].id = br.ReadByte();
+                }
+                for (int i = 0; i < 100; i++)
+                {
+                    ObjectTypes[i].strength = new Fix(br.ReadInt32());
+                    //Console.WriteLine("type: {0}({3})\nid: {1}\nstr: {2}", ObjectTypes[i].type, ObjectTypes[i].id, ObjectTypes[i].strength, (int)ObjectTypes[i].type);
+                }
+                FirstMultiBitmapNum = br.ReadInt32();
+                reactor.NumGuns = br.ReadInt32();
+                for (int y = 0; y < 4; y++)
+                {
+                    reactor.GunPoints[y] = FixVector.FromRawValues(br.ReadInt32(), br.ReadInt32(), br.ReadInt32());
+                }
+                for (int y = 0; y < 4; y++)
+                {
+                    reactor.GunDirs[y] = FixVector.FromRawValues(br.ReadInt32(), br.ReadInt32(), br.ReadInt32());
+                }
+                exitModelnum = br.ReadInt32();
+                destroyedExitModelnum = br.ReadInt32();
 
-            for (int i = 0; i < 1800; i++)
-            {
-                BitmapXLATData[i] = br.ReadUInt16();
+                for (int i = 0; i < 1800; i++)
+                {
+                    BitmapXLATData[i] = br.ReadUInt16();
+                }
             }
 
             //Init a bogus texture for all piggyfiles
@@ -369,7 +374,9 @@ namespace LibDescent.Data
                 bogusTexture.Data[i * 64 + (63 - i)] = 193;
             }
             Bitmaps.Add(bogusTexture);
-            br.BaseStream.Seek(DataPointer, SeekOrigin.Begin);
+            if (LoadData)
+                br.BaseStream.Seek(DataPointer, SeekOrigin.Begin);
+
             int numBitmaps = br.ReadInt32();
             int numSounds = br.ReadInt32();
 
