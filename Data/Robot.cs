@@ -229,7 +229,7 @@ namespace LibDescent.Data
         /// <summary>
         /// 0 = not boss, 1 = boss.  Is that surprising?
         /// </summary>
-        public RobotBossType BossFlag; //was sbyte
+        public RobotBossType BossFlag { get; set; } //was sbyte
         /// <summary>
         /// Companion robot, leads you to things.
         /// </summary>
