@@ -143,7 +143,7 @@ namespace LibDescent.Data
         public static string[] sounds = {"Silence", "Seeker sight", "Seeker attack", "BPER sight", "BPER attack", "Boarshed sight", "Boarshed attack",
                       "TRN Racer sight", "TRN Racer attack", "Bulk Destroyer sight", "Unused laser fire", "Explosion", "Smart Blob launch",
                       "Laser level 1 fire", "Laser level 2 fire", "Laser level 3 fire", "Laser level 4 fire", "Player hit robot", "Spreadfire fire",
-                      "Class 1 drone fire", "Robot hit explosion", "Robot died explosion", "Reactor fire", "Flare fire", "Fusion fire",
+                      "Class 1 drone fire", "Robot death explosion", "Robot hit explosion", "Reactor fire", "Flare fire", "Fusion fire",
                       "Plasma fire", "Mine laid", "Invulnerable hit", "Wall hit", "Thief death", "Reactor hit", "Player explode",
                       "Siren", "Mine explode", "Fusion charge", "Bulk Destroyer fire", "Hornet sight", "Helix fire", "Phoenix fire",
                       "Weapon dropped", "Forcefield touched", "Forcefield shot", "Forcefield loop", "Forcefield disabled", "Laser level 5 fire", "Laser level 6 fire",
