@@ -2004,25 +2004,40 @@ namespace LibDescent.Data
 
         protected override void WriteDynamicLights(BinaryWriter writer, FileInfo fileInfo)
         {
+            var xlFormat = (LevelVersion >= 15) && (GameDataVersion >= 34);
+            var maxDynamicLights = xlFormat ? 3000 : 500;
+            var maxDeltasPerLight = xlFormat ? 0x1FFF : sbyte.MaxValue;
+            // Note: XL specifies 65536, but deltas > 32767 aren't addressable by lights anyway
+            var maxDeltas = xlFormat ? short.MaxValue : 10000;
+
             // Need to concatenate all light deltas for all dynamic lights into a list
             var lightDeltas = new List<LightDelta>();
 
-            fileInfo.deltaLightIndicesOffset = (_level.DynamicLights.Count > 0) ?
+            // If we run out of space for dynamic lights, stop writing more
+            var dynamicLightsToWrite = Math.Min(_level.DynamicLights.Count, maxDynamicLights);
+            fileInfo.deltaLightIndicesOffset = (dynamicLightsToWrite > 0) ?
                 (int)writer.BaseStream.Position : -1;
-            fileInfo.deltaLightIndicesCount = _level.DynamicLights.Count;
-            foreach (var light in _level.DynamicLights)
+            fileInfo.deltaLightIndicesCount = dynamicLightsToWrite;
+            foreach (var light in _level.DynamicLights.Take(dynamicLightsToWrite))
             {
                 // If we run out of space for light deltas, stop writing more
-                var numDeltasToAdd = Math.Min(light.LightDeltas.Count, sbyte.MaxValue);
-                numDeltasToAdd = Math.Min(numDeltasToAdd, short.MaxValue - lightDeltas.Count);
+                var numDeltasToAdd = Math.Min(light.LightDeltas.Count, maxDeltasPerLight);
+                numDeltasToAdd = Math.Min(numDeltasToAdd, maxDeltas - lightDeltas.Count);
 
                 writer.Write((short)Level.Segments.IndexOf(light.Source.Segment));
-                writer.Write((byte)light.Source.SideNum);
-                writer.Write((byte)numDeltasToAdd);
+                if (xlFormat)
+                {
+                    writer.Write((ushort)(light.Source.SideNum & 0x0007) | (numDeltasToAdd << 3));
+                }
+                else
+                {
+                    writer.Write((byte)light.Source.SideNum);
+                    writer.Write((byte)numDeltasToAdd);
+                }
                 writer.Write((short)lightDeltas.Count);
                 lightDeltas.AddRange(light.LightDeltas.Take(numDeltasToAdd));
 
-                if (lightDeltas.Count == short.MaxValue)
+                if (lightDeltas.Count >= maxDeltas)
                 {
                     break;
                 }
