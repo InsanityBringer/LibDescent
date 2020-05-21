@@ -189,8 +189,8 @@ namespace LibDescent.Data
             {
                 for (int x = 0; x < 5; x++)
                 {
-                    bw.Write(robot.AnimStates[y, x].n_joints);
-                    bw.Write(robot.AnimStates[y, x].offset);
+                    bw.Write(robot.AnimStates[y, x].NumJoints);
+                    bw.Write(robot.AnimStates[y, x].Offset);
                 }
             }
             bw.Write(robot.Always0xABCD);
@@ -207,7 +207,7 @@ namespace LibDescent.Data
             bw.Write(weapon.RobotHitVClip);
             bw.Write(weapon.FiringSound);
 
-            bw.Write(weapon.WallHitVclip);
+            bw.Write(weapon.WallHitVClip);
             bw.Write(weapon.FireCount);
             bw.Write(weapon.RobotHitSound);
             
@@ -270,7 +270,7 @@ namespace LibDescent.Data
             bw.Write(weapon.RobotHitVClip);
             bw.Write(weapon.FiringSound);
 
-            bw.Write(weapon.WallHitVclip);
+            bw.Write(weapon.WallHitVClip);
             bw.Write(weapon.FireCount);
             bw.Write(weapon.RobotHitSound);
 

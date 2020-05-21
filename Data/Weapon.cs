@@ -24,7 +24,7 @@ namespace LibDescent.Data
 {
     public enum WeaponRenderType
     {
-        Crash,
+        Error,
         Sprite,
         Object,
         VClip,
@@ -69,7 +69,7 @@ namespace LibDescent.Data
         /// <summary>
         /// What vclip for impact with wall
         /// </summary>
-        public sbyte WallHitVclip { get; set; }
+        public sbyte WallHitVClip { get; set; }
         /// <summary>
         /// Number of bursts fired from EACH GUN per firing.  For weapons which fire from both sides, 3*fire_count shots will be fired.
         /// </summary>
@@ -199,6 +199,24 @@ namespace LibDescent.Data
         /// </summary>
         public ushort HiresCockpitPicture { get; set; }
 
+        /// <summary>
+        /// True if this weapon can be placed in a level. Must be set to place, otherwise weapon objects will be cleaned up on level load. 
+        /// </summary>
+        public bool Placable
+        {
+            get
+            {
+                return (Flags & 1) != 0;
+            }
+            set
+            {
+                if (value)
+                    Flags |= 1;
+                else
+                    Flags = (byte)(Flags & ~1);
+            }
+        }
+
         public int ID;
 
         public Weapon()
@@ -220,7 +238,7 @@ namespace LibDescent.Data
             MuzzleFlashVClip = other.MuzzleFlashVClip;
             RobotHitVClip = other.RobotHitVClip;
             FiringSound = other.FiringSound;
-            WallHitVclip = other.WallHitVclip;
+            WallHitVClip = other.WallHitVClip;
             FireCount = other.FireCount;
             RobotHitSound = other.RobotHitSound;
             AmmoUsage = other.AmmoUsage;
@@ -255,118 +273,6 @@ namespace LibDescent.Data
             {
                 Strength[i] = other.Strength[i];
                 Speed[i] = other.Speed[i];
-            }
-        }
-
-        public void UpdateWeapon(int tag, int value, int index)
-        {
-            switch (tag)
-            {
-                case 2:
-                    ModelNum = (short)(value-1);
-                    break;
-                case 3:
-                    ModelNumInner = (short)(value-1);
-                    break;
-                case 4:
-                    MuzzleFlashVClip = (sbyte)(value - 1);
-                    break;
-                case 5:
-                    RobotHitVClip = (sbyte)(value - 1);
-                    break;
-                case 6:
-                    if (value == 0) FiringSound = -1;
-                    else FiringSound = (short)(value - 1);
-                    break;
-                case 7:
-                    WallHitVclip = (sbyte)(value - 1);
-                    break;
-                case 8:
-                    FireCount = (byte)value;
-                    break;
-                case 9:
-                    if (value == 0) RobotHitSound = -1;
-                    else RobotHitSound = (short)(value - 1);
-                    break;
-                case 10:
-                    AmmoUsage = (byte)value;
-                    break;
-                case 11:
-                    WeaponVClip = (sbyte)(value - 1);
-                    break;
-                case 12:
-                    if (value == 0) WallHitSound = -1;
-                    else WallHitSound = (short)(value - 1);
-                    break;
-                case 15:
-                    Bounce = (WeaponBounceType)value;
-                    break;
-                case 17:
-                    SpeedVariance = (byte)value;
-                    break;
-                case 19:
-                    Flash = (sbyte)value;
-                    break;
-                case 20:
-                    AfterburnerSize = (sbyte)value;
-                    break;
-                case 21:
-                    Children = (sbyte)(value - 1);
-                    break;
-                case 22:
-                    EnergyUsage = new Fix(value);
-                    break;
-                case 23:
-                    FireWait = new Fix(value);
-                    break;
-                case 24:
-                    MultiDamageScale = value;
-                    break;
-                case 25:
-                    Bitmap = (ushort)value;
-                    break;
-                case 26:
-                    BlobSize = new Fix(value);
-                    break;
-                case 27:
-                    FlashSize = new Fix(value);
-                    break;
-                case 28:
-                    ImpactSize = new Fix(value);
-                    break;
-                case 29:
-                    Strength[index] = new Fix(value);
-                    break;
-                case 30:
-                    Speed[index] = new Fix(value);
-                    break;
-                case 31:
-                    Mass = new Fix(value);
-                    break;
-                case 32:
-                    Drag = new Fix(value);
-                    break;
-                case 33:
-                    Thrust = new Fix(value);
-                    break;
-                case 34:
-                    POLenToWidthRatio = new Fix(value);
-                    break;
-                case 35:
-                    Light = new Fix(value);
-                    break;
-                case 36:
-                    Lifetime = new Fix(value);
-                    break;
-                case 37:
-                    CockpitPicture = (ushort)value;
-                    break;
-                case 38:
-                    HiresCockpitPicture = (ushort)value;
-                    break;
-                case 39:
-                    DamageRadius = new Fix(value);
-                    break;
             }
         }
     }

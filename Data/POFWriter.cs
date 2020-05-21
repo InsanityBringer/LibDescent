@@ -157,7 +157,7 @@ namespace LibDescent.Data
 
         private static void SerializeAnim(BinaryWriter bw, Polymodel model, short version)
         {
-            int size = 2 + 6 * model.NumSubmodels * Robot.NUM_ANIMATION_STATES;
+            int size = 2 + 6 * model.NumSubmodels * Robot.NumAnimationStates;
             int padBytes = 0;
             if (version >= 8)
             {
@@ -167,10 +167,10 @@ namespace LibDescent.Data
             }
             bw.Write(0x4D494E41);
             bw.Write(size);
-            bw.Write((short)Robot.NUM_ANIMATION_STATES);
+            bw.Write((short)Robot.NumAnimationStates);
             for (int i = 0; i < model.NumSubmodels; i++)
             {
-                for (int f = 0; f < Robot.NUM_ANIMATION_STATES; f++)
+                for (int f = 0; f < Robot.NumAnimationStates; f++)
                 {
                     bw.Write(model.animationMatrix[i, f].p);
                     bw.Write(model.animationMatrix[i, f].b);

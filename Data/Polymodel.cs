@@ -188,7 +188,7 @@ namespace LibDescent.Data
         /// <summary>
         /// Matrix of the object's animation frames. Only supports five frames.
         /// </summary>
-        public FixAngles[,] animationMatrix = new FixAngles[MAX_SUBMODELS, Robot.NUM_ANIMATION_STATES];
+        public FixAngles[,] animationMatrix = new FixAngles[MAX_SUBMODELS, Robot.NumAnimationStates];
 
         /// <summary>
         /// Object ID that this object overrides when in a HXM file.

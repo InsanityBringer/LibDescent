@@ -104,7 +104,7 @@ namespace LibDescent.Edit
             int[,] jointmapping = new int[10, 5];
             for (int m = 0; m < Polymodel.MAX_SUBMODELS; m++)
             {
-                for (int f = 0; f < Robot.NUM_ANIMATION_STATES; f++)
+                for (int f = 0; f < Robot.NumAnimationStates; f++)
                 {
                     jointmapping[m, f] = -1;
                 }
@@ -112,11 +112,11 @@ namespace LibDescent.Edit
             int basejoint = 0;
             for (int m = 0; m < Polymodel.MAX_GUNS + 1; m++)
             {
-                for (int f = 0; f < Robot.NUM_ANIMATION_STATES; f++)
+                for (int f = 0; f < Robot.NumAnimationStates; f++)
                 {
                     Robot.JointList robotjointlist = robot.AnimStates[m, f];
-                    basejoint = robotjointlist.offset;
-                    for (int j = 0; j < robotjointlist.n_joints; j++)
+                    basejoint = robotjointlist.Offset;
+                    for (int j = 0; j < robotjointlist.NumJoints; j++)
                     {
                         JointPos joint = GetJoint(basejoint);
                         jointmapping[joint.jointnum, f] = basejoint;
@@ -128,7 +128,7 @@ namespace LibDescent.Edit
 
             for (int m = 1; m < Polymodel.MAX_SUBMODELS; m++)
             {
-                for (int f = 0; f < Robot.NUM_ANIMATION_STATES; f++)
+                for (int f = 0; f < Robot.NumAnimationStates; f++)
                 {
                     int jointnum = jointmapping[m, f];
                     if (jointnum != -1)

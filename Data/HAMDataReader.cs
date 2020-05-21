@@ -267,35 +267,35 @@ namespace LibDescent.Data
             
             robot.Mass = new Fix(br.ReadInt32());
             robot.Drag = new Fix(br.ReadInt32());
-            for (int s = 0; s < Robot.NUM_DIFFICULTY_LEVELS; s++)
+            for (int s = 0; s < Robot.NumDifficultyLevels; s++)
             {
                 robot.FieldOfView[s] = new Fix(br.ReadInt32());
             }
-            for (int s = 0; s < Robot.NUM_DIFFICULTY_LEVELS; s++)
+            for (int s = 0; s < Robot.NumDifficultyLevels; s++)
             {
                 robot.FiringWait[s] = new Fix(br.ReadInt32());
             }
-            for (int s = 0; s < Robot.NUM_DIFFICULTY_LEVELS; s++)
+            for (int s = 0; s < Robot.NumDifficultyLevels; s++)
             {
                 robot.FiringWaitSecondary[s] = new Fix(br.ReadInt32());
             }
-            for (int s = 0; s < Robot.NUM_DIFFICULTY_LEVELS; s++)
+            for (int s = 0; s < Robot.NumDifficultyLevels; s++)
             {
                 robot.TurnTime[s] = new Fix(br.ReadInt32());
             }
-            for (int s = 0; s < Robot.NUM_DIFFICULTY_LEVELS; s++)
+            for (int s = 0; s < Robot.NumDifficultyLevels; s++)
             {
                 robot.MaxSpeed[s] = new Fix(br.ReadInt32());
             }
-            for (int s = 0; s < Robot.NUM_DIFFICULTY_LEVELS; s++)
+            for (int s = 0; s < Robot.NumDifficultyLevels; s++)
             {
                 robot.CircleDistance[s] = new Fix(br.ReadInt32());
             }
-            for (int s = 0; s < Robot.NUM_DIFFICULTY_LEVELS; s++)
+            for (int s = 0; s < Robot.NumDifficultyLevels; s++)
             {
                 robot.RapidfireCount[s] = br.ReadSByte();
             }
-            for (int s = 0; s < Robot.NUM_DIFFICULTY_LEVELS; s++)
+            for (int s = 0; s < Robot.NumDifficultyLevels; s++)
             {
                 robot.EvadeSpeed[s] = br.ReadSByte();
             }
@@ -329,8 +329,8 @@ namespace LibDescent.Data
             {
                 for (int u = 0; u < 5; u++)
                 {
-                    robot.AnimStates[v, u].n_joints = br.ReadInt16();
-                    robot.AnimStates[v, u].offset = br.ReadInt16();
+                    robot.AnimStates[v, u].NumJoints = br.ReadInt16();
+                    robot.AnimStates[v, u].Offset = br.ReadInt16();
                 }
             }
             robot.Always0xABCD = br.ReadInt32();
@@ -372,39 +372,39 @@ namespace LibDescent.Data
 
             robot.Mass = new Fix(br.ReadInt32());
             robot.Drag = new Fix(br.ReadInt32());
-            for (int s = 0; s < Robot.NUM_DIFFICULTY_LEVELS; s++)
+            for (int s = 0; s < Robot.NumDifficultyLevels; s++)
             {
                 robot.FieldOfView[s] = new Fix(br.ReadInt32());
             }
-            for (int s = 0; s < Robot.NUM_DIFFICULTY_LEVELS; s++)
+            for (int s = 0; s < Robot.NumDifficultyLevels; s++)
             {
                 robot.FiringWait[s] = new Fix(br.ReadInt32());
             }
-            for (int s = 0; s < Robot.NUM_DIFFICULTY_LEVELS; s++)
+            for (int s = 0; s < Robot.NumDifficultyLevels; s++)
             {
                 robot.TurnTime[s] = new Fix(br.ReadInt32());
             }
-            for (int s = 0; s < Robot.NUM_DIFFICULTY_LEVELS; s++)
+            for (int s = 0; s < Robot.NumDifficultyLevels; s++)
             {
                 robot.FirePower[s] = new Fix(br.ReadInt32());
             }
-            for (int s = 0; s < Robot.NUM_DIFFICULTY_LEVELS; s++)
+            for (int s = 0; s < Robot.NumDifficultyLevels; s++)
             {
                 robot.Shield[s] = new Fix(br.ReadInt32());
             }
-            for (int s = 0; s < Robot.NUM_DIFFICULTY_LEVELS; s++)
+            for (int s = 0; s < Robot.NumDifficultyLevels; s++)
             {
                 robot.MaxSpeed[s] = new Fix(br.ReadInt32());
             }
-            for (int s = 0; s < Robot.NUM_DIFFICULTY_LEVELS; s++)
+            for (int s = 0; s < Robot.NumDifficultyLevels; s++)
             {
                 robot.CircleDistance[s] = new Fix(br.ReadInt32());
             }
-            for (int s = 0; s < Robot.NUM_DIFFICULTY_LEVELS; s++)
+            for (int s = 0; s < Robot.NumDifficultyLevels; s++)
             {
                 robot.RapidfireCount[s] = br.ReadSByte();
             }
-            for (int s = 0; s < Robot.NUM_DIFFICULTY_LEVELS; s++)
+            for (int s = 0; s < Robot.NumDifficultyLevels; s++)
             {
                 robot.EvadeSpeed[s] = br.ReadSByte();
             }
@@ -419,8 +419,8 @@ namespace LibDescent.Data
             {
                 for (int u = 0; u < 5; u++)
                 {
-                    robot.AnimStates[v, u].n_joints = br.ReadInt16();
-                    robot.AnimStates[v, u].offset = br.ReadInt16();
+                    robot.AnimStates[v, u].NumJoints = br.ReadInt16();
+                    robot.AnimStates[v, u].Offset = br.ReadInt16();
                 }
             }
             robot.Always0xABCD = br.ReadInt32();
@@ -464,39 +464,39 @@ namespace LibDescent.Data
 
             robot.Mass = new Fix(br.ReadInt32());
             robot.Drag = new Fix(br.ReadInt32());
-            for (int s = 0; s < Robot.NUM_DIFFICULTY_LEVELS; s++)
+            for (int s = 0; s < Robot.NumDifficultyLevels; s++)
             {
                 robot.FieldOfView[s] = new Fix(br.ReadInt32());
             }
-            for (int s = 0; s < Robot.NUM_DIFFICULTY_LEVELS; s++)
+            for (int s = 0; s < Robot.NumDifficultyLevels; s++)
             {
                 robot.FiringWait[s] = new Fix(br.ReadInt32());
             }
-            for (int s = 0; s < Robot.NUM_DIFFICULTY_LEVELS; s++)
+            for (int s = 0; s < Robot.NumDifficultyLevels; s++)
             {
                 robot.TurnTime[s] = new Fix(br.ReadInt32());
             }
-            for (int s = 0; s < Robot.NUM_DIFFICULTY_LEVELS; s++)
+            for (int s = 0; s < Robot.NumDifficultyLevels; s++)
             {
                 robot.FirePower[s] = new Fix(br.ReadInt32());
             }
-            for (int s = 0; s < Robot.NUM_DIFFICULTY_LEVELS; s++)
+            for (int s = 0; s < Robot.NumDifficultyLevels; s++)
             {
                 robot.Shield[s] = new Fix(br.ReadInt32());
             }
-            for (int s = 0; s < Robot.NUM_DIFFICULTY_LEVELS; s++)
+            for (int s = 0; s < Robot.NumDifficultyLevels; s++)
             {
                 robot.MaxSpeed[s] = new Fix(br.ReadInt32());
             }
-            for (int s = 0; s < Robot.NUM_DIFFICULTY_LEVELS; s++)
+            for (int s = 0; s < Robot.NumDifficultyLevels; s++)
             {
                 robot.CircleDistance[s] = new Fix(br.ReadInt32());
             }
-            for (int s = 0; s < Robot.NUM_DIFFICULTY_LEVELS; s++)
+            for (int s = 0; s < Robot.NumDifficultyLevels; s++)
             {
                 robot.RapidfireCount[s] = br.ReadSByte();
             }
-            for (int s = 0; s < Robot.NUM_DIFFICULTY_LEVELS; s++)
+            for (int s = 0; s < Robot.NumDifficultyLevels; s++)
             {
                 robot.EvadeSpeed[s] = br.ReadSByte();
             }
@@ -511,8 +511,8 @@ namespace LibDescent.Data
             {
                 for (int u = 0; u < 5; u++)
                 {
-                    robot.AnimStates[v, u].n_joints = br.ReadInt16();
-                    robot.AnimStates[v, u].offset = br.ReadInt16();
+                    robot.AnimStates[v, u].NumJoints = br.ReadInt16();
+                    robot.AnimStates[v, u].Offset = br.ReadInt16();
                 }
             }
             robot.Always0xABCD = br.ReadInt32();
@@ -532,7 +532,7 @@ namespace LibDescent.Data
             weapon.RobotHitVClip = br.ReadSByte();
             weapon.FiringSound = br.ReadInt16();
 
-            weapon.WallHitVclip = br.ReadSByte();
+            weapon.WallHitVClip = br.ReadSByte();
             weapon.FireCount = br.ReadByte();
             weapon.RobotHitSound = br.ReadInt16();
             
@@ -598,7 +598,7 @@ namespace LibDescent.Data
             weapon.RobotHitVClip = br.ReadSByte();
             weapon.FiringSound = br.ReadInt16();
 
-            weapon.WallHitVclip = br.ReadSByte();
+            weapon.WallHitVClip = br.ReadSByte();
             weapon.FireCount = br.ReadByte();
             weapon.RobotHitSound = br.ReadInt16();
 
@@ -666,7 +666,7 @@ namespace LibDescent.Data
             weapon.RobotHitVClip = br.ReadSByte();
             weapon.RobotHitSound = br.ReadInt16();
 
-            weapon.WallHitVclip = br.ReadSByte();
+            weapon.WallHitVClip = br.ReadSByte();
             weapon.WallHitSound = br.ReadInt16();
 
             weapon.FireCount = br.ReadByte();
@@ -727,7 +727,7 @@ namespace LibDescent.Data
             weapon.RobotHitVClip = (sbyte)br.ReadInt16();
             weapon.RobotHitSound = br.ReadInt16();
 
-            weapon.WallHitVclip = (sbyte)br.ReadInt16();
+            weapon.WallHitVClip = (sbyte)br.ReadInt16();
             weapon.WallHitSound = br.ReadInt16();
 
             weapon.FireCount = br.ReadByte();

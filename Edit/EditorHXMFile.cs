@@ -154,7 +154,7 @@ namespace LibDescent.Edit
             int[,] jointmapping = new int[10, 5];
             for (int m = 0; m < Polymodel.MAX_SUBMODELS; m++)
             {
-                for (int f = 0; f < Robot.NUM_ANIMATION_STATES; f++)
+                for (int f = 0; f < Robot.NumAnimationStates; f++)
                 {
                     jointmapping[m, f] = -1;
                 }
@@ -162,13 +162,13 @@ namespace LibDescent.Edit
             int basejoint = 0;
             for (int m = 0; m < robot.NumGuns + 1; m++)
             {
-                for (int f = 0; f < Robot.NUM_ANIMATION_STATES; f++)
+                for (int f = 0; f < Robot.NumAnimationStates; f++)
                 {
                     Robot.JointList robotjointlist = robot.AnimStates[m, f];
-                    basejoint = robotjointlist.offset;
+                    basejoint = robotjointlist.Offset;
                     if (basejoint < lowestJoint)
                         lowestJoint = basejoint;
-                    for (int j = 0; j < robotjointlist.n_joints; j++)
+                    for (int j = 0; j < robotjointlist.NumJoints; j++)
                     {
                         JointPos joint = GetJoint(basejoint);
                         jointmapping[joint.jointnum, f] = basejoint;
@@ -180,7 +180,7 @@ namespace LibDescent.Edit
 
             for (int m = 1; m < Polymodel.MAX_SUBMODELS; m++)
             {
-                for (int f = 0; f < Robot.NUM_ANIMATION_STATES; f++)
+                for (int f = 0; f < Robot.NumAnimationStates; f++)
                 {
                     int jointnum = jointmapping[m, f];
                     if (jointnum != -1)
@@ -425,8 +425,8 @@ namespace LibDescent.Edit
             {
                 for (int f = 0; f < 5; f++)
                 {
-                    robot.AnimStates[m, f].n_joints = 0;
-                    robot.AnimStates[m, f].offset = 0;
+                    robot.AnimStates[m, f].NumJoints = 0;
+                    robot.AnimStates[m, f].Offset = 0;
                 }
             }
             if (!model.isAnimated) return;
@@ -453,8 +453,8 @@ namespace LibDescent.Edit
             {
                 for (int state = 0; state < 5; state++)
                 {
-                    robot.AnimStates[g, state].n_joints = 0;
-                    robot.AnimStates[g, state].offset = (short)NumRobotJoints;
+                    robot.AnimStates[g, state].NumJoints = 0;
+                    robot.AnimStates[g, state].Offset = (short)NumRobotJoints;
 
                     for (int m = 0; m < model.NumSubmodels; m++)
                     {
@@ -465,7 +465,7 @@ namespace LibDescent.Edit
                             joint.angles = model.animationMatrix[m, state];
                             joint.replacementID = NumRobotJoints;
                             replacedJoints.Add(joint);
-                            robot.AnimStates[g, state].n_joints++;
+                            robot.AnimStates[g, state].NumJoints++;
                             NumRobotJoints++;
                         }
                     }

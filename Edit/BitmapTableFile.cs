@@ -393,7 +393,7 @@ namespace LibDescent.Edit
                 if (weapon.FiringSound != 0)
                     stringBuilder.AppendFormat("flash_sound={0} ", weapon.FiringSound);
                 stringBuilder.AppendFormat("robot_hit_vclip={0} ", weapon.RobotHitVClip);
-                stringBuilder.AppendFormat("wall_hit_vclip={0} ", weapon.WallHitVclip);
+                stringBuilder.AppendFormat("wall_hit_vclip={0} ", weapon.WallHitVClip);
                 stringBuilder.AppendFormat("robot_hit_sound={0} ", weapon.RobotHitSound);
                 stringBuilder.AppendFormat("wall_hit_sound={0} ", weapon.WallHitSound);
                 stringBuilder.AppendFormat("impact_size={0} ", weapon.ImpactSize);
