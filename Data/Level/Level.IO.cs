@@ -1201,7 +1201,6 @@ namespace LibDescent.Data
         protected abstract ILevel Level { get; }
         protected abstract int LevelVersion { get; }
         protected abstract ushort GameDataVersion { get; }
-        private const int GameDataSize = 143;
 
         /// <summary>
         /// The .POF file names to write into the level, for consumers that need it.
@@ -1473,12 +1472,13 @@ namespace LibDescent.Data
             FileInfo fileInfo = new FileInfo();
             fileInfo.signature = 0x6705;
             fileInfo.version = GameDataVersion;
-            fileInfo.size = GameDataSize;
+            fileInfo.size = 0;
             fileInfo.mineFilename = ""; // Not used, leave blank
             fileInfo.levelNumber = 0; // Doesn't seem to be used by Descent
 
             // We'll have to rewrite FileInfo later, but write it now to make space
             WriteFileInfo(writer, fileInfo);
+            fileInfo.size = (int)(writer.BaseStream.Position - fileInfoOffset);
 
             if (GameDataVersion >= 14)
             {
