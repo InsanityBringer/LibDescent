@@ -89,9 +89,9 @@ namespace LibDescent.Tests
             // Object 0 - player
             Assert.AreEqual(ObjectType.Player, level.Objects[0].type);
             Assert.AreEqual(0, level.Objects[0].id);
-            Assert.AreEqual(MovementType.Physics, level.Objects[0].moveType);
-            Assert.AreEqual(ControlType.Slew, level.Objects[0].controlType);
-            Assert.AreEqual(RenderType.Polyobj, level.Objects[0].renderType);
+            Assert.AreEqual(MovementTypeID.Physics, level.Objects[0].moveType);
+            Assert.AreEqual(ControlTypeID.Slew, level.Objects[0].controlType);
+            Assert.AreEqual(RenderTypeID.Polyobj, level.Objects[0].renderType);
             Assert.AreEqual(new FixVector(0, 0, 0), level.Objects[0].position);
             var expectedOrientation = new FixMatrix(new FixVector(1, 0, 0), new FixVector(0, 1, 0), new FixVector(0, 0, 1));
             Assert.AreEqual(expectedOrientation, level.Objects[0].orientation);
@@ -101,9 +101,9 @@ namespace LibDescent.Tests
             // Object 1 - reactor
             Assert.AreEqual(ObjectType.ControlCenter, level.Objects[1].type);
             Assert.AreEqual(2, level.Objects[1].id);
-            Assert.AreEqual(MovementType.None, level.Objects[1].moveType);
-            Assert.AreEqual(ControlType.ControlCenter, level.Objects[1].controlType);
-            Assert.AreEqual(RenderType.Polyobj, level.Objects[1].renderType);
+            Assert.AreEqual(MovementTypeID.None, level.Objects[1].moveType);
+            Assert.AreEqual(ControlTypeID.ControlCenter, level.Objects[1].controlType);
+            Assert.AreEqual(RenderTypeID.Polyobj, level.Objects[1].renderType);
             Assert.AreEqual(new FixVector(50, -20, -95), level.Objects[1].position);
             Assert.AreEqual(expectedOrientation, level.Objects[1].orientation);
             Assert.AreEqual(97, level.Objects[1].modelInfo.modelNum);
@@ -112,9 +112,9 @@ namespace LibDescent.Tests
             // Object 3 - hostage
             Assert.AreEqual(ObjectType.Hostage, level.Objects[3].type);
             Assert.AreEqual(0, level.Objects[3].id);
-            Assert.AreEqual(MovementType.None, level.Objects[3].moveType);
-            Assert.AreEqual(ControlType.Powerup, level.Objects[3].controlType);
-            Assert.AreEqual(RenderType.Hostage, level.Objects[3].renderType);
+            Assert.AreEqual(MovementTypeID.None, level.Objects[3].moveType);
+            Assert.AreEqual(ControlTypeID.Powerup, level.Objects[3].controlType);
+            Assert.AreEqual(RenderTypeID.Hostage, level.Objects[3].renderType);
             Assert.AreEqual(new FixVector(45, -65, 30), level.Objects[3].position);
             Assert.AreEqual(expectedOrientation, level.Objects[3].orientation);
             Assert.AreEqual(33, level.Objects[3].spriteInfo.vclipNum);
@@ -123,9 +123,9 @@ namespace LibDescent.Tests
             // Object 6 - co-op player
             Assert.AreEqual(ObjectType.Coop, level.Objects[6].type);
             Assert.AreEqual(8, level.Objects[6].id);
-            Assert.AreEqual(MovementType.Physics, level.Objects[6].moveType);
-            Assert.AreEqual(ControlType.None, level.Objects[6].controlType);
-            Assert.AreEqual(RenderType.Polyobj, level.Objects[6].renderType);
+            Assert.AreEqual(MovementTypeID.Physics, level.Objects[6].moveType);
+            Assert.AreEqual(ControlTypeID.None, level.Objects[6].controlType);
+            Assert.AreEqual(RenderTypeID.Polyobj, level.Objects[6].renderType);
             Assert.AreEqual(new FixVector(20, 0, 40), level.Objects[6].position);
             expectedOrientation = new FixMatrix(new FixVector(0, 0, 1), new FixVector(0, 1, 0), new FixVector(-1, 0, 0));
             Assert.AreEqual(expectedOrientation, level.Objects[6].orientation);
@@ -135,9 +135,9 @@ namespace LibDescent.Tests
             // Object 9 - Guide-bot
             Assert.AreEqual(ObjectType.Robot, level.Objects[9].type);
             Assert.AreEqual(33, level.Objects[9].id);
-            Assert.AreEqual(MovementType.Physics, level.Objects[9].moveType);
-            Assert.AreEqual(ControlType.AI, level.Objects[9].controlType);
-            Assert.AreEqual(RenderType.Polyobj, level.Objects[9].renderType);
+            Assert.AreEqual(MovementTypeID.Physics, level.Objects[9].moveType);
+            Assert.AreEqual(ControlTypeID.AI, level.Objects[9].controlType);
+            Assert.AreEqual(RenderTypeID.Polyobj, level.Objects[9].renderType);
             Assert.AreEqual(new FixVector(0, 30, 120), level.Objects[9].position);
             expectedOrientation = new FixMatrix(new FixVector(1, 0, 0), new FixVector(0, 1, 0), new FixVector(0, 0, 1));
             Assert.AreEqual(expectedOrientation, level.Objects[9].orientation);
@@ -147,9 +147,9 @@ namespace LibDescent.Tests
             // Object 21 - robot (Sidearm) with contained robots
             Assert.AreEqual(ObjectType.Robot, level.Objects[21].type);
             Assert.AreEqual(30, level.Objects[21].id);
-            Assert.AreEqual(MovementType.Physics, level.Objects[21].moveType);
-            Assert.AreEqual(ControlType.AI, level.Objects[21].controlType);
-            Assert.AreEqual(RenderType.Polyobj, level.Objects[21].renderType);
+            Assert.AreEqual(MovementTypeID.Physics, level.Objects[21].moveType);
+            Assert.AreEqual(ControlTypeID.AI, level.Objects[21].controlType);
+            Assert.AreEqual(RenderTypeID.Polyobj, level.Objects[21].renderType);
             Assert.AreEqual(new FixVector(120, -20, -105), level.Objects[21].position);
             Assert.AreEqual(expectedOrientation, level.Objects[21].orientation);
             Assert.AreEqual((Fix)120, level.Objects[21].shields);
@@ -162,9 +162,9 @@ namespace LibDescent.Tests
             // Object 25 - blue flag
             Assert.AreEqual(ObjectType.Powerup, level.Objects[25].type);
             Assert.AreEqual(46, level.Objects[25].id);
-            Assert.AreEqual(MovementType.None, level.Objects[25].moveType);
-            Assert.AreEqual(ControlType.Powerup, level.Objects[25].controlType);
-            Assert.AreEqual(RenderType.Powerup, level.Objects[25].renderType);
+            Assert.AreEqual(MovementTypeID.None, level.Objects[25].moveType);
+            Assert.AreEqual(ControlTypeID.Powerup, level.Objects[25].controlType);
+            Assert.AreEqual(RenderTypeID.Powerup, level.Objects[25].renderType);
             Assert.AreEqual(new FixVector(120, -20, 10), level.Objects[25].position);
             Assert.AreEqual(expectedOrientation, level.Objects[25].orientation);
             Assert.AreEqual(42, level.Objects[25].segnum);

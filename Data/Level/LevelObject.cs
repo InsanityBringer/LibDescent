@@ -54,7 +54,7 @@ namespace LibDescent.Data
         Explosion, // D2X-XL
         Effect, // D2X-XL
     }
-    public enum ControlType
+    public enum ControlTypeID
     {
         None,
         AI,
@@ -76,14 +76,14 @@ namespace LibDescent.Data
         Waypoint, // D2X-XL
     }
 
-    public enum MovementType
+    public enum MovementTypeID
     {
         None = 0,
         Physics,
         Spinning = 3,
     }
 
-    public enum RenderType
+    public enum RenderTypeID
     {
         None,
         Polyobj,
@@ -225,9 +225,9 @@ namespace LibDescent.Data
         public ObjectType type;
         public byte id;
 
-        public ControlType controlType;
-        public MovementType moveType;
-        public RenderType renderType;
+        public ControlTypeID controlType;
+        public MovementTypeID moveType;
+        public RenderTypeID renderType;
         public byte flags;
 
         /// <summary>

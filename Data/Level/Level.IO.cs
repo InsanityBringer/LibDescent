@@ -560,9 +560,9 @@ namespace LibDescent.Data
             var levelObject = new LevelObject();
             levelObject.type = (ObjectType)reader.ReadSByte();
             levelObject.id = reader.ReadByte();
-            levelObject.controlType = (ControlType)reader.ReadByte();
-            levelObject.moveType = (MovementType)reader.ReadByte();
-            levelObject.renderType = (RenderType)reader.ReadByte();
+            levelObject.controlType = (ControlTypeID)reader.ReadByte();
+            levelObject.moveType = (MovementTypeID)reader.ReadByte();
+            levelObject.renderType = (RenderTypeID)reader.ReadByte();
             levelObject.flags = reader.ReadByte();
             levelObject.MultiplayerOnly = (_fileInfo.version > 37) ? (reader.ReadByte() > 0) : false;
             levelObject.segnum = reader.ReadInt16();
@@ -578,7 +578,7 @@ namespace LibDescent.Data
 
             switch (levelObject.moveType)
             {
-                case MovementType.Physics:
+                case MovementTypeID.Physics:
                     levelObject.physicsInfo.velocity = ReadFixVector(reader);
                     levelObject.physicsInfo.thrust = ReadFixVector(reader);
                     levelObject.physicsInfo.mass = new Fix(reader.ReadInt32());
@@ -589,13 +589,13 @@ namespace LibDescent.Data
                     levelObject.physicsInfo.turnroll = reader.ReadInt16();
                     levelObject.physicsInfo.flags = reader.ReadInt16();
                     break;
-                case MovementType.Spinning:
+                case MovementTypeID.Spinning:
                     levelObject.spinRate = ReadFixVector(reader);
                     break;
             }
             switch (levelObject.controlType)
             {
-                case ControlType.AI:
+                case ControlTypeID.AI:
                     levelObject.aiInfo.behavior = reader.ReadByte();
                     for (int i = 0; i < AIInfo.NumAIFlags; i++)
                         levelObject.aiInfo.aiFlags[i] = reader.ReadByte();
@@ -610,18 +610,18 @@ namespace LibDescent.Data
                         reader.ReadInt32();
                     }
                     break;
-                case ControlType.Explosion:
+                case ControlTypeID.Explosion:
                     levelObject.explosionInfo.SpawnTime = new Fix(reader.ReadInt32());
                     levelObject.explosionInfo.DeleteTime = new Fix(reader.ReadInt32());
                     levelObject.explosionInfo.DeleteObject = reader.ReadInt16();
                     break;
-                case ControlType.Powerup:
+                case ControlTypeID.Powerup:
                     if (_fileInfo.version >= 25)
                     {
                         levelObject.powerupCount = reader.ReadInt32();
                     }
                     break;
-                case ControlType.Waypoint:
+                case ControlTypeID.Waypoint:
                     levelObject.waypointInfo.waypointId = reader.ReadInt32();
                     levelObject.waypointInfo.nextWaypointId = reader.ReadInt32();
                     levelObject.waypointInfo.speed = reader.ReadInt32();
@@ -635,7 +635,7 @@ namespace LibDescent.Data
             }
             switch (levelObject.renderType)
             {
-                case RenderType.Polyobj:
+                case RenderTypeID.Polyobj:
                     {
                         levelObject.modelInfo.modelNum = reader.ReadInt32();
                         for (int i = 0; i < Polymodel.MAX_SUBMODELS; i++)
@@ -646,15 +646,15 @@ namespace LibDescent.Data
                         levelObject.modelInfo.textureOverride = reader.ReadInt32();
                     }
                     break;
-                case RenderType.WeaponVClip:
-                case RenderType.Hostage:
-                case RenderType.Powerup:
-                case RenderType.Fireball:
+                case RenderTypeID.WeaponVClip:
+                case RenderTypeID.Hostage:
+                case RenderTypeID.Powerup:
+                case RenderTypeID.Fireball:
                     levelObject.spriteInfo.vclipNum = reader.ReadInt32();
                     levelObject.spriteInfo.frameTime = new Fix(reader.ReadInt32());
                     levelObject.spriteInfo.frameNumber = reader.ReadByte();
                     break;
-                case RenderType.Particle:
+                case RenderTypeID.Particle:
                     levelObject.particleInfo.nLife = reader.ReadInt32();
                     levelObject.particleInfo.nSize = reader.ReadInt32();
                     levelObject.particleInfo.nParts = reader.ReadInt32();
@@ -671,7 +671,7 @@ namespace LibDescent.Data
                     levelObject.particleInfo.nType = (_levelVersion < 18) ? (byte)0 : reader.ReadByte();
                     levelObject.particleInfo.enabled = (_levelVersion < 19) ? true : (reader.ReadSByte() > 0);
                     break;
-                case RenderType.Lightning:
+                case RenderTypeID.Lightning:
                     levelObject.lightningInfo.nLife = reader.ReadInt32();
                     levelObject.lightningInfo.nDelay = reader.ReadInt32();
                     levelObject.lightningInfo.nLength = reader.ReadInt32();
@@ -699,7 +699,7 @@ namespace LibDescent.Data
                     levelObject.lightningInfo.color.A = reader.ReadByte();
                     levelObject.lightningInfo.enabled = (_levelVersion < 19) ? true : (reader.ReadSByte() > 0);
                     break;
-                case RenderType.Sound:
+                case RenderTypeID.Sound:
                     levelObject.soundInfo.filename = ReadString(reader, 40, false);
                     levelObject.soundInfo.volume = reader.ReadInt32();
                     levelObject.soundInfo.enabled = (_levelVersion < 19) ? true : (reader.ReadSByte() > 0);
@@ -1837,7 +1837,7 @@ namespace LibDescent.Data
 
             switch (levelObject.moveType)
             {
-                case MovementType.Physics:
+                case MovementTypeID.Physics:
                     WriteFixVector(writer, levelObject.physicsInfo.velocity);
                     WriteFixVector(writer, levelObject.physicsInfo.thrust);
                     writer.Write(levelObject.physicsInfo.mass.value);
@@ -1848,13 +1848,13 @@ namespace LibDescent.Data
                     writer.Write(levelObject.physicsInfo.turnroll);
                     writer.Write(levelObject.physicsInfo.flags);
                     break;
-                case MovementType.Spinning:
+                case MovementTypeID.Spinning:
                     WriteFixVector(writer, levelObject.spinRate);
                     break;
             }
             switch (levelObject.controlType)
             {
-                case ControlType.AI:
+                case ControlTypeID.AI:
                     writer.Write(levelObject.aiInfo.behavior);
                     for (int i = 0; i < AIInfo.NumAIFlags; i++)
                         writer.Write(levelObject.aiInfo.aiFlags[i]);
@@ -1872,18 +1872,18 @@ namespace LibDescent.Data
                     }
 
                     break;
-                case ControlType.Explosion:
+                case ControlTypeID.Explosion:
                     writer.Write(levelObject.explosionInfo.SpawnTime.value);
                     writer.Write(levelObject.explosionInfo.DeleteTime.value);
                     writer.Write(levelObject.explosionInfo.DeleteObject);
                     break;
-                case ControlType.Powerup:
+                case ControlTypeID.Powerup:
                     if (GameDataVersion >= 25)
                     {
                         writer.Write(levelObject.powerupCount);
                     }
                     break;
-                case ControlType.Waypoint:
+                case ControlTypeID.Waypoint:
                     writer.Write(levelObject.waypointInfo.waypointId);
                     writer.Write(levelObject.waypointInfo.nextWaypointId);
                     writer.Write(levelObject.waypointInfo.speed);
@@ -1891,7 +1891,7 @@ namespace LibDescent.Data
             }
             switch (levelObject.renderType)
             {
-                case RenderType.Polyobj:
+                case RenderTypeID.Polyobj:
                     {
                         writer.Write(levelObject.modelInfo.modelNum);
                         for (int i = 0; i < Polymodel.MAX_SUBMODELS; i++)
@@ -1902,15 +1902,15 @@ namespace LibDescent.Data
                         writer.Write(levelObject.modelInfo.textureOverride);
                     }
                     break;
-                case RenderType.WeaponVClip:
-                case RenderType.Hostage:
-                case RenderType.Powerup:
-                case RenderType.Fireball:
+                case RenderTypeID.WeaponVClip:
+                case RenderTypeID.Hostage:
+                case RenderTypeID.Powerup:
+                case RenderTypeID.Fireball:
                     writer.Write(levelObject.spriteInfo.vclipNum);
                     writer.Write(levelObject.spriteInfo.frameTime.value);
                     writer.Write(levelObject.spriteInfo.frameNumber);
                     break;
-                case RenderType.Particle:
+                case RenderTypeID.Particle:
                     writer.Write(levelObject.particleInfo.nLife);
                     writer.Write(levelObject.particleInfo.nSize);
                     writer.Write(levelObject.particleInfo.nParts);
@@ -1925,7 +1925,7 @@ namespace LibDescent.Data
                     writer.Write(levelObject.particleInfo.nType);
                     writer.Write((byte)(levelObject.particleInfo.enabled ? 1 : 0));
                     break;
-                case RenderType.Lightning:
+                case RenderTypeID.Lightning:
                     writer.Write(levelObject.lightningInfo.nLife);
                     writer.Write(levelObject.lightningInfo.nDelay);
                     writer.Write(levelObject.lightningInfo.nLength);
@@ -1953,7 +1953,7 @@ namespace LibDescent.Data
                     writer.Write((byte)levelObject.lightningInfo.color.A);
                     writer.Write((byte)(levelObject.lightningInfo.enabled ? 1 : 0));
                     break;
-                case RenderType.Sound:
+                case RenderTypeID.Sound:
                     var soundFilename = EncodeString(levelObject.soundInfo.filename, 40, false);
                     writer.Write(soundFilename);
                     writer.Write(levelObject.soundInfo.volume);
