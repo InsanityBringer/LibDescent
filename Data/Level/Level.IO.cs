@@ -564,6 +564,7 @@ namespace LibDescent.Data
             levelObject.moveType = (MovementType)reader.ReadByte();
             levelObject.renderType = (RenderType)reader.ReadByte();
             levelObject.flags = reader.ReadByte();
+            levelObject.MultiplayerOnly = (_fileInfo.version > 37) ? (reader.ReadByte() > 0) : false;
             levelObject.segnum = reader.ReadInt16();
             levelObject.attachedObject = -1;
             levelObject.position = ReadFixVector(reader);
@@ -620,6 +621,17 @@ namespace LibDescent.Data
                         levelObject.powerupCount = reader.ReadInt32();
                     }
                     break;
+                case ControlType.Waypoint:
+                    levelObject.waypointInfo.waypointId = reader.ReadInt32();
+                    levelObject.waypointInfo.nextWaypointId = reader.ReadInt32();
+                    levelObject.waypointInfo.speed = reader.ReadInt32();
+                    // Fix IDs from old D2X-XL levels
+                    const int WAYPOINT_ID = 3;
+                    if (levelObject.id != WAYPOINT_ID)
+                    {
+                        levelObject.id = WAYPOINT_ID;
+                    }
+                    break;
             }
             switch (levelObject.renderType)
             {
@@ -641,6 +653,62 @@ namespace LibDescent.Data
                     levelObject.spriteInfo.vclipNum = reader.ReadInt32();
                     levelObject.spriteInfo.frameTime = reader.ReadInt32();
                     levelObject.spriteInfo.frameNumber = reader.ReadByte();
+                    break;
+                case RenderType.Particle:
+                    levelObject.particleInfo.nLife = reader.ReadInt32();
+                    levelObject.particleInfo.nSize = reader.ReadInt32();
+                    levelObject.particleInfo.nParts = reader.ReadInt32();
+                    levelObject.particleInfo.nSpeed = reader.ReadInt32();
+                    levelObject.particleInfo.nDrift = reader.ReadInt32();
+                    levelObject.particleInfo.nBrightness = reader.ReadInt32();
+                    levelObject.particleInfo.color.R = reader.ReadByte();
+                    levelObject.particleInfo.color.G = reader.ReadByte();
+                    levelObject.particleInfo.color.B = reader.ReadByte();
+                    levelObject.particleInfo.color.A = reader.ReadByte();
+                    levelObject.particleInfo.nSide = reader.ReadByte();
+                    // DLE used gamedata version, but that was probably a mistake (18 is pre-release D1).
+                    // Don't have a matching level to test with but level version is more likely to work
+                    levelObject.particleInfo.nType = (_levelVersion < 18) ? (byte)0 : reader.ReadByte();
+                    levelObject.particleInfo.enabled = (_levelVersion < 19) ? true : (reader.ReadSByte() > 0);
+                    break;
+                case RenderType.Lightning:
+                    levelObject.lightningInfo.nLife = reader.ReadInt32();
+                    levelObject.lightningInfo.nDelay = reader.ReadInt32();
+                    levelObject.lightningInfo.nLength = reader.ReadInt32();
+                    levelObject.lightningInfo.nAmplitude = reader.ReadInt32();
+                    levelObject.lightningInfo.nOffset = reader.ReadInt32();
+                    levelObject.lightningInfo.nWayPoint = (_levelVersion < 23) ? -1 : reader.ReadInt32();
+                    levelObject.lightningInfo.nBolts = reader.ReadInt16();
+                    levelObject.lightningInfo.nId = reader.ReadInt16();
+                    levelObject.lightningInfo.nTarget = reader.ReadInt16();
+                    levelObject.lightningInfo.nNodes = reader.ReadInt16();
+                    levelObject.lightningInfo.nChildren = reader.ReadInt16();
+                    levelObject.lightningInfo.nFrames = reader.ReadInt16();
+                    levelObject.lightningInfo.nWidth = (_levelVersion < 22) ? (byte)3 : reader.ReadByte();
+                    levelObject.lightningInfo.nAngle = reader.ReadByte();
+                    levelObject.lightningInfo.nStyle = reader.ReadByte();
+                    levelObject.lightningInfo.nSmoothe = reader.ReadByte();
+                    levelObject.lightningInfo.bClamp = reader.ReadByte();
+                    levelObject.lightningInfo.bPlasma = reader.ReadByte();
+                    levelObject.lightningInfo.bSound = reader.ReadByte();
+                    levelObject.lightningInfo.bRandom = reader.ReadByte();
+                    levelObject.lightningInfo.bInPlane = reader.ReadByte();
+                    levelObject.lightningInfo.color.R = reader.ReadByte();
+                    levelObject.lightningInfo.color.G = reader.ReadByte();
+                    levelObject.lightningInfo.color.B = reader.ReadByte();
+                    levelObject.lightningInfo.color.A = reader.ReadByte();
+                    levelObject.lightningInfo.enabled = (_levelVersion < 19) ? true : (reader.ReadSByte() > 0);
+                    break;
+                case RenderType.Sound:
+                    levelObject.soundInfo.filename = ReadString(reader, 40, false);
+                    levelObject.soundInfo.volume = reader.ReadInt32();
+                    levelObject.soundInfo.enabled = (_levelVersion < 19) ? true : (reader.ReadSByte() > 0);
+                    // Fix IDs from old D2X-XL levels
+                    const int SOUND_ID = 2;
+                    if (levelObject.id != SOUND_ID)
+                    {
+                        levelObject.id = SOUND_ID;
+                    }
                     break;
             }
 
@@ -1732,6 +1800,10 @@ namespace LibDescent.Data
             writer.Write((byte)levelObject.moveType);
             writer.Write((byte)levelObject.renderType);
             writer.Write(levelObject.flags);
+            if(GameDataVersion > 37)
+            {
+                writer.Write((byte)(levelObject.MultiplayerOnly ? 1 : 0));
+            }
             writer.Write(levelObject.segnum);
             WriteFixVector(writer, levelObject.position);
             WriteFixMatrix(writer, levelObject.orientation);
@@ -1790,6 +1862,11 @@ namespace LibDescent.Data
                         writer.Write(levelObject.powerupCount);
                     }
                     break;
+                case ControlType.Waypoint:
+                    writer.Write(levelObject.waypointInfo.waypointId);
+                    writer.Write(levelObject.waypointInfo.nextWaypointId);
+                    writer.Write(levelObject.waypointInfo.speed);
+                    break;
             }
             switch (levelObject.renderType)
             {
@@ -1811,6 +1888,55 @@ namespace LibDescent.Data
                     writer.Write(levelObject.spriteInfo.vclipNum);
                     writer.Write(levelObject.spriteInfo.frameTime);
                     writer.Write(levelObject.spriteInfo.frameNumber);
+                    break;
+                case RenderType.Particle:
+                    writer.Write(levelObject.particleInfo.nLife);
+                    writer.Write(levelObject.particleInfo.nSize);
+                    writer.Write(levelObject.particleInfo.nParts);
+                    writer.Write(levelObject.particleInfo.nSpeed);
+                    writer.Write(levelObject.particleInfo.nDrift);
+                    writer.Write(levelObject.particleInfo.nBrightness);
+                    writer.Write((byte)levelObject.particleInfo.color.R);
+                    writer.Write((byte)levelObject.particleInfo.color.G);
+                    writer.Write((byte)levelObject.particleInfo.color.B);
+                    writer.Write((byte)levelObject.particleInfo.color.A);
+                    writer.Write(levelObject.particleInfo.nSide);
+                    writer.Write(levelObject.particleInfo.nType);
+                    writer.Write((byte)(levelObject.particleInfo.enabled ? 1 : 0));
+                    break;
+                case RenderType.Lightning:
+                    writer.Write(levelObject.lightningInfo.nLife);
+                    writer.Write(levelObject.lightningInfo.nDelay);
+                    writer.Write(levelObject.lightningInfo.nLength);
+                    writer.Write(levelObject.lightningInfo.nAmplitude);
+                    writer.Write(levelObject.lightningInfo.nOffset);
+                    writer.Write(levelObject.lightningInfo.nWayPoint);
+                    writer.Write(levelObject.lightningInfo.nBolts);
+                    writer.Write(levelObject.lightningInfo.nId);
+                    writer.Write(levelObject.lightningInfo.nTarget);
+                    writer.Write(levelObject.lightningInfo.nNodes);
+                    writer.Write(levelObject.lightningInfo.nChildren);
+                    writer.Write(levelObject.lightningInfo.nFrames);
+                    writer.Write(levelObject.lightningInfo.nWidth);
+                    writer.Write(levelObject.lightningInfo.nAngle);
+                    writer.Write(levelObject.lightningInfo.nStyle);
+                    writer.Write(levelObject.lightningInfo.nSmoothe);
+                    writer.Write(levelObject.lightningInfo.bClamp);
+                    writer.Write(levelObject.lightningInfo.bPlasma);
+                    writer.Write(levelObject.lightningInfo.bSound);
+                    writer.Write(levelObject.lightningInfo.bRandom);
+                    writer.Write(levelObject.lightningInfo.bInPlane);
+                    writer.Write((byte)levelObject.lightningInfo.color.R);
+                    writer.Write((byte)levelObject.lightningInfo.color.G);
+                    writer.Write((byte)levelObject.lightningInfo.color.B);
+                    writer.Write((byte)levelObject.lightningInfo.color.A);
+                    writer.Write((byte)(levelObject.lightningInfo.enabled ? 1 : 0));
+                    break;
+                case RenderType.Sound:
+                    var soundFilename = EncodeString(levelObject.soundInfo.filename, 40, false);
+                    writer.Write(soundFilename);
+                    writer.Write(levelObject.soundInfo.volume);
+                    writer.Write((byte)(levelObject.soundInfo.enabled ? 1 : 0));
                     break;
             }
         }
