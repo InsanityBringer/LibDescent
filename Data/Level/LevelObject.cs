@@ -47,7 +47,12 @@ namespace LibDescent.Data
         Ghost,
         Light,
         Coop,
-        Marker
+        Marker,
+        Cambot, // D2X-XL
+        Monsterball, // D2X-XL
+        Smoke, // D2X-XL
+        Explosion, // D2X-XL
+        Effect, // D2X-XL
     }
     public enum ControlType
     {
@@ -68,6 +73,7 @@ namespace LibDescent.Data
         Light,
         Remote,
         ControlCenter,
+        Waypoint, // D2X-XL
     }
 
     public enum MovementType
@@ -87,6 +93,12 @@ namespace LibDescent.Data
         Powerup,
         Morph,
         WeaponVClip,
+        Thruster, // D2X-XL: like afterburner, but doesn't cast light
+        ExplosionBlast, // D2X-XL: white explosion light blast
+        Shrapnel, // D2X-XL
+        Particle, // D2X-XL
+        Lightning, // D2X-XL
+        Sound, // D2X-XL
     }
 
     //Move info
@@ -130,6 +142,68 @@ namespace LibDescent.Data
         public int count;
     }
 
+    // D2X-XL
+    public struct WaypointInfo
+    {
+        public int waypointId;
+        public int nextWaypointId;
+        public int speed;
+    }
+
+    // D2X-XL
+    public struct ParticleInfo
+    {
+        public int nLife;
+        // nSize is a 2-element array in DLE, but the second element isn't used...
+        // I guess that means we don't need it?
+        public int nSize;
+        public int nParts;
+        public int nSpeed;
+        public int nDrift;
+        public int nBrightness;
+        public Color color;
+        public byte nSide;
+        public byte nType;
+        public bool enabled;
+    }
+
+    // D2X-XL
+    public struct LightningInfo
+    {
+        public int nLife;
+        public int nDelay;
+        public int nLength;
+        public int nAmplitude;
+        public int nOffset;
+        public int nWayPoint;
+        public short nBolts;
+        public short nId;
+        public short nTarget;
+        public short nNodes;
+        public short nChildren;
+        public short nFrames;
+        public byte nWidth;
+        public byte nAngle;
+        public byte nStyle;
+        public byte nSmoothe;
+        public byte bClamp;
+        public byte bPlasma;
+        public byte bSound;
+        public byte bRandom;
+        public byte bInPlane;
+        public Color color;
+        public bool enabled;
+    }
+
+    // D2X-XL
+    public struct SoundInfo
+    {
+        public string filename;
+        // Expected range 0-10, indicates how loud the sound should be
+        public int volume;
+        public bool enabled;
+    }
+
     //Render info
     public class PolymodelInfo
     {
@@ -156,6 +230,10 @@ namespace LibDescent.Data
         public RenderType renderType;
         public byte flags;
 
+        /// <summary>
+        /// Indicates if this object is only present in multiplayer modes. D2X-XL only.
+        /// </summary>
+        public bool MultiplayerOnly { get; set; }
         public short segnum;
         public short attachedObject;
 
@@ -175,10 +253,19 @@ namespace LibDescent.Data
         public AIInfo aiInfo = new AIInfo();
         public ExplosionInfo explosionInfo = new ExplosionInfo();
         public int powerupCount;
+        public WaypointInfo waypointInfo = new WaypointInfo();
+        public ParticleInfo particleInfo = new ParticleInfo();
+        public LightningInfo lightningInfo = new LightningInfo();
+        public SoundInfo soundInfo = new SoundInfo();
         //Render info
         public PolymodelInfo modelInfo = new PolymodelInfo();
         public SpriteInfo spriteInfo;
 
         public int sig;
+
+        /// <summary>
+        /// The object trigger assigned to this object. D2X-XL only.
+        /// </summary>
+        public D2XXLTrigger Trigger { get; set; }
     }
 }

@@ -224,6 +224,9 @@ namespace LibDescent.Tests
 
             // Trigger 0 - control panel - open door
             Assert.AreSame(level.Triggers[0], level.Walls[6].Trigger);
+            Assert.AreEqual(1, level.Triggers[0].ConnectedWalls.Count);
+            Assert.AreSame(level.Walls[6], level.Triggers[0].ConnectedWalls[0]);
+            Assert.IsEmpty(level.Triggers[0].ConnectedObjects);
             Assert.AreEqual(1, level.Triggers[0].Targets.Count);
             Assert.AreSame(level.Segments[6].Sides[0], level.Triggers[0].Targets[0]);
             Assert.AreEqual(D2TriggerFlags.NoMessage, level.Triggers[0].Flags);

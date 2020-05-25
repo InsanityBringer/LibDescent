@@ -25,7 +25,24 @@ using System.Collections.Generic;
 
 namespace LibDescent.Data
 {
-    public class MatCenter
+    public interface IMatCenter
+    {
+        Segment Segment { get; }
+
+        /// <summary>
+        /// The number of hit points the matcen has.
+        /// Not actually implemented in Descent or Descent 2.
+        /// </summary>
+        Fix HitPoints { get; set; }
+
+        /// <summary>
+        /// The time between consecutive spawns from the matcen.
+        /// Descent and Descent 2 ignore this value and always use 5 seconds.
+        /// </summary>
+        Fix Interval { get; set; }
+    }
+
+    public class MatCenter : IMatCenter
     {
         public MatCenter(Segment segment)
         {
@@ -36,19 +53,8 @@ namespace LibDescent.Data
         }
 
         public Segment Segment { get; }
-
         public SortedSet<uint> SpawnedRobotIds { get; }
-
-        /// <summary>
-        /// The number of hit points the matcen has.
-        /// Not actually implemented in Descent or Descent 2.
-        /// </summary>
         public Fix HitPoints { get; set; }
-
-        /// <summary>
-        /// The time between consecutive spawns from the matcen.
-        /// Descent and Descent 2 ignore this value and always use 5 seconds.
-        /// </summary>
         public Fix Interval { get; set; }
 
         internal void InitializeSpawnedRobots(uint[] robotListFlags)
@@ -62,6 +68,40 @@ namespace LibDescent.Data
                 if ((robotListFlags[arrayIndex] & (1 << flagOffset)) != 0)
                 {
                     SpawnedRobotIds.Add((uint)robotId);
+                }
+            }
+        }
+    }
+
+    /// <summary>
+    /// A D2X-XL-specific variant of a matcen that spawns powerups instead of robots.
+    /// </summary>
+    public class PowerupMatCenter : IMatCenter
+    {
+        public PowerupMatCenter(Segment segment)
+        {
+            Segment = segment ?? throw new ArgumentNullException(nameof(segment));
+            SpawnedPowerupIds = new SortedSet<uint>();
+            HitPoints = 500;
+            Interval = 5;
+        }
+
+        public Segment Segment { get; }
+        public SortedSet<uint> SpawnedPowerupIds { get; }
+        public Fix HitPoints { get; set; }
+        public Fix Interval { get; set; }
+
+        internal void InitializeSpawnedPowerups(uint[] powerupListFlags)
+        {
+            SpawnedPowerupIds.Clear();
+            int arrayElementSize = sizeof(uint) * 8;
+            for (int powerupId = 0; powerupId < powerupListFlags.Length * arrayElementSize; powerupId++)
+            {
+                int flagOffset;
+                int arrayIndex = Math.DivRem(powerupId, arrayElementSize, out flagOffset);
+                if ((powerupListFlags[arrayIndex] & (1 << flagOffset)) != 0)
+                {
+                    SpawnedPowerupIds.Add((uint)powerupId);
                 }
             }
         }

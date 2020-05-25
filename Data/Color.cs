@@ -20,38 +20,13 @@
     SOFTWARE.
 */
 
-using System.Collections.Generic;
-
 namespace LibDescent.Data
 {
-    public class DynamicLight
+    public struct Color
     {
-        public Side Source { get; }
-
-        public DynamicLight(Side source)
-        {
-            Source = source;
-        }
-
-        public List<LightDelta> LightDeltas { get; } = new List<LightDelta>();
-    }
-
-    public struct LightDelta
-    {
-        /// <summary>
-        /// The side whose light values are modified by the owning light source.
-        /// </summary>
-        public Side targetSide;
-        /// <summary>
-        /// The amount to add to target vertices' light values when this light delta is applied.
-        /// Typically inverted (i.e. subtracted) when the light is turned off.
-        /// </summary>
-        public Fix[] vertexDeltas;
-
-        public LightDelta(Side targetSide)
-        {
-            this.targetSide = targetSide;
-            vertexDeltas = new Fix[Side.MaxVertices];
-        }
+        public int A { get; set; }
+        public int R { get; set; }
+        public int G { get; set; }
+        public int B { get; set; }
     }
 }

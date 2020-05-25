@@ -282,6 +282,9 @@ namespace LibDescent.Tests
 
             // Trigger 0 is the exit trigger
             Assert.AreSame(level.Triggers[0], level.Walls[0].Trigger);
+            Assert.AreEqual(1, level.Triggers[0].ConnectedWalls.Count);
+            Assert.AreSame(level.Walls[0], level.Triggers[0].ConnectedWalls[0]);
+            Assert.IsEmpty(level.Triggers[0].ConnectedObjects);
             Assert.IsEmpty(level.Triggers[0].Targets);
             Assert.AreEqual(D1TriggerFlags.Exit, level.Triggers[0].Flags);
             // .rdl (D1) should not use trigger type
@@ -292,6 +295,8 @@ namespace LibDescent.Tests
 
             // Trigger 2 is a matcen trigger
             Assert.AreSame(level.Triggers[2], level.Walls[10].Trigger);
+            Assert.AreEqual(1, level.Triggers[2].ConnectedWalls.Count);
+            Assert.AreSame(level.Walls[10], level.Triggers[2].ConnectedWalls[0]);
             Assert.AreEqual(1, level.Triggers[2].Targets.Count);
             Assert.AreSame(level.Segments[16].Sides[5], level.Triggers[2].Targets[0]);
             Assert.AreEqual(D1TriggerFlags.MatCenter, level.Triggers[2].Flags);

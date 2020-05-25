@@ -28,7 +28,7 @@ using System.Text;
 
 namespace LibDescent.Data
 {
-    internal struct FileInfo
+    internal class FileInfo
     {
         public ushort signature;
         public ushort version;
@@ -64,6 +64,10 @@ namespace LibDescent.Data
         public int deltaLightsOffset;
         public int deltaLightsCount;
         public int deltaLightsSize;
+        public int powerupMatcenOffset;
+        public int powerupMatcenCount;
+        public int powerupMatcenSize;
+        public readonly FogPreset[] fogPresets = new FogPreset[4];
     }
 
     internal abstract class DescentLevelReader
@@ -78,11 +82,15 @@ namespace LibDescent.Data
         /// 5 -> 6  added Secret_return_segment and Secret_return_orient
         /// 6 -> 7  added flickering lights
         /// 7 -> 8  made version 8 to be not compatible with D2 1.0 & 1.1
+        ///
+        /// Versions 9-27 are used by D2X-XL.
         /// </summary>
         protected int _levelVersion;
+        // Standard D2 = 7, Vertigo = 8, XL = up to 27
+        public const int MaximumSupportedLevelVersion = 27;
         protected int _mineDataOffset;
         protected int _gameDataOffset;
-        protected FileInfo _fileInfo;
+        protected FileInfo _fileInfo = new FileInfo();
         private Dictionary<Side, uint> _sideWallLinks = new Dictionary<Side, uint>();
         private Dictionary<Segment, uint> _segmentMatcenLinks = new Dictionary<Segment, uint>();
         private Dictionary<Wall, byte> _wallTriggerLinks = new Dictionary<Wall, byte>();
@@ -150,8 +158,8 @@ namespace LibDescent.Data
             // Allocate segments/sides before reading data so we don't need a separate linking phase for them
             for (int i = 0; i < numSegments; i++)
             {
-                var segment = new Segment();
-                for (uint sideNum = 0; sideNum < Segment.MaxSegmentSides; sideNum++)
+                var segment = (_levelVersion < 9) ? new Segment() : new D2XXLSegment();
+                for (uint sideNum = 0; sideNum < Segment.MaxSides; sideNum++)
                 {
                     segment.Sides[sideNum] = new Side(segment, sideNum);
                 }
@@ -160,6 +168,11 @@ namespace LibDescent.Data
             // Now read segment data
             foreach (var segment in Level.Segments)
             {
+                if (segment is D2XXLSegment xlSegment)
+                {
+                    ReadXLSegmentData(reader, xlSegment);
+                }
+
                 byte segmentBitMask = reader.ReadByte();
                 if (_levelVersion == 5)
                 {
@@ -201,7 +214,7 @@ namespace LibDescent.Data
 
         internal void ReadSegmentConnections(BinaryReader reader, Segment segment, byte segmentBitMask)
         {
-            for (int sideNum = 0; sideNum < Segment.MaxSegmentSides; sideNum++)
+            for (int sideNum = 0; sideNum < Segment.MaxSides; sideNum++)
             {
                 if ((segmentBitMask & (1 << sideNum)) != 0)
                 {
@@ -220,7 +233,7 @@ namespace LibDescent.Data
 
         private void ReadSegmentVertices(BinaryReader reader, Segment segment)
         {
-            for (uint i = 0; i < Segment.MaxSegmentVerts; i++)
+            for (uint i = 0; i < Segment.MaxVertices; i++)
             {
                 var vertexNum = reader.ReadInt16();
                 segment.Vertices[i] = Level.Vertices[vertexNum];
@@ -239,13 +252,15 @@ namespace LibDescent.Data
 
         private void ReadSegmentWalls(BinaryReader reader, Segment segment)
         {
+            var emptyWallNum = (_levelVersion < 13) ? 255 : 2047;
+
             byte wallsBitMask = reader.ReadByte();
-            for (uint sideNum = 0; sideNum < Segment.MaxSegmentSides; sideNum++)
+            for (uint sideNum = 0; sideNum < Segment.MaxSides; sideNum++)
             {
                 if ((wallsBitMask & (1 << (int)sideNum)) != 0)
                 {
-                    byte wallNum = reader.ReadByte();
-                    if (wallNum != 255)
+                    var wallNum = (_levelVersion < 13) ? reader.ReadByte() : reader.ReadUInt16();
+                    if (wallNum != emptyWallNum)
                     {
                         // Walls haven't been read yet so we need to record the numbers and link later
                         _sideWallLinks[segment.Sides[sideNum]] = wallNum;
@@ -256,7 +271,7 @@ namespace LibDescent.Data
 
         private static bool SegmentHasSpecialData(byte segmentBitMask)
         {
-            return (segmentBitMask & (1 << Segment.MaxSegmentSides)) != 0;
+            return (segmentBitMask & (1 << Segment.MaxSides)) != 0;
         }
 
         private void ReadSegmentSpecial(BinaryReader reader, Segment segment)
@@ -280,9 +295,21 @@ namespace LibDescent.Data
 
         private void ReadSegmentTextures(BinaryReader reader, Segment segment)
         {
-            for (int sideNum = 0; sideNum < Segment.MaxSegmentSides; sideNum++)
+            for (int sideNum = 0; sideNum < Segment.MaxSides; sideNum++)
             {
                 var side = segment.Sides[sideNum];
+
+                if (_levelVersion > 24)
+                {
+                    // D2X-XL also has a list of the segment vertex IDs for the side here.
+                    // This is for non-cubic segment support (not implemented yet).
+                    for (int i = 0; i < Side.MaxVertices; i++)
+                    {
+                        _ = reader.ReadByte();
+                    }
+                }
+
+                // Only read textures if this side has any
                 if ((side.ConnectedSegment == null && !side.Exit) || _sideWallLinks.ContainsKey(side))
                 {
                     var rawTextureIndex = reader.ReadUInt16();
@@ -298,7 +325,7 @@ namespace LibDescent.Data
                         side.OverlayRotation = (OverlayRotation)((rawTextureIndex & 0xc000u) >> 14);
                     }
 
-                    for (int uv = 0; uv < side.GetNumVertices(); uv++)
+                    for (int uv = 0; uv < Side.MaxVertices; uv++)
                     {
                         var uvl = Uvl.FromRawValues(reader.ReadInt16(), reader.ReadInt16(), reader.ReadUInt16());
                         side.Uvls[uv] = uvl;
@@ -363,6 +390,27 @@ namespace LibDescent.Data
                 _fileInfo.deltaLightsSize = reader.ReadInt32();
             }
 
+            // D2X-XL extensions
+
+            if (_levelVersion >= 16)
+            {
+                _fileInfo.powerupMatcenOffset = reader.ReadInt32();
+                _fileInfo.powerupMatcenCount = reader.ReadInt32();
+                _fileInfo.powerupMatcenSize = reader.ReadInt32();
+            }
+
+            if (_levelVersion >= 27)
+            {
+                for (int i = 0; i < _fileInfo.fogPresets.Length; i++)
+                {
+                    _fileInfo.fogPresets[i].color.R = reader.ReadByte();
+                    _fileInfo.fogPresets[i].color.G = reader.ReadByte();
+                    _fileInfo.fogPresets[i].color.B = reader.ReadByte();
+                    // Density is encoded as byte values from 1-20, where 20 is most dense
+                    _fileInfo.fogPresets[i].density = ((float)reader.ReadByte()) / 20;
+                }
+            }
+
             // Level name (as seen in automap)
             if (_fileInfo.version >= 14)
             {
@@ -410,7 +458,7 @@ namespace LibDescent.Data
                         wall.HitPoints = new Fix(reader.ReadInt32());
                         _ = reader.ReadInt32(); // opposite wall - will recalculate
                         wall.Type = (WallType)reader.ReadByte();
-                        wall.Flags = (WallFlags)reader.ReadByte();
+                        wall.Flags = (WallFlags)((_fileInfo.version < 37) ? reader.ReadByte() : reader.ReadUInt16());
                         wall.State = (WallState)reader.ReadByte();
                         var triggerNum = reader.ReadByte();
                         if (triggerNum != 0xFF)
@@ -448,6 +496,12 @@ namespace LibDescent.Data
                 foreach (var wallTriggerLink in _wallTriggerLinks)
                 {
                     wallTriggerLink.Key.Trigger = Level.Triggers[wallTriggerLink.Value];
+                    Level.Triggers[wallTriggerLink.Value].ConnectedWalls.Add(wallTriggerLink.Key);
+                }
+
+                if (_fileInfo.version >= 33)
+                {
+                    ReadXLObjectTriggers(reader);
                 }
             }
 
@@ -491,7 +545,7 @@ namespace LibDescent.Data
                     matcen.InitializeSpawnedRobots(robotFlags);
                     matcen.HitPoints = hitPoints;
                     matcen.Interval = interval;
-                    Level.MatCenters.Add(matcen);
+                    AddMatcen(matcen);
                 }
 
                 foreach (var segmentMatcenLink in _segmentMatcenLinks)
@@ -510,6 +564,7 @@ namespace LibDescent.Data
             levelObject.moveType = (MovementType)reader.ReadByte();
             levelObject.renderType = (RenderType)reader.ReadByte();
             levelObject.flags = reader.ReadByte();
+            levelObject.MultiplayerOnly = (_fileInfo.version > 37) ? (reader.ReadByte() > 0) : false;
             levelObject.segnum = reader.ReadInt16();
             levelObject.attachedObject = -1;
             levelObject.position = ReadFixVector(reader);
@@ -566,6 +621,17 @@ namespace LibDescent.Data
                         levelObject.powerupCount = reader.ReadInt32();
                     }
                     break;
+                case ControlType.Waypoint:
+                    levelObject.waypointInfo.waypointId = reader.ReadInt32();
+                    levelObject.waypointInfo.nextWaypointId = reader.ReadInt32();
+                    levelObject.waypointInfo.speed = reader.ReadInt32();
+                    // Fix IDs from old D2X-XL levels
+                    const int WAYPOINT_ID = 3;
+                    if (levelObject.id != WAYPOINT_ID)
+                    {
+                        levelObject.id = WAYPOINT_ID;
+                    }
+                    break;
             }
             switch (levelObject.renderType)
             {
@@ -587,6 +653,62 @@ namespace LibDescent.Data
                     levelObject.spriteInfo.vclipNum = reader.ReadInt32();
                     levelObject.spriteInfo.frameTime = new Fix(reader.ReadInt32());
                     levelObject.spriteInfo.frameNumber = reader.ReadByte();
+                    break;
+                case RenderType.Particle:
+                    levelObject.particleInfo.nLife = reader.ReadInt32();
+                    levelObject.particleInfo.nSize = reader.ReadInt32();
+                    levelObject.particleInfo.nParts = reader.ReadInt32();
+                    levelObject.particleInfo.nSpeed = reader.ReadInt32();
+                    levelObject.particleInfo.nDrift = reader.ReadInt32();
+                    levelObject.particleInfo.nBrightness = reader.ReadInt32();
+                    levelObject.particleInfo.color.R = reader.ReadByte();
+                    levelObject.particleInfo.color.G = reader.ReadByte();
+                    levelObject.particleInfo.color.B = reader.ReadByte();
+                    levelObject.particleInfo.color.A = reader.ReadByte();
+                    levelObject.particleInfo.nSide = reader.ReadByte();
+                    // DLE used gamedata version, but that was probably a mistake (18 is pre-release D1).
+                    // Don't have a matching level to test with but level version is more likely to work
+                    levelObject.particleInfo.nType = (_levelVersion < 18) ? (byte)0 : reader.ReadByte();
+                    levelObject.particleInfo.enabled = (_levelVersion < 19) ? true : (reader.ReadSByte() > 0);
+                    break;
+                case RenderType.Lightning:
+                    levelObject.lightningInfo.nLife = reader.ReadInt32();
+                    levelObject.lightningInfo.nDelay = reader.ReadInt32();
+                    levelObject.lightningInfo.nLength = reader.ReadInt32();
+                    levelObject.lightningInfo.nAmplitude = reader.ReadInt32();
+                    levelObject.lightningInfo.nOffset = reader.ReadInt32();
+                    levelObject.lightningInfo.nWayPoint = (_levelVersion < 23) ? -1 : reader.ReadInt32();
+                    levelObject.lightningInfo.nBolts = reader.ReadInt16();
+                    levelObject.lightningInfo.nId = reader.ReadInt16();
+                    levelObject.lightningInfo.nTarget = reader.ReadInt16();
+                    levelObject.lightningInfo.nNodes = reader.ReadInt16();
+                    levelObject.lightningInfo.nChildren = reader.ReadInt16();
+                    levelObject.lightningInfo.nFrames = reader.ReadInt16();
+                    levelObject.lightningInfo.nWidth = (_levelVersion < 22) ? (byte)3 : reader.ReadByte();
+                    levelObject.lightningInfo.nAngle = reader.ReadByte();
+                    levelObject.lightningInfo.nStyle = reader.ReadByte();
+                    levelObject.lightningInfo.nSmoothe = reader.ReadByte();
+                    levelObject.lightningInfo.bClamp = reader.ReadByte();
+                    levelObject.lightningInfo.bPlasma = reader.ReadByte();
+                    levelObject.lightningInfo.bSound = reader.ReadByte();
+                    levelObject.lightningInfo.bRandom = reader.ReadByte();
+                    levelObject.lightningInfo.bInPlane = reader.ReadByte();
+                    levelObject.lightningInfo.color.R = reader.ReadByte();
+                    levelObject.lightningInfo.color.G = reader.ReadByte();
+                    levelObject.lightningInfo.color.B = reader.ReadByte();
+                    levelObject.lightningInfo.color.A = reader.ReadByte();
+                    levelObject.lightningInfo.enabled = (_levelVersion < 19) ? true : (reader.ReadSByte() > 0);
+                    break;
+                case RenderType.Sound:
+                    levelObject.soundInfo.filename = ReadString(reader, 40, false);
+                    levelObject.soundInfo.volume = reader.ReadInt32();
+                    levelObject.soundInfo.enabled = (_levelVersion < 19) ? true : (reader.ReadSByte() > 0);
+                    // Fix IDs from old D2X-XL levels
+                    const int SOUND_ID = 2;
+                    if (levelObject.id != SOUND_ID)
+                    {
+                        levelObject.id = SOUND_ID;
+                    }
                     break;
             }
 
@@ -642,9 +764,12 @@ namespace LibDescent.Data
 
         protected abstract void CheckLevelVersion();
         protected abstract void LoadVersionSpecificLevelInfo(BinaryReader reader);
+        protected abstract void ReadXLSegmentData(BinaryReader reader, D2XXLSegment xlSegment);
         protected abstract void LoadVersionSpecificMineData(BinaryReader reader);
         protected abstract ITrigger ReadTrigger(BinaryReader reader);
         protected abstract void AddTrigger(ITrigger trigger);
+        protected abstract void ReadXLObjectTriggers(BinaryReader reader);
+        protected abstract void AddMatcen(IMatCenter matcen);
         protected abstract void LoadVersionSpecificGameInfo(BinaryReader reader);
     }
 
@@ -673,13 +798,11 @@ namespace LibDescent.Data
             }
         }
 
-        protected override void LoadVersionSpecificLevelInfo(BinaryReader reader)
-        {
-        }
+        protected override void LoadVersionSpecificLevelInfo(BinaryReader reader) { }
 
-        protected override void LoadVersionSpecificMineData(BinaryReader reader)
-        {
-        }
+        protected override void ReadXLSegmentData(BinaryReader reader, D2XXLSegment xlSegment) { }
+
+        protected override void LoadVersionSpecificMineData(BinaryReader reader) { }
 
         protected override ITrigger ReadTrigger(BinaryReader reader)
         {
@@ -706,17 +829,19 @@ namespace LibDescent.Data
             (Level as D1Level).Triggers.Add(trigger as D1Trigger);
         }
 
-        protected override void LoadVersionSpecificGameInfo(BinaryReader reader)
+        protected override void ReadXLObjectTriggers(BinaryReader reader) { }
+
+        protected override void AddMatcen(IMatCenter matcen)
         {
+            (Level as D1Level).MatCenters.Add(matcen as MatCenter);
         }
+
+        protected override void LoadVersionSpecificGameInfo(BinaryReader reader) { }
     }
 
     internal class D2LevelReader : DescentLevelReader
     {
-        // Standard D2 = 7, Vertigo = 8, XL = up to 27
-        public const int MaximumSupportedLevelVersion = 27;
-
-        private readonly D2Level _level = new D2Level();
+        protected D2Level _level;
         private List<(short segmentNum, short sideNum, uint mask, Fix timer, Fix delay)> _flickeringLights =
             new List<(short, short, uint, Fix, Fix)>();
         private int _secretReturnSegmentNum = 0;
@@ -731,6 +856,7 @@ namespace LibDescent.Data
 
         public D2Level Load()
         {
+            _level = new D2Level();
             LoadLevel();
             return _level;
         }
@@ -803,6 +929,8 @@ namespace LibDescent.Data
             }
         }
 
+        protected override void ReadXLSegmentData(BinaryReader reader, D2XXLSegment xlSegment) { }
+
         protected override void LoadVersionSpecificMineData(BinaryReader reader)
         {
             // Nothing to actually read, but we do need to set up some links
@@ -846,6 +974,13 @@ namespace LibDescent.Data
             (Level as D2Level).Triggers.Add(trigger as D2Trigger);
         }
 
+        protected override void ReadXLObjectTriggers(BinaryReader reader) { }
+
+        protected override void AddMatcen(IMatCenter matcen)
+        {
+            (Level as D2Level).MatCenters.Add(matcen as MatCenter);
+        }
+
         protected override void LoadVersionSpecificGameInfo(BinaryReader reader)
         {
             // Delta lights (D2)
@@ -857,7 +992,13 @@ namespace LibDescent.Data
                 {
                     var segmentNum = reader.ReadInt16();
                     var sideNum = reader.ReadByte();
-                    var lightDelta = new LightDelta(Level.Segments[segmentNum].Sides[sideNum]);
+                    Side side = null;
+                    // DLE can save light deltas pointing to non-existent sides, so we need to check just in case
+                    if (Level.Segments.Count > segmentNum && Level.Segments[segmentNum].Sides.Length > sideNum)
+                    {
+                        side = Level.Segments[segmentNum].Sides[sideNum];
+                    }
+                    var lightDelta = new LightDelta(side);
                     _ = reader.ReadByte(); // dummy - probably used for dword alignment
                     // Vertex deltas scaled by 2048 - see DL_SCALE in segment.h
                     lightDelta.vertexDeltas[0] = new Fix(reader.ReadByte() * 2048);
@@ -871,19 +1012,208 @@ namespace LibDescent.Data
             // Delta light indices (D2)
             if (_fileInfo.deltaLightIndicesOffset != -1)
             {
+                var xlFormat = (_levelVersion >= 15) && (_fileInfo.version >= 34);
+
                 reader.BaseStream.Seek(_fileInfo.deltaLightIndicesOffset, SeekOrigin.Begin);
                 for (int i = 0; i < _fileInfo.deltaLightIndicesCount; i++)
                 {
                     var segmentNum = reader.ReadInt16();
-                    var sideNum = reader.ReadByte();
-                    var count = reader.ReadByte();
+                    byte sideNum;
+                    ushort count;
+                    if (xlFormat)
+                    {
+                        // XL does some shenanigans with the layout to increase the number of sides
+                        // a light can affect
+                        var data = reader.ReadUInt16();
+                        sideNum = (byte)(data & 0x0007);
+                        count = (ushort)((data >> 3) & 0x1FFF);
+                    }
+                    else
+                    {
+                        sideNum = reader.ReadByte();
+                        count = reader.ReadByte();
+                    }
                     var index = reader.ReadInt16();
 
-                    var side = Level.Segments[segmentNum].Sides[sideNum];
-                    var dynamicLight = new DynamicLight(side);
-                    dynamicLight.LightDeltas.AddRange(_lightDeltas.GetRange(index, count));
-                    _level.DynamicLights.Add(dynamicLight);
-                    side.DynamicLight = dynamicLight;
+                    // Need to check side validity here too
+                    if (Level.Segments.Count > segmentNum && Level.Segments[segmentNum].Sides.Length > sideNum)
+                    {
+                        var side = Level.Segments[segmentNum].Sides[sideNum];
+                        var dynamicLight = new DynamicLight(side);
+                        // Throw away light deltas with invalid targets
+                        dynamicLight.LightDeltas.AddRange(_lightDeltas.GetRange(index, count)
+                            .Where(delta => delta.targetSide != null));
+                        _level.DynamicLights.Add(dynamicLight);
+                        side.DynamicLight = dynamicLight;
+                    }
+                }
+            }
+        }
+    }
+
+    internal class D2XXLLevelReader : D2LevelReader
+    {
+        private D2XXLLevel _xlLevel;
+        private Dictionary<uint, SegmentGroup> _segmentGroups = new Dictionary<uint, SegmentGroup>();
+        private Dictionary<Segment, uint> _segmentPowerupMatcenLinks = new Dictionary<Segment, uint>();
+
+        public D2XXLLevelReader(Stream stream) : base(stream)
+        {
+        }
+
+        public new D2XXLLevel Load()
+        {
+            _xlLevel = new D2XXLLevel();
+            _level = _xlLevel;
+            LoadLevel();
+            return _xlLevel;
+        }
+
+        protected override void CheckLevelVersion()
+        {
+            if (_levelVersion < 9 || _levelVersion > 27)
+            {
+                throw new InvalidDataException($"Level version should be between 9 and 27 but was {_levelVersion}.");
+            }
+        }
+
+        protected override void ReadXLSegmentData(BinaryReader reader, D2XXLSegment xlSegment)
+        {
+            xlSegment.Owner = (SegOwner)reader.ReadSByte();
+            var groupId = reader.ReadSByte();
+            if (groupId >= 0)
+            {
+                // We don't know in what order we'll encounter segment groups, and there might be
+                // gaps, so we're compiling them in a dictionary before converting to a list
+                var normalizedGroupId = (uint)groupId;
+                if (!_segmentGroups.ContainsKey(normalizedGroupId))
+                {
+                    _segmentGroups[normalizedGroupId] = new SegmentGroup();
+                }
+                _segmentGroups[normalizedGroupId].Add(xlSegment);
+                xlSegment.Group = _segmentGroups[normalizedGroupId];
+            }
+        }
+
+        protected override void LoadVersionSpecificMineData(BinaryReader reader)
+        {
+            base.LoadVersionSpecificMineData(reader);
+            foreach (var segmentGroup in _segmentGroups.Values)
+            {
+                _xlLevel.SegmentGroups.Add(segmentGroup);
+            }
+        }
+
+        protected override ITrigger ReadTrigger(BinaryReader reader)
+        {
+            return ReadXLTrigger(reader, false);
+        }
+
+        protected override void AddTrigger(ITrigger trigger)
+        {
+            _xlLevel.Triggers.Add(trigger as D2XXLTrigger);
+        }
+
+        protected override void ReadXLObjectTriggers(BinaryReader reader)
+        {
+            var objectTriggers = new List<D2XXLTrigger>();
+            var numObjectTriggers = reader.ReadInt32();
+            for (int i = 0; i < numObjectTriggers; i++)
+            {
+                var trigger = ReadXLTrigger(reader, true);
+                objectTriggers.Add(trigger);
+            }
+
+            foreach (var trigger in objectTriggers)
+            {
+                if (_fileInfo.version < 40)
+                {
+                    // Adapted from DLE code - don't know what these values were but
+                    // presumably they're obsolete
+                    reader.ReadInt16();
+                    reader.ReadInt16();
+                }
+
+                var objectId = reader.ReadInt16();
+                var levelObject = Level.Objects[objectId];
+                levelObject.Trigger = trigger;
+                trigger.ConnectedObjects.Add(levelObject);
+            }
+            _xlLevel.Triggers.AddRange(objectTriggers);
+
+            // Adapted from DLE code - this may not be necessary, presumably
+            // moves to the end of the triggers block
+            if (_fileInfo.version < 40)
+            {
+                var offset = (_fileInfo.version < 36) ?
+                    (700 * sizeof(short)) :
+                    (2 * sizeof(short) * reader.ReadInt16());
+                reader.BaseStream.Seek(offset, SeekOrigin.Current);
+            }
+        }
+
+        private D2XXLTrigger ReadXLTrigger(BinaryReader reader, bool isObjectTrigger)
+        {
+            var trigger = new D2XXLTrigger();
+            trigger.Type = (D2XXLTriggerType)reader.ReadByte();
+            // Object triggers have a wider bitfield for flags, but as far as I can tell,
+            // nothing above the first byte is actually used anyway
+            trigger.Flags = (D2XXLTriggerFlags)(isObjectTrigger ? reader.ReadUInt16() : reader.ReadByte());
+            var numLinks = reader.ReadSByte();
+            reader.ReadByte(); //padding byte
+            trigger.Value = new Fix(reader.ReadInt32());
+            if ((trigger.Type == D2XXLTriggerType.Exit && _levelVersion < 21) ||
+                (trigger.Type == D2XXLTriggerType.Master && _fileInfo.version < 39))
+            {
+                trigger.Value = 0;
+            }
+            trigger.Time = reader.ReadInt32();
+
+            var targets = ReadFixedLengthTargetList(reader, D2XXLTrigger.MaxWallsPerLink);
+            for (int i = 0; i < numLinks; i++)
+            {
+                var side = Level.Segments[targets[i].segmentNum].Sides[targets[i].sideNum];
+                trigger.Targets.Add(side);
+            }
+
+            return trigger;
+        }
+
+        protected override void AddMatcen(IMatCenter matcen)
+        {
+            _xlLevel.MatCenters.Add(matcen);
+        }
+
+        protected override void LoadVersionSpecificGameInfo(BinaryReader reader)
+        {
+            base.LoadVersionSpecificGameInfo(reader);
+
+            _fileInfo.fogPresets.CopyTo(_xlLevel.FogPresets, 0);
+
+            // Powerup matcens
+            if (_fileInfo.powerupMatcenOffset != -1)
+            {
+                reader.BaseStream.Seek(_fileInfo.powerupMatcenOffset, SeekOrigin.Begin);
+                for (int i = 0; i < _fileInfo.powerupMatcenCount; i++)
+                {
+                    var powerupFlags = new uint[2];
+                    powerupFlags[0] = reader.ReadUInt32();
+                    powerupFlags[1] = reader.ReadUInt32();
+                    var hitPoints = reader.ReadInt32();
+                    var interval = reader.ReadInt32();
+                    var segmentNum = reader.ReadInt16();
+                    _ = reader.ReadInt16(); // fuelcen number - not needed
+
+                    var matcen = new PowerupMatCenter(Level.Segments[segmentNum]);
+                    matcen.InitializeSpawnedPowerups(powerupFlags);
+                    matcen.HitPoints = hitPoints;
+                    matcen.Interval = interval;
+                    AddMatcen(matcen);
+                }
+
+                foreach (var segmentPowerupMatcenLink in _segmentPowerupMatcenLinks)
+                {
+                    segmentPowerupMatcenLink.Key.MatCenter = Level.MatCenters[(int)segmentPowerupMatcenLink.Value];
                 }
             }
         }
@@ -920,6 +1250,10 @@ namespace LibDescent.Data
             {
                 return new D2LevelReader(stream).Load();
             }
+            else if (levelVersion >= 9 && levelVersion <= 27)
+            {
+                return new D2XXLLevelReader(stream).Load();
+            }
             else
             {
                 throw new InvalidDataException($"Unrecognized level version {levelVersion}.");
@@ -935,7 +1269,6 @@ namespace LibDescent.Data
         protected abstract ILevel Level { get; }
         protected abstract int LevelVersion { get; }
         protected abstract ushort GameDataVersion { get; }
-        private const int GameDataSize = 143;
 
         /// <summary>
         /// The .POF file names to write into the level, for consumers that need it.
@@ -1013,6 +1346,11 @@ namespace LibDescent.Data
 
             foreach (var segment in Level.Segments)
             {
+                if (segment is D2XXLSegment xlSegment)
+                {
+                    WriteXLSegmentData(writer, xlSegment);
+                }
+
                 writer.Write(GetSegmentBitMask(segment));
                 if (LevelVersion == 5)
                 {
@@ -1055,7 +1393,7 @@ namespace LibDescent.Data
         {
             byte segmentBitMask = 0;
 
-            for (uint sideNum = 0; sideNum < Segment.MaxSegmentSides; sideNum++)
+            for (uint sideNum = 0; sideNum < Segment.MaxSides; sideNum++)
             {
                 var side = segment.Sides[sideNum];
                 if (side.ConnectedSegment != null || side.Exit)
@@ -1065,7 +1403,7 @@ namespace LibDescent.Data
 
                 if (SegmentHasSpecialData(segment))
                 {
-                    segmentBitMask |= (1 << Segment.MaxSegmentSides);
+                    segmentBitMask |= (1 << Segment.MaxSides);
                 }
             }
 
@@ -1152,7 +1490,7 @@ namespace LibDescent.Data
         private void WriteSegmentWalls(BinaryWriter writer, Segment segment)
         {
             byte wallsBitMask = 0;
-            for (int sideNum = 0; sideNum < Segment.MaxSegmentSides; sideNum++)
+            for (int sideNum = 0; sideNum < Segment.MaxSides; sideNum++)
             {
                 if (segment.Sides[sideNum].Wall != null)
                 {
@@ -1165,7 +1503,14 @@ namespace LibDescent.Data
             {
                 if (side.Wall != null)
                 {
-                    writer.Write((byte)Level.Walls.IndexOf(side.Wall));
+                    if (LevelVersion < 13)
+                    {
+                        writer.Write((byte)Level.Walls.IndexOf(side.Wall));
+                    }
+                    else
+                    {
+                        writer.Write((ushort)Level.Walls.IndexOf(side.Wall));
+                    }
                 }
             }
         }
@@ -1174,6 +1519,15 @@ namespace LibDescent.Data
         {
             foreach (var side in segment.Sides)
             {
+                if (LevelVersion > 24)
+                {
+                    // Write D2X-XL side vertex -> segment vertex table
+                    for (int i = 0; i < Side.MaxVertices; i++)
+                    {
+                        writer.Write((byte)segment.Vertices.IndexOf(side.GetVertex(i)));
+                    }
+                }
+
                 if ((side.ConnectedSegment == null && !side.Exit) || side.Wall != null)
                 {
                     ushort rawTextureIndex = side.BaseTextureIndex;
@@ -1207,12 +1561,13 @@ namespace LibDescent.Data
             FileInfo fileInfo = new FileInfo();
             fileInfo.signature = 0x6705;
             fileInfo.version = GameDataVersion;
-            fileInfo.size = GameDataSize;
+            fileInfo.size = 0;
             fileInfo.mineFilename = ""; // Not used, leave blank
             fileInfo.levelNumber = 0; // Doesn't seem to be used by Descent
 
             // We'll have to rewrite FileInfo later, but write it now to make space
-            WriteFileInfo(writer, ref fileInfo);
+            WriteFileInfo(writer, fileInfo);
+            fileInfo.size = (int)(writer.BaseStream.Position - fileInfoOffset);
 
             if (GameDataVersion >= 14)
             {
@@ -1252,6 +1607,8 @@ namespace LibDescent.Data
             fileInfo.wallsOffset = (Level.Walls.Count > 0) ?
                 (int)writer.BaseStream.Position : -1;
             fileInfo.wallsCount = Level.Walls.Count;
+            // Wall triggers are written before object triggers, so we have to filter
+            var wallTriggers = Level.GetWallTriggers();
             if (GameDataVersion >= 20)
             {
                 foreach (var wall in Level.Walls)
@@ -1261,14 +1618,21 @@ namespace LibDescent.Data
                     writer.Write(wall.HitPoints.value);
                     writer.Write(wall.OppositeWall != null ? Level.Walls.IndexOf(wall.OppositeWall) : -1);
                     writer.Write((byte)wall.Type);
-                    writer.Write((byte)wall.Flags);
+                    if (GameDataVersion < 37)
+                    {
+                        writer.Write((byte)wall.Flags);
+                    }
+                    else
+                    {
+                        writer.Write((ushort)wall.Flags);
+                    }
                     writer.Write((byte)wall.State);
-                    writer.Write((byte)(wall.Trigger != null ? Level.Triggers.IndexOf(wall.Trigger) : 0xFF));
+                    writer.Write((byte)(wall.Trigger != null ? wallTriggers.IndexOf(wall.Trigger) : 0xFF));
                     writer.Write(wall.DoorClipNumber);
                     writer.Write((byte)wall.Keys);
                     // We can only write one controlling trigger, so use the first one
                     var controllingTriggerIndex = (wall.ControllingTriggers.Count > 0) ?
-                        Level.Triggers.IndexOf(wall.ControllingTriggers[0].trigger) : -1;
+                        wallTriggers.IndexOf(wall.ControllingTriggers[0].trigger) : -1;
                     writer.Write((byte)controllingTriggerIndex);
                     writer.Write(wall.CloakOpacity);
                 }
@@ -1281,15 +1645,23 @@ namespace LibDescent.Data
             fileInfo.doorsSize = 0;
 
             // Triggers
-            fileInfo.triggersOffset = (Level.Triggers.Count > 0) ?
+            fileInfo.triggersOffset = (wallTriggers.Count > 0) ?
                 (int)writer.BaseStream.Position : -1;
-            fileInfo.triggersCount = Level.Triggers.Count;
-            foreach (var trigger in Level.Triggers)
+            fileInfo.triggersCount = wallTriggers.Count;
+            foreach (var trigger in wallTriggers)
             {
                 WriteTrigger(writer, trigger);
             }
-            fileInfo.triggersSize = (Level.Triggers.Count > 0) ?
+            fileInfo.triggersSize = (wallTriggers.Count > 0) ?
                 (int)writer.BaseStream.Position - fileInfo.triggersOffset : 0;
+
+            // Object triggers (D2X-XL)
+            // These must be written immediately after wall triggers but are not counted
+            // in the same fileInfo block (for some reason)
+            if (LevelVersion >= 12)
+            {
+                WriteObjectTriggers(writer);
+            }
 
             fileInfo.linksOffset = -1;
             fileInfo.linksCount = 0;
@@ -1332,10 +1704,10 @@ namespace LibDescent.Data
                 (int)writer.BaseStream.Position - fileInfo.reactorTriggersOffset : 0;
 
             // Matcens
-            fileInfo.matcenOffset = (Level.MatCenters.Count > 0) ?
-                (int)writer.BaseStream.Position : -1;
-            fileInfo.matcenCount = Level.MatCenters.Count;
-            foreach (var matcen in Level.MatCenters)
+            var matcens = Level.GetRobotMatCenters();
+            fileInfo.matcenOffset = (matcens.Count > 0) ? (int)writer.BaseStream.Position : -1;
+            fileInfo.matcenCount = matcens.Count;
+            foreach (var matcen in matcens)
             {
                 var robotFlags = new uint[2];
                 foreach (uint robotId in matcen.SpawnedRobotIds)
@@ -1360,20 +1732,26 @@ namespace LibDescent.Data
                 writer.Write((short)Level.Segments.IndexOf(matcen.Segment));
                 writer.Write((short)_fuelcens.IndexOf(matcen.Segment));
             }
-            fileInfo.matcenSize = (Level.MatCenters.Count > 0) ?
+            fileInfo.matcenSize = (matcens.Count > 0) ?
                 (int)writer.BaseStream.Position - fileInfo.matcenOffset : 0;
 
             if (GameDataVersion >= 29)
             {
-                WriteDynamicLights(writer, ref fileInfo);
+                WriteDynamicLights(writer, fileInfo);
+            }
+
+            // Powerup matcens (D2X-XL)
+            if (LevelVersion >= 16)
+            {
+                WritePowerupMatcens(writer, fileInfo);
             }
 
             // Rewrite FileInfo with updated data
             writer.BaseStream.Seek(fileInfoOffset, SeekOrigin.Begin);
-            WriteFileInfo(writer, ref fileInfo);
+            WriteFileInfo(writer, fileInfo);
         }
 
-        private void WriteFileInfo(BinaryWriter writer, ref FileInfo fileInfo)
+        private void WriteFileInfo(BinaryWriter writer, FileInfo fileInfo)
         {
             writer.Write(fileInfo.signature);
             writer.Write(fileInfo.version);
@@ -1413,6 +1791,26 @@ namespace LibDescent.Data
                 writer.Write(fileInfo.deltaLightsCount);
                 writer.Write(fileInfo.deltaLightsSize);
             }
+
+            // D2X-XL extensions
+
+            if (LevelVersion >= 16)
+            {
+                writer.Write(fileInfo.powerupMatcenOffset);
+                writer.Write(fileInfo.powerupMatcenCount);
+                writer.Write(fileInfo.powerupMatcenSize);
+            }
+
+            if (LevelVersion >= 27)
+            {
+                for (int i = 0; i < fileInfo.fogPresets.Length; i++)
+                {
+                    writer.Write((byte)fileInfo.fogPresets[i].color.R);
+                    writer.Write((byte)fileInfo.fogPresets[i].color.G);
+                    writer.Write((byte)fileInfo.fogPresets[i].color.B);
+                    writer.Write((byte)(fileInfo.fogPresets[i].density * 20));
+                }
+            }
         }
 
         private void WriteObject(BinaryWriter writer, LevelObject levelObject)
@@ -1423,6 +1821,10 @@ namespace LibDescent.Data
             writer.Write((byte)levelObject.moveType);
             writer.Write((byte)levelObject.renderType);
             writer.Write(levelObject.flags);
+            if (GameDataVersion > 37)
+            {
+                writer.Write((byte)(levelObject.MultiplayerOnly ? 1 : 0));
+            }
             writer.Write(levelObject.segnum);
             WriteFixVector(writer, levelObject.position);
             WriteFixMatrix(writer, levelObject.orientation);
@@ -1481,6 +1883,11 @@ namespace LibDescent.Data
                         writer.Write(levelObject.powerupCount);
                     }
                     break;
+                case ControlType.Waypoint:
+                    writer.Write(levelObject.waypointInfo.waypointId);
+                    writer.Write(levelObject.waypointInfo.nextWaypointId);
+                    writer.Write(levelObject.waypointInfo.speed);
+                    break;
             }
             switch (levelObject.renderType)
             {
@@ -1502,6 +1909,55 @@ namespace LibDescent.Data
                     writer.Write(levelObject.spriteInfo.vclipNum);
                     writer.Write(levelObject.spriteInfo.frameTime.value);
                     writer.Write(levelObject.spriteInfo.frameNumber);
+                    break;
+                case RenderType.Particle:
+                    writer.Write(levelObject.particleInfo.nLife);
+                    writer.Write(levelObject.particleInfo.nSize);
+                    writer.Write(levelObject.particleInfo.nParts);
+                    writer.Write(levelObject.particleInfo.nSpeed);
+                    writer.Write(levelObject.particleInfo.nDrift);
+                    writer.Write(levelObject.particleInfo.nBrightness);
+                    writer.Write((byte)levelObject.particleInfo.color.R);
+                    writer.Write((byte)levelObject.particleInfo.color.G);
+                    writer.Write((byte)levelObject.particleInfo.color.B);
+                    writer.Write((byte)levelObject.particleInfo.color.A);
+                    writer.Write(levelObject.particleInfo.nSide);
+                    writer.Write(levelObject.particleInfo.nType);
+                    writer.Write((byte)(levelObject.particleInfo.enabled ? 1 : 0));
+                    break;
+                case RenderType.Lightning:
+                    writer.Write(levelObject.lightningInfo.nLife);
+                    writer.Write(levelObject.lightningInfo.nDelay);
+                    writer.Write(levelObject.lightningInfo.nLength);
+                    writer.Write(levelObject.lightningInfo.nAmplitude);
+                    writer.Write(levelObject.lightningInfo.nOffset);
+                    writer.Write(levelObject.lightningInfo.nWayPoint);
+                    writer.Write(levelObject.lightningInfo.nBolts);
+                    writer.Write(levelObject.lightningInfo.nId);
+                    writer.Write(levelObject.lightningInfo.nTarget);
+                    writer.Write(levelObject.lightningInfo.nNodes);
+                    writer.Write(levelObject.lightningInfo.nChildren);
+                    writer.Write(levelObject.lightningInfo.nFrames);
+                    writer.Write(levelObject.lightningInfo.nWidth);
+                    writer.Write(levelObject.lightningInfo.nAngle);
+                    writer.Write(levelObject.lightningInfo.nStyle);
+                    writer.Write(levelObject.lightningInfo.nSmoothe);
+                    writer.Write(levelObject.lightningInfo.bClamp);
+                    writer.Write(levelObject.lightningInfo.bPlasma);
+                    writer.Write(levelObject.lightningInfo.bSound);
+                    writer.Write(levelObject.lightningInfo.bRandom);
+                    writer.Write(levelObject.lightningInfo.bInPlane);
+                    writer.Write((byte)levelObject.lightningInfo.color.R);
+                    writer.Write((byte)levelObject.lightningInfo.color.G);
+                    writer.Write((byte)levelObject.lightningInfo.color.B);
+                    writer.Write((byte)levelObject.lightningInfo.color.A);
+                    writer.Write((byte)(levelObject.lightningInfo.enabled ? 1 : 0));
+                    break;
+                case RenderType.Sound:
+                    var soundFilename = EncodeString(levelObject.soundInfo.filename, 40, false);
+                    writer.Write(soundFilename);
+                    writer.Write(levelObject.soundInfo.volume);
+                    writer.Write((byte)(levelObject.soundInfo.enabled ? 1 : 0));
                     break;
             }
         }
@@ -1544,8 +2000,11 @@ namespace LibDescent.Data
         }
 
         protected abstract void WriteVersionSpecificLevelInfo(BinaryWriter writer);
+        protected abstract void WriteXLSegmentData(BinaryWriter writer, D2XXLSegment xlSegment);
         protected abstract void WriteTrigger(BinaryWriter writer, ITrigger trigger);
-        protected abstract void WriteDynamicLights(BinaryWriter writer, ref FileInfo fileInfo);
+        protected abstract void WriteDynamicLights(BinaryWriter writer, FileInfo fileInfo);
+        protected abstract void WriteObjectTriggers(BinaryWriter writer);
+        protected abstract void WritePowerupMatcens(BinaryWriter writer, FileInfo fileInfo);
     }
 
     internal class D1LevelWriter : DescentLevelWriter
@@ -1560,12 +2019,6 @@ namespace LibDescent.Data
         {
             _stream = stream;
             _level = level;
-        }
-
-        protected override void WriteDynamicLights(BinaryWriter writer, ref FileInfo fileInfo)
-        {
-            // Only needed for D2, shouldn't be called for D1
-            throw new NotImplementedException();
         }
 
         protected override void WriteTrigger(BinaryWriter writer, ITrigger trigger)
@@ -1604,6 +2057,27 @@ namespace LibDescent.Data
 
         protected override void WriteVersionSpecificLevelInfo(BinaryWriter writer)
         {
+        }
+
+        protected override void WriteDynamicLights(BinaryWriter writer, FileInfo fileInfo)
+        {
+            // Only needed for D2, shouldn't be called for D1
+            throw new NotImplementedException();
+        }
+
+        protected override void WriteXLSegmentData(BinaryWriter writer, D2XXLSegment xlSegment)
+        {
+            throw new NotImplementedException();
+        }
+
+        protected override void WriteObjectTriggers(BinaryWriter writer)
+        {
+            throw new NotImplementedException();
+        }
+
+        protected override void WritePowerupMatcens(BinaryWriter writer, FileInfo fileInfo)
+        {
+            throw new NotImplementedException();
         }
     }
 
@@ -1681,27 +2155,42 @@ namespace LibDescent.Data
             }
         }
 
-        protected override void WriteDynamicLights(BinaryWriter writer, ref FileInfo fileInfo)
+        protected override void WriteDynamicLights(BinaryWriter writer, FileInfo fileInfo)
         {
+            var xlFormat = (LevelVersion >= 15) && (GameDataVersion >= 34);
+            var maxDynamicLights = xlFormat ? 3000 : 500;
+            var maxDeltasPerLight = xlFormat ? 0x1FFF : sbyte.MaxValue;
+            // Note: XL specifies 65536, but deltas > 32767 aren't addressable by lights anyway
+            var maxDeltas = xlFormat ? short.MaxValue : 10000;
+
             // Need to concatenate all light deltas for all dynamic lights into a list
             var lightDeltas = new List<LightDelta>();
 
-            fileInfo.deltaLightIndicesOffset = (_level.DynamicLights.Count > 0) ?
+            // If we run out of space for dynamic lights, stop writing more
+            var dynamicLightsToWrite = Math.Min(_level.DynamicLights.Count, maxDynamicLights);
+            fileInfo.deltaLightIndicesOffset = (dynamicLightsToWrite > 0) ?
                 (int)writer.BaseStream.Position : -1;
-            fileInfo.deltaLightIndicesCount = _level.DynamicLights.Count;
-            foreach (var light in _level.DynamicLights)
+            fileInfo.deltaLightIndicesCount = dynamicLightsToWrite;
+            foreach (var light in _level.DynamicLights.Take(dynamicLightsToWrite))
             {
                 // If we run out of space for light deltas, stop writing more
-                var numDeltasToAdd = Math.Min(light.LightDeltas.Count, sbyte.MaxValue);
-                numDeltasToAdd = Math.Min(numDeltasToAdd, short.MaxValue - lightDeltas.Count);
+                var numDeltasToAdd = Math.Min(light.LightDeltas.Count, maxDeltasPerLight);
+                numDeltasToAdd = Math.Min(numDeltasToAdd, maxDeltas - lightDeltas.Count);
 
                 writer.Write((short)Level.Segments.IndexOf(light.Source.Segment));
-                writer.Write((byte)light.Source.SideNum);
-                writer.Write((byte)numDeltasToAdd);
+                if (xlFormat)
+                {
+                    writer.Write((ushort)(light.Source.SideNum & 0x0007) | (numDeltasToAdd << 3));
+                }
+                else
+                {
+                    writer.Write((byte)light.Source.SideNum);
+                    writer.Write((byte)numDeltasToAdd);
+                }
                 writer.Write((short)lightDeltas.Count);
                 lightDeltas.AddRange(light.LightDeltas.Take(numDeltasToAdd));
 
-                if (lightDeltas.Count == short.MaxValue)
+                if (lightDeltas.Count >= maxDeltas)
                 {
                     break;
                 }
@@ -1724,6 +2213,137 @@ namespace LibDescent.Data
             }
             fileInfo.deltaLightsSize = (lightDeltas.Count > 0) ?
                 (int)writer.BaseStream.Position - fileInfo.deltaLightsOffset : 0;
+        }
+
+        protected override void WriteXLSegmentData(BinaryWriter writer, D2XXLSegment xlSegment)
+        {
+            throw new NotImplementedException();
+        }
+
+        protected override void WriteObjectTriggers(BinaryWriter writer)
+        {
+            throw new NotImplementedException();
+        }
+
+        protected override void WritePowerupMatcens(BinaryWriter writer, FileInfo fileInfo)
+        {
+            throw new NotImplementedException();
+        }
+    }
+
+    internal class D2XXLLevelWriter : D2LevelWriter
+    {
+        private readonly D2XXLLevel _xlLevel;
+
+        protected override int LevelVersion => 27;
+        protected override ushort GameDataVersion => 40;
+
+        public D2XXLLevelWriter(D2XXLLevel level, Stream stream) : base(level, stream, true)
+        {
+            _xlLevel = level;
+        }
+
+        protected override void WriteXLSegmentData(BinaryWriter writer, D2XXLSegment xlSegment)
+        {
+            writer.Write((sbyte)xlSegment.Owner);
+            sbyte groupId = (sbyte)_xlLevel.SegmentGroups.FindIndex(sg => sg.Contains(xlSegment));
+            writer.Write(groupId);
+        }
+
+        protected override void WriteTrigger(BinaryWriter writer, ITrigger trigger)
+        {
+            WriteXLTrigger(writer, trigger as D2XXLTrigger, isObjectTrigger: false);
+        }
+
+        protected override void WriteObjectTriggers(BinaryWriter writer)
+        {
+            var objectTriggers = _xlLevel.GetObjectTriggers();
+            // DLE code suggests this should be sorted by object ID, so let's do that
+            objectTriggers = objectTriggers.OrderBy(t => t.ConnectedObjects.Min(o => _xlLevel.Objects.IndexOf(o))).ToList();
+
+            writer.Write(objectTriggers.Count);
+            foreach (var trigger in objectTriggers)
+            {
+                WriteXLTrigger(writer, trigger as D2XXLTrigger, isObjectTrigger: true);
+            }
+            foreach (var trigger in objectTriggers)
+            {
+                var objectId = (short)_xlLevel.Objects.IndexOf(trigger.ConnectedObjects[0]);
+                writer.Write(objectId);
+            }
+        }
+
+        private void WriteXLTrigger(BinaryWriter writer, D2XXLTrigger trigger, bool isObjectTrigger)
+        {
+            writer.Write((byte)trigger.Type);
+            if (isObjectTrigger)
+            {
+                writer.Write((ushort)trigger.Flags);
+            }
+            else
+            {
+                writer.Write((byte)trigger.Flags);
+            }
+            writer.Write((sbyte)trigger.Targets.Count);
+            writer.Write((byte)0); // padding byte
+            writer.Write(((Fix)trigger.Value).value);
+            writer.Write(trigger.Time);
+            for (int i = 0; i < D2XXLTrigger.MaxWallsPerLink; i++)
+            {
+                if (i < trigger.Targets.Count)
+                {
+                    writer.Write((short)Level.Segments.IndexOf(trigger.Targets[i].Segment));
+                }
+                else
+                {
+                    writer.Write((short)0);
+                }
+            }
+            for (int i = 0; i < D2XXLTrigger.MaxWallsPerLink; i++)
+            {
+                if (i < trigger.Targets.Count)
+                {
+                    writer.Write((short)trigger.Targets[i].SideNum);
+                }
+                else
+                {
+                    writer.Write((short)0);
+                }
+            }
+        }
+
+        protected override void WritePowerupMatcens(BinaryWriter writer, FileInfo fileInfo)
+        {
+            var powerupMatcens = Level.GetPowerupMatCenters();
+            fileInfo.powerupMatcenOffset = (powerupMatcens.Count > 0) ?
+                (int)writer.BaseStream.Position : -1;
+            fileInfo.powerupMatcenCount = powerupMatcens.Count;
+
+            foreach (var matcen in powerupMatcens)
+            {
+                var powerupFlags = new uint[2];
+                foreach (uint powerupId in matcen.SpawnedPowerupIds)
+                {
+                    if (powerupId < 32)
+                    {
+                        powerupFlags[0] |= 1u << (int)powerupId;
+                    }
+                    else if (powerupId < 64)
+                    {
+                        powerupFlags[1] |= 1u << (int)(powerupId - 32);
+                    }
+                }
+
+                writer.Write(powerupFlags[0]);
+                writer.Write(powerupFlags[1]);
+                writer.Write(matcen.HitPoints.value);
+                writer.Write(matcen.Interval.value);
+                writer.Write((short)Level.Segments.IndexOf(matcen.Segment));
+                writer.Write((short)_fuelcens.IndexOf(matcen.Segment));
+            }
+
+            fileInfo.matcenSize = (powerupMatcens.Count > 0) ?
+                (int)writer.BaseStream.Position - fileInfo.matcenOffset : 0;
         }
     }
 }

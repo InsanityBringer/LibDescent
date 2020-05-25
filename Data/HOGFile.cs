@@ -187,6 +187,19 @@ namespace LibDescent.Data
         }
 
         /// <summary>
+        /// Writes the current contents of the HOG file to its associated file on disk.
+        /// </summary>
+        public void Write()
+        {
+            if (Filename == null)
+            {
+                throw new InvalidOperationException("This HOG file has no associated filename.");
+            }
+
+            Write(Filename);
+        }
+
+        /// <summary>
         /// Writes the current contents of the HOG file to a file with the given filename.
         /// </summary>
         /// <param name="filename">The filename to write the HOG file to.</param>

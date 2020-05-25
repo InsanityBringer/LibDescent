@@ -25,6 +25,9 @@ using System.Collections.Generic;
 
 namespace LibDescent.Data
 {
+    /// <summary>
+    /// The kind of action a trigger performs when activated.
+    /// </summary>
     public enum TriggerType
     {
         OpenDoor,
@@ -41,6 +44,48 @@ namespace LibDescent.Data
         IllusionWall,
         LightOff,
         LightOn,
+    }
+
+    public enum D2XXLTriggerType
+    {
+        OpenDoor,
+        CloseDoor,
+        Matcen,
+        Exit,
+        SecretExit,
+        IllusionOff,
+        IllusionOn,
+        UnlockDoor,
+        LockDoor,
+        OpenWall,
+        CloseWall,
+        IllusionWall,
+        LightOff,
+        LightOn,
+        // D2X-XL-specific types
+        Teleport,
+        SpeedBoost,
+        Camera,
+        ShieldDrain,
+        EnergyDrain,
+        ChangeTexture,
+        SmokeLife,
+        SmokeSpeed,
+        SmokeDensity,
+        SmokeSize,
+        SmokeDrift,
+        Countdown,
+        SpawnRobot,
+        SmokeBrightness,
+        MovePlayerStart,
+        Message,
+        Sound,
+        Master,
+        EnableTrigger,
+        DisableTrigger,
+        DisarmRobot,
+        ReprogramRobot,
+        ShakeMine,
     }
 
     [Flags]
@@ -69,22 +114,23 @@ namespace LibDescent.Data
         NoMessage = 0x1,
         OneShot = 0x2,
         Disabled = 0x4, // D2 sets this on a one-shot trigger when activated
-#if false
+    }
+
+    [Flags]
+    public enum D2XXLTriggerFlags
+    {
+        NoMessage = 0x1,
+        OneShot = 0x2,
+        Disabled = 0x4, // D2 sets this on a one-shot trigger when activated
         Permanent = 0x8, // D2X-XL only; control panel not destroyed when activated
         Alternate = 0x10, // D2X-XL only; trigger type inverts between activations
         SetOrient = 0x20, // D2X-XL only
         Silent = 0x40, // D2X-XL only
         AutoPlay = 0x80, // D2X-XL only
-#endif
     }
 
     public interface ITrigger
     {
-        /// <summary>
-        /// The kind of action this trigger performs when activated.
-        /// </summary>
-        TriggerType Type { get; set; }
-
         /// <summary>
         /// A list of the sides this trigger acts on.
         /// </summary>
@@ -94,6 +140,16 @@ namespace LibDescent.Data
         /// A value used by the trigger's action. Effect depends on trigger type.
         /// </summary>
         ValueType Value { get; set; }
+
+        /// <summary>
+        /// A list of the walls that activate this trigger.
+        /// </summary>
+        List<Wall> ConnectedWalls { get; }
+
+        /// <summary>
+        /// A list of the objects that activate this trigger. D2X-XL only.
+        /// </summary>
+        List<LevelObject> ConnectedObjects { get; }
     }
 
     /// <summary>
@@ -109,6 +165,10 @@ namespace LibDescent.Data
         public List<Side> Targets { get; } = new List<Side>();
 
         public ValueType Value { get => value; set => this.value = (int)value; }
+
+        public List<Wall> ConnectedWalls { get; } = new List<Wall>();
+
+        public List<LevelObject> ConnectedObjects => new List<LevelObject>();
 
         public ushort Flags { get; set; }
 
@@ -129,6 +189,10 @@ namespace LibDescent.Data
         public List<Side> Targets { get; } = new List<Side>();
 
         public ValueType Value { get => fixValue; set => fixValue = (Fix)value; }
+
+        public List<Wall> ConnectedWalls { get; } = new List<Wall>();
+
+        public List<LevelObject> ConnectedObjects => new List<LevelObject>();
 
         public D1TriggerFlags Flags { get; set; }
 
@@ -154,7 +218,36 @@ namespace LibDescent.Data
         /// </summary>
         public ValueType Value { get => fixValue; set => fixValue = (Fix)value; }
 
+        public List<Wall> ConnectedWalls { get; } = new List<Wall>();
+
+        public List<LevelObject> ConnectedObjects => new List<LevelObject>();
+
         public D2TriggerFlags Flags { get; set; }
+
+        /// <summary>
+        /// Appears to have been intended to govern the "cooldown" time of repeatable triggers.
+        /// Descent does not actually make use of this value.
+        /// </summary>
+        public int Time { get; set; }
+    }
+
+    public class D2XXLTrigger : ITrigger
+    {
+        public const int MaxWallsPerLink = 10;
+
+        private Fix fixValue;
+
+        public D2XXLTriggerType Type { get; set; }
+
+        public List<Side> Targets { get; } = new List<Side>();
+
+        public ValueType Value { get => fixValue; set => fixValue = (Fix)value; }
+
+        public List<Wall> ConnectedWalls { get; } = new List<Wall>();
+
+        public List<LevelObject> ConnectedObjects { get; } = new List<LevelObject>();
+
+        public D2XXLTriggerFlags Flags { get; set; }
 
         /// <summary>
         /// Appears to have been intended to govern the "cooldown" time of repeatable triggers.
