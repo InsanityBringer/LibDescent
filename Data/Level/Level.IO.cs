@@ -1346,6 +1346,11 @@ namespace LibDescent.Data
 
             foreach (var segment in Level.Segments)
             {
+                if (segment is D2XXLSegment xlSegment)
+                {
+                    WriteXLSegmentData(writer, xlSegment);
+                }
+
                 writer.Write(GetSegmentBitMask(segment));
                 if (LevelVersion == 5)
                 {
@@ -1498,7 +1503,14 @@ namespace LibDescent.Data
             {
                 if (side.Wall != null)
                 {
-                    writer.Write((byte)Level.Walls.IndexOf(side.Wall));
+                    if (LevelVersion < 13)
+                    {
+                        writer.Write((byte)Level.Walls.IndexOf(side.Wall));
+                    }
+                    else
+                    {
+                        writer.Write((ushort)Level.Walls.IndexOf(side.Wall));
+                    }
                 }
             }
         }
@@ -1507,6 +1519,15 @@ namespace LibDescent.Data
         {
             foreach (var side in segment.Sides)
             {
+                if (LevelVersion > 24)
+                {
+                    // Write D2X-XL side vertex -> segment vertex table
+                    for (int i = 0; i < Side.MaxVertices; i++)
+                    {
+                        writer.Write((byte)segment.Vertices.IndexOf(side.GetVertex(i)));
+                    }
+                }
+
                 if ((side.ConnectedSegment == null && !side.Exit) || side.Wall != null)
                 {
                     ushort rawTextureIndex = side.BaseTextureIndex;
@@ -1800,7 +1821,7 @@ namespace LibDescent.Data
             writer.Write((byte)levelObject.moveType);
             writer.Write((byte)levelObject.renderType);
             writer.Write(levelObject.flags);
-            if(GameDataVersion > 37)
+            if (GameDataVersion > 37)
             {
                 writer.Write((byte)(levelObject.MultiplayerOnly ? 1 : 0));
             }
@@ -1979,6 +2000,7 @@ namespace LibDescent.Data
         }
 
         protected abstract void WriteVersionSpecificLevelInfo(BinaryWriter writer);
+        protected abstract void WriteXLSegmentData(BinaryWriter writer, D2XXLSegment xlSegment);
         protected abstract void WriteTrigger(BinaryWriter writer, ITrigger trigger);
         protected abstract void WriteDynamicLights(BinaryWriter writer, FileInfo fileInfo);
         protected abstract void WriteObjectTriggers(BinaryWriter writer);
@@ -1997,12 +2019,6 @@ namespace LibDescent.Data
         {
             _stream = stream;
             _level = level;
-        }
-
-        protected override void WriteDynamicLights(BinaryWriter writer, FileInfo fileInfo)
-        {
-            // Only needed for D2, shouldn't be called for D1
-            throw new NotImplementedException();
         }
 
         protected override void WriteTrigger(BinaryWriter writer, ITrigger trigger)
@@ -2041,6 +2057,17 @@ namespace LibDescent.Data
 
         protected override void WriteVersionSpecificLevelInfo(BinaryWriter writer)
         {
+        }
+
+        protected override void WriteDynamicLights(BinaryWriter writer, FileInfo fileInfo)
+        {
+            // Only needed for D2, shouldn't be called for D1
+            throw new NotImplementedException();
+        }
+
+        protected override void WriteXLSegmentData(BinaryWriter writer, D2XXLSegment xlSegment)
+        {
+            throw new NotImplementedException();
         }
 
         protected override void WriteObjectTriggers(BinaryWriter writer)
@@ -2188,6 +2215,11 @@ namespace LibDescent.Data
                 (int)writer.BaseStream.Position - fileInfo.deltaLightsOffset : 0;
         }
 
+        protected override void WriteXLSegmentData(BinaryWriter writer, D2XXLSegment xlSegment)
+        {
+            throw new NotImplementedException();
+        }
+
         protected override void WriteObjectTriggers(BinaryWriter writer)
         {
             throw new NotImplementedException();
@@ -2209,6 +2241,13 @@ namespace LibDescent.Data
         public D2XXLLevelWriter(D2XXLLevel level, Stream stream) : base(level, stream, true)
         {
             _xlLevel = level;
+        }
+
+        protected override void WriteXLSegmentData(BinaryWriter writer, D2XXLSegment xlSegment)
+        {
+            writer.Write((sbyte)xlSegment.Owner);
+            sbyte groupId = (sbyte)_xlLevel.SegmentGroups.FindIndex(sg => sg.Contains(xlSegment));
+            writer.Write(groupId);
         }
 
         protected override void WriteTrigger(BinaryWriter writer, ITrigger trigger)
@@ -2237,7 +2276,14 @@ namespace LibDescent.Data
         private void WriteXLTrigger(BinaryWriter writer, D2XXLTrigger trigger, bool isObjectTrigger)
         {
             writer.Write((byte)trigger.Type);
-            writer.Write(isObjectTrigger ? (ushort)trigger.Flags : (byte)trigger.Flags);
+            if (isObjectTrigger)
+            {
+                writer.Write((ushort)trigger.Flags);
+            }
+            else
+            {
+                writer.Write((byte)trigger.Flags);
+            }
             writer.Write((sbyte)trigger.Targets.Count);
             writer.Write((byte)0); // padding byte
             writer.Write(((Fix)trigger.Value).value);
