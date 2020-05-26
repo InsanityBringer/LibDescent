@@ -227,7 +227,17 @@ namespace LibDescent.Data
 
         public ControlTypeID controlType;
         public MovementTypeID moveType;
-        public RenderTypeID renderType;
+        //public RenderTypeID renderType;
+        public RenderTypeID RenderTypeID
+        {
+            get
+            {
+                if (RenderType == null)
+                    return RenderTypeID.None;
+                return RenderType.Identifier;
+            }
+        }
+
         public byte flags;
 
         /// <summary>
@@ -254,12 +264,8 @@ namespace LibDescent.Data
         public ExplosionInfo explosionInfo = new ExplosionInfo();
         public int powerupCount;
         public WaypointInfo waypointInfo = new WaypointInfo();
-        public ParticleInfo particleInfo = new ParticleInfo();
-        public LightningInfo lightningInfo = new LightningInfo();
-        public SoundInfo soundInfo = new SoundInfo();
         //Render info
-        public PolymodelInfo modelInfo = new PolymodelInfo();
-        public SpriteInfo spriteInfo;
+        public RenderType RenderType { get; set; }
 
         public int sig;
 

@@ -562,7 +562,7 @@ namespace LibDescent.Data
             levelObject.id = reader.ReadByte();
             levelObject.controlType = (ControlTypeID)reader.ReadByte();
             levelObject.moveType = (MovementTypeID)reader.ReadByte();
-            levelObject.renderType = (RenderTypeID)reader.ReadByte();
+            levelObject.RenderType = RenderTypeFactory.NewRenderType((RenderTypeID)reader.ReadByte());
             levelObject.flags = reader.ReadByte();
             levelObject.MultiplayerOnly = (_fileInfo.version > 37) ? (reader.ReadByte() > 0) : false;
             levelObject.segnum = reader.ReadInt16();
@@ -633,76 +633,85 @@ namespace LibDescent.Data
                     }
                     break;
             }
-            switch (levelObject.renderType)
+            switch (levelObject.RenderType)
             {
-                case RenderTypeID.Polyobj:
+                case PolymodelRenderType pm:
                     {
-                        levelObject.modelInfo.modelNum = reader.ReadInt32();
+                        pm.ModelNum = reader.ReadInt32();
                         for (int i = 0; i < Polymodel.MAX_SUBMODELS; i++)
                         {
-                            levelObject.modelInfo.animAngles[i] = ReadFixAngles(reader);
+                            pm.BodyAngles[i] = ReadFixAngles(reader);
                         }
-                        levelObject.modelInfo.flags = reader.ReadInt32();
-                        levelObject.modelInfo.textureOverride = reader.ReadInt32();
+                        pm.Flags = reader.ReadInt32();
+                        pm.TextureOverride = reader.ReadInt32();
                     }
                     break;
-                case RenderTypeID.WeaponVClip:
-                case RenderTypeID.Hostage:
-                case RenderTypeID.Powerup:
-                case RenderTypeID.Fireball:
-                    levelObject.spriteInfo.vclipNum = reader.ReadInt32();
-                    levelObject.spriteInfo.frameTime = new Fix(reader.ReadInt32());
-                    levelObject.spriteInfo.frameNumber = reader.ReadByte();
+                case FireballRenderType fb:
+                //case RenderTypeID.Hostage:
+                //case RenderTypeID.Powerup:
+                //case RenderTypeID.Fireball:
+                    fb.VClipNum = reader.ReadInt32();
+                    fb.FrameTime = new Fix(reader.ReadInt32());
+                    fb.FrameNumber = reader.ReadByte();
                     break;
-                case RenderTypeID.Particle:
-                    levelObject.particleInfo.nLife = reader.ReadInt32();
-                    levelObject.particleInfo.nSize = reader.ReadInt32();
-                    levelObject.particleInfo.nParts = reader.ReadInt32();
-                    levelObject.particleInfo.nSpeed = reader.ReadInt32();
-                    levelObject.particleInfo.nDrift = reader.ReadInt32();
-                    levelObject.particleInfo.nBrightness = reader.ReadInt32();
-                    levelObject.particleInfo.color.R = reader.ReadByte();
-                    levelObject.particleInfo.color.G = reader.ReadByte();
-                    levelObject.particleInfo.color.B = reader.ReadByte();
-                    levelObject.particleInfo.color.A = reader.ReadByte();
-                    levelObject.particleInfo.nSide = reader.ReadByte();
-                    // DLE used gamedata version, but that was probably a mistake (18 is pre-release D1).
-                    // Don't have a matching level to test with but level version is more likely to work
-                    levelObject.particleInfo.nType = (_levelVersion < 18) ? (byte)0 : reader.ReadByte();
-                    levelObject.particleInfo.enabled = (_levelVersion < 19) ? true : (reader.ReadSByte() > 0);
+                case ParticleRenderType p:
+                    {
+                        p.Life = reader.ReadInt32();
+                        p.Size = reader.ReadInt32();
+                        p.Parts = reader.ReadInt32();
+                        p.Speed = reader.ReadInt32();
+                        p.Drift = reader.ReadInt32();
+                        p.Brightness = reader.ReadInt32();
+                        //I love properties btw
+                        Color color = new Color();
+                        color.R = reader.ReadByte();
+                        color.G = reader.ReadByte();
+                        color.B = reader.ReadByte();
+                        color.A = reader.ReadByte();
+                        p.Color = color;
+                        p.Side = reader.ReadByte();
+                        // DLE used gamedata version, but that was probably a mistake (18 is pre-release D1).
+                        // Don't have a matching level to test with but level version is more likely to work
+                        p.Type = (_levelVersion < 18) ? (byte)0 : reader.ReadByte();
+                        p.Enabled = (_levelVersion < 19) ? true : (reader.ReadSByte() > 0);
+                    }
                     break;
-                case RenderTypeID.Lightning:
-                    levelObject.lightningInfo.nLife = reader.ReadInt32();
-                    levelObject.lightningInfo.nDelay = reader.ReadInt32();
-                    levelObject.lightningInfo.nLength = reader.ReadInt32();
-                    levelObject.lightningInfo.nAmplitude = reader.ReadInt32();
-                    levelObject.lightningInfo.nOffset = reader.ReadInt32();
-                    levelObject.lightningInfo.nWayPoint = (_levelVersion < 23) ? -1 : reader.ReadInt32();
-                    levelObject.lightningInfo.nBolts = reader.ReadInt16();
-                    levelObject.lightningInfo.nId = reader.ReadInt16();
-                    levelObject.lightningInfo.nTarget = reader.ReadInt16();
-                    levelObject.lightningInfo.nNodes = reader.ReadInt16();
-                    levelObject.lightningInfo.nChildren = reader.ReadInt16();
-                    levelObject.lightningInfo.nFrames = reader.ReadInt16();
-                    levelObject.lightningInfo.nWidth = (_levelVersion < 22) ? (byte)3 : reader.ReadByte();
-                    levelObject.lightningInfo.nAngle = reader.ReadByte();
-                    levelObject.lightningInfo.nStyle = reader.ReadByte();
-                    levelObject.lightningInfo.nSmoothe = reader.ReadByte();
-                    levelObject.lightningInfo.bClamp = reader.ReadByte();
-                    levelObject.lightningInfo.bPlasma = reader.ReadByte();
-                    levelObject.lightningInfo.bSound = reader.ReadByte();
-                    levelObject.lightningInfo.bRandom = reader.ReadByte();
-                    levelObject.lightningInfo.bInPlane = reader.ReadByte();
-                    levelObject.lightningInfo.color.R = reader.ReadByte();
-                    levelObject.lightningInfo.color.G = reader.ReadByte();
-                    levelObject.lightningInfo.color.B = reader.ReadByte();
-                    levelObject.lightningInfo.color.A = reader.ReadByte();
-                    levelObject.lightningInfo.enabled = (_levelVersion < 19) ? true : (reader.ReadSByte() > 0);
+                case LightningRenderType l:
+                    {
+                        l.Life = reader.ReadInt32();
+                        l.Delay = reader.ReadInt32();
+                        l.Length = reader.ReadInt32();
+                        l.Amplitude = reader.ReadInt32();
+                        l.Offset = reader.ReadInt32();
+                        l.WayPoint = (_levelVersion < 23) ? -1 : reader.ReadInt32();
+                        l.Bolts = reader.ReadInt16();
+                        l.Id = reader.ReadInt16();
+                        l.Target = reader.ReadInt16();
+                        l.Nodes = reader.ReadInt16();
+                        l.Children = reader.ReadInt16();
+                        l.Frames = reader.ReadInt16();
+                        l.Width = (_levelVersion < 22) ? (byte)3 : reader.ReadByte();
+                        l.Angle = reader.ReadByte();
+                        l.Style = reader.ReadByte();
+                        l.Smoothe = reader.ReadByte();
+                        l.Clamp = reader.ReadByte();
+                        l.Plasma = reader.ReadByte();
+                        l.Sound = reader.ReadByte();
+                        l.Random = reader.ReadByte();
+                        l.InPlane = reader.ReadByte();
+                        Color color = new Color();
+                        color.R = reader.ReadByte();
+                        color.G = reader.ReadByte();
+                        color.B = reader.ReadByte();
+                        color.A = reader.ReadByte();
+                        l.Color = color;
+                        l.Enabled = (_levelVersion < 19) ? true : (reader.ReadSByte() > 0);
+                    }
                     break;
-                case RenderTypeID.Sound:
-                    levelObject.soundInfo.filename = ReadString(reader, 40, false);
-                    levelObject.soundInfo.volume = reader.ReadInt32();
-                    levelObject.soundInfo.enabled = (_levelVersion < 19) ? true : (reader.ReadSByte() > 0);
+                case SoundRenderType s:
+                    s.Filename = ReadString(reader, 40, false);
+                    s.Volume = reader.ReadInt32();
+                    s.Enabled = (_levelVersion < 19) ? true : (reader.ReadSByte() > 0);
                     // Fix IDs from old D2X-XL levels
                     const int SOUND_ID = 2;
                     if (levelObject.id != SOUND_ID)
@@ -1819,7 +1828,7 @@ namespace LibDescent.Data
             writer.Write(levelObject.id);
             writer.Write((byte)levelObject.controlType);
             writer.Write((byte)levelObject.moveType);
-            writer.Write((byte)levelObject.renderType);
+            writer.Write((byte)levelObject.RenderTypeID);
             writer.Write(levelObject.flags);
             if (GameDataVersion > 37)
             {
@@ -1889,75 +1898,72 @@ namespace LibDescent.Data
                     writer.Write(levelObject.waypointInfo.speed);
                     break;
             }
-            switch (levelObject.renderType)
+            switch (levelObject.RenderType)
             {
-                case RenderTypeID.Polyobj:
+                case PolymodelRenderType pm:
                     {
-                        writer.Write(levelObject.modelInfo.modelNum);
+                        writer.Write(pm.ModelNum);
                         for (int i = 0; i < Polymodel.MAX_SUBMODELS; i++)
                         {
-                            WriteFixAngles(writer, levelObject.modelInfo.animAngles[i]);
+                            WriteFixAngles(writer, pm.BodyAngles[i]);
                         }
-                        writer.Write(levelObject.modelInfo.flags);
-                        writer.Write(levelObject.modelInfo.textureOverride);
+                        writer.Write(pm.Flags);
+                        writer.Write(pm.TextureOverride);
                     }
                     break;
-                case RenderTypeID.WeaponVClip:
-                case RenderTypeID.Hostage:
-                case RenderTypeID.Powerup:
-                case RenderTypeID.Fireball:
-                    writer.Write(levelObject.spriteInfo.vclipNum);
-                    writer.Write(levelObject.spriteInfo.frameTime.value);
-                    writer.Write(levelObject.spriteInfo.frameNumber);
+                case FireballRenderType fb:
+                    writer.Write(fb.VClipNum);
+                    writer.Write(fb.FrameTime.value);
+                    writer.Write(fb.FrameNumber);
                     break;
-                case RenderTypeID.Particle:
-                    writer.Write(levelObject.particleInfo.nLife);
-                    writer.Write(levelObject.particleInfo.nSize);
-                    writer.Write(levelObject.particleInfo.nParts);
-                    writer.Write(levelObject.particleInfo.nSpeed);
-                    writer.Write(levelObject.particleInfo.nDrift);
-                    writer.Write(levelObject.particleInfo.nBrightness);
-                    writer.Write((byte)levelObject.particleInfo.color.R);
-                    writer.Write((byte)levelObject.particleInfo.color.G);
-                    writer.Write((byte)levelObject.particleInfo.color.B);
-                    writer.Write((byte)levelObject.particleInfo.color.A);
-                    writer.Write(levelObject.particleInfo.nSide);
-                    writer.Write(levelObject.particleInfo.nType);
-                    writer.Write((byte)(levelObject.particleInfo.enabled ? 1 : 0));
+                case ParticleRenderType p:
+                    writer.Write(p.Life);
+                    writer.Write(p.Size);
+                    writer.Write(p.Parts);
+                    writer.Write(p.Speed);
+                    writer.Write(p.Drift);
+                    writer.Write(p.Brightness);
+                    writer.Write((byte)p.Color.R);
+                    writer.Write((byte)p.Color.G);
+                    writer.Write((byte)p.Color.B);
+                    writer.Write((byte)p.Color.A);
+                    writer.Write(p.Side);
+                    writer.Write(p.Type);
+                    writer.Write((byte)(p.Enabled ? 1 : 0));
                     break;
-                case RenderTypeID.Lightning:
-                    writer.Write(levelObject.lightningInfo.nLife);
-                    writer.Write(levelObject.lightningInfo.nDelay);
-                    writer.Write(levelObject.lightningInfo.nLength);
-                    writer.Write(levelObject.lightningInfo.nAmplitude);
-                    writer.Write(levelObject.lightningInfo.nOffset);
-                    writer.Write(levelObject.lightningInfo.nWayPoint);
-                    writer.Write(levelObject.lightningInfo.nBolts);
-                    writer.Write(levelObject.lightningInfo.nId);
-                    writer.Write(levelObject.lightningInfo.nTarget);
-                    writer.Write(levelObject.lightningInfo.nNodes);
-                    writer.Write(levelObject.lightningInfo.nChildren);
-                    writer.Write(levelObject.lightningInfo.nFrames);
-                    writer.Write(levelObject.lightningInfo.nWidth);
-                    writer.Write(levelObject.lightningInfo.nAngle);
-                    writer.Write(levelObject.lightningInfo.nStyle);
-                    writer.Write(levelObject.lightningInfo.nSmoothe);
-                    writer.Write(levelObject.lightningInfo.bClamp);
-                    writer.Write(levelObject.lightningInfo.bPlasma);
-                    writer.Write(levelObject.lightningInfo.bSound);
-                    writer.Write(levelObject.lightningInfo.bRandom);
-                    writer.Write(levelObject.lightningInfo.bInPlane);
-                    writer.Write((byte)levelObject.lightningInfo.color.R);
-                    writer.Write((byte)levelObject.lightningInfo.color.G);
-                    writer.Write((byte)levelObject.lightningInfo.color.B);
-                    writer.Write((byte)levelObject.lightningInfo.color.A);
-                    writer.Write((byte)(levelObject.lightningInfo.enabled ? 1 : 0));
+                case LightningRenderType l:
+                    writer.Write(l.Life);
+                    writer.Write(l.Delay);
+                    writer.Write(l.Length);
+                    writer.Write(l.Amplitude);
+                    writer.Write(l.Offset);
+                    writer.Write(l.WayPoint);
+                    writer.Write(l.Bolts);
+                    writer.Write(l.Id);
+                    writer.Write(l.Target);
+                    writer.Write(l.Nodes);
+                    writer.Write(l.Children);
+                    writer.Write(l.Frames);
+                    writer.Write(l.Width);
+                    writer.Write(l.Angle);
+                    writer.Write(l.Style);
+                    writer.Write(l.Smoothe);
+                    writer.Write(l.Clamp);
+                    writer.Write(l.Plasma);
+                    writer.Write(l.Sound);
+                    writer.Write(l.Random);
+                    writer.Write(l.InPlane);
+                    writer.Write((byte)l.Color.R);
+                    writer.Write((byte)l.Color.G);
+                    writer.Write((byte)l.Color.B);
+                    writer.Write((byte)l.Color.A);
+                    writer.Write((byte)(l.Enabled ? 1 : 0));
                     break;
-                case RenderTypeID.Sound:
-                    var soundFilename = EncodeString(levelObject.soundInfo.filename, 40, false);
+                case SoundRenderType s:
+                    var soundFilename = EncodeString(s.Filename, 40, false);
                     writer.Write(soundFilename);
-                    writer.Write(levelObject.soundInfo.volume);
-                    writer.Write((byte)(levelObject.soundInfo.enabled ? 1 : 0));
+                    writer.Write(s.Volume);
+                    writer.Write((byte)(s.Enabled ? 1 : 0));
                     break;
             }
         }

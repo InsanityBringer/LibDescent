@@ -181,12 +181,13 @@ namespace LibDescent.Tests
             Assert.AreEqual(0, level.Objects[0].id);
             Assert.AreEqual(MovementTypeID.Physics, level.Objects[0].moveType);
             Assert.AreEqual(ControlTypeID.Slew, level.Objects[0].controlType);
-            Assert.AreEqual(RenderTypeID.Polyobj, level.Objects[0].renderType);
+            Assert.AreEqual(RenderTypeID.Polyobj, level.Objects[0].RenderTypeID);
             Assert.AreEqual(new FixVector(0, -10, -70), level.Objects[0].position);
             // Point directly forward
             var expectedOrientation = new FixMatrix(new FixVector(1, 0, 0), new FixVector(0, 1, 0), new FixVector(0, 0, 1));
             Assert.AreEqual(expectedOrientation, level.Objects[0].orientation);
-            Assert.AreEqual(43, level.Objects[0].modelInfo.modelNum);
+            Assert.IsTrue(level.Objects[0].RenderType is PolymodelRenderType);
+            Assert.AreEqual(43, ((PolymodelRenderType)level.Objects[0].RenderType).ModelNum);
             Assert.AreEqual(0, level.Objects[0].segnum);
 
             // Powerup
@@ -194,7 +195,7 @@ namespace LibDescent.Tests
             Assert.AreEqual(5, level.Objects[1].id); // red key
             Assert.AreEqual(MovementTypeID.None, level.Objects[1].moveType);
             Assert.AreEqual(ControlTypeID.Powerup, level.Objects[1].controlType);
-            Assert.AreEqual(RenderTypeID.Powerup, level.Objects[1].renderType);
+            Assert.AreEqual(RenderTypeID.Powerup, level.Objects[1].RenderTypeID);
             Assert.AreEqual(new FixVector(-80, -10, 10), level.Objects[1].position);
             Assert.AreEqual(expectedOrientation, level.Objects[1].orientation);
             Assert.AreEqual(11, level.Objects[1].segnum);
@@ -204,10 +205,11 @@ namespace LibDescent.Tests
             Assert.AreEqual(0, level.Objects[2].id);
             Assert.AreEqual(MovementTypeID.None, level.Objects[2].moveType);
             Assert.AreEqual(ControlTypeID.ControlCenter, level.Objects[2].controlType);
-            Assert.AreEqual(RenderTypeID.Polyobj, level.Objects[2].renderType);
+            Assert.AreEqual(RenderTypeID.Polyobj, level.Objects[2].RenderTypeID);
             Assert.AreEqual(new FixVector(40, -10, 50), level.Objects[2].position);
             Assert.AreEqual(expectedOrientation, level.Objects[2].orientation);
-            Assert.AreEqual(39, level.Objects[2].modelInfo.modelNum);
+            Assert.IsTrue(level.Objects[2].RenderType is PolymodelRenderType);
+            Assert.AreEqual(39, ((PolymodelRenderType)level.Objects[2].RenderType).ModelNum);
             Assert.AreEqual(14, level.Objects[2].segnum);
 
             // Hostage
@@ -215,10 +217,11 @@ namespace LibDescent.Tests
             Assert.AreEqual(0, level.Objects[3].id);
             Assert.AreEqual(MovementTypeID.None, level.Objects[3].moveType);
             Assert.AreEqual(ControlTypeID.Powerup, level.Objects[3].controlType);
-            Assert.AreEqual(RenderTypeID.Hostage, level.Objects[3].renderType);
+            Assert.AreEqual(RenderTypeID.Hostage, level.Objects[3].RenderTypeID);
             Assert.AreEqual(new FixVector(80, -15, 10), level.Objects[3].position);
             Assert.AreEqual(expectedOrientation, level.Objects[3].orientation);
-            Assert.AreEqual(33, level.Objects[3].spriteInfo.vclipNum);
+            Assert.IsTrue(level.Objects[3].RenderType is HostageRenderType);
+            Assert.AreEqual(33, ((HostageRenderType)level.Objects[3].RenderType).VClipNum);
             Assert.AreEqual(15, level.Objects[3].segnum);
 
             // Robot
@@ -226,19 +229,18 @@ namespace LibDescent.Tests
             Assert.AreEqual(0, level.Objects[4].id); // medium hulk
             Assert.AreEqual(MovementTypeID.Physics, level.Objects[4].moveType);
             Assert.AreEqual(ControlTypeID.AI, level.Objects[4].controlType);
-            Assert.AreEqual(RenderTypeID.Polyobj, level.Objects[4].renderType);
+            Assert.AreEqual(RenderTypeID.Polyobj, level.Objects[4].RenderTypeID);
             Assert.AreEqual(new FixVector(40, -10, -30), level.Objects[4].position);
             Assert.AreEqual(expectedOrientation, level.Objects[4].orientation);
             // Physics info seems to be blank, probably initialized from HAM/HXM data
             Assert.AreEqual((Fix)0, level.Objects[4].physicsInfo.mass);
             Assert.AreEqual((Fix)0, level.Objects[4].physicsInfo.drag);
             Assert.AreEqual(0, level.Objects[4].physicsInfo.flags);
-            // .shields should probably be a fix, will change that later
             Assert.AreEqual((Fix)100, level.Objects[4].shields);
             Assert.AreEqual(7, level.Objects[4].containsType); // powerup
             Assert.AreEqual(1, level.Objects[4].containsCount);
             Assert.AreEqual(11, level.Objects[4].containsId); // 4-pack conc
-            Assert.AreEqual(0, level.Objects[4].modelInfo.modelNum);
+            Assert.AreEqual(0, ((PolymodelRenderType)level.Objects[4].RenderType).ModelNum);
             Assert.AreEqual(16, level.Objects[4].segnum);
         }
 
