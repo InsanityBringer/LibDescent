@@ -558,23 +558,23 @@ namespace LibDescent.Data
         private LevelObject ReadObject(BinaryReader reader)
         {
             var levelObject = new LevelObject();
-            levelObject.type = (ObjectType)reader.ReadSByte();
-            levelObject.id = reader.ReadByte();
+            levelObject.Type = (ObjectType)reader.ReadSByte();
+            levelObject.ID = reader.ReadByte();
             levelObject.ControlType = ControlTypeFactory.NewControlType((ControlTypeID)reader.ReadByte());
             levelObject.MoveType = MovementTypeFactory.NewMovementType((MovementTypeID)reader.ReadByte());
             levelObject.RenderType = RenderTypeFactory.NewRenderType((RenderTypeID)reader.ReadByte());
-            levelObject.flags = reader.ReadByte();
+            levelObject.Flags = reader.ReadByte();
             levelObject.MultiplayerOnly = (_fileInfo.version > 37) ? (reader.ReadByte() > 0) : false;
-            levelObject.segnum = reader.ReadInt16();
-            levelObject.attachedObject = -1;
-            levelObject.position = ReadFixVector(reader);
-            levelObject.orientation = ReadFixMatrix(reader);
-            levelObject.size = new Fix(reader.ReadInt32());
-            levelObject.shields = new Fix(reader.ReadInt32());
-            levelObject.lastPos = ReadFixVector(reader);
-            levelObject.containsType = reader.ReadByte();
-            levelObject.containsId = reader.ReadByte();
-            levelObject.containsCount = reader.ReadByte();
+            levelObject.Segnum = reader.ReadInt16();
+            levelObject.AttachedObject = -1;
+            levelObject.Position = ReadFixVector(reader);
+            levelObject.Orientation = ReadFixMatrix(reader);
+            levelObject.Size = new Fix(reader.ReadInt32());
+            levelObject.Shields = new Fix(reader.ReadInt32());
+            levelObject.LastPos = ReadFixVector(reader);
+            levelObject.ContainsType = reader.ReadByte();
+            levelObject.ContainsId = reader.ReadByte();
+            levelObject.ContainsCount = reader.ReadByte();
 
             switch (levelObject.MoveType)
             {
@@ -597,7 +597,7 @@ namespace LibDescent.Data
             {
                 case AIControl ai:
                     ai.Behavior = reader.ReadByte();
-                    for (int i = 0; i < AIInfo.NumAIFlags; i++)
+                    for (int i = 0; i < AIControl.NumAIFlags; i++)
                         ai.AIFlags[i] = reader.ReadByte();
 
                     ai.HideSegment = reader.ReadInt16();
@@ -635,9 +635,9 @@ namespace LibDescent.Data
                     waypoint.Speed = reader.ReadInt32();
                     // Fix IDs from old D2X-XL levels
                     const int WAYPOINT_ID = 3;
-                    if (levelObject.id != WAYPOINT_ID)
+                    if (levelObject.ID != WAYPOINT_ID)
                     {
-                        levelObject.id = WAYPOINT_ID;
+                        levelObject.ID = WAYPOINT_ID;
                     }
                     break;
             }
@@ -719,9 +719,9 @@ namespace LibDescent.Data
                     s.Enabled = (_levelVersion < 19) ? true : (reader.ReadSByte() > 0);
                     // Fix IDs from old D2X-XL levels
                     const int SOUND_ID = 2;
-                    if (levelObject.id != SOUND_ID)
+                    if (levelObject.ID != SOUND_ID)
                     {
-                        levelObject.id = SOUND_ID;
+                        levelObject.ID = SOUND_ID;
                     }
                     break;
             }
@@ -1829,25 +1829,25 @@ namespace LibDescent.Data
 
         private void WriteObject(BinaryWriter writer, LevelObject levelObject)
         {
-            writer.Write((byte)levelObject.type);
-            writer.Write(levelObject.id);
+            writer.Write((byte)levelObject.Type);
+            writer.Write(levelObject.ID);
             writer.Write((byte)levelObject.ControlTypeID);
             writer.Write((byte)levelObject.MoveTypeID);
             writer.Write((byte)levelObject.RenderTypeID);
-            writer.Write(levelObject.flags);
+            writer.Write(levelObject.Flags);
             if (GameDataVersion > 37)
             {
                 writer.Write((byte)(levelObject.MultiplayerOnly ? 1 : 0));
             }
-            writer.Write(levelObject.segnum);
-            WriteFixVector(writer, levelObject.position);
-            WriteFixMatrix(writer, levelObject.orientation);
-            writer.Write(levelObject.size.value);
-            writer.Write(levelObject.shields.value);
-            WriteFixVector(writer, levelObject.lastPos);
-            writer.Write(levelObject.containsType);
-            writer.Write(levelObject.containsId);
-            writer.Write(levelObject.containsCount);
+            writer.Write(levelObject.Segnum);
+            WriteFixVector(writer, levelObject.Position);
+            WriteFixMatrix(writer, levelObject.Orientation);
+            writer.Write(levelObject.Size.value);
+            writer.Write(levelObject.Shields.value);
+            WriteFixVector(writer, levelObject.LastPos);
+            writer.Write(levelObject.ContainsType);
+            writer.Write(levelObject.ContainsId);
+            writer.Write(levelObject.ContainsCount);
 
             switch (levelObject.MoveType)
             {
@@ -1870,7 +1870,7 @@ namespace LibDescent.Data
             {
                 case AIControl ai:
                     writer.Write(ai.Behavior);
-                    for (int i = 0; i < AIInfo.NumAIFlags; i++)
+                    for (int i = 0; i < AIControl.NumAIFlags; i++)
                         writer.Write(ai.AIFlags[i]);
 
                     writer.Write(ai.HideSegment);
