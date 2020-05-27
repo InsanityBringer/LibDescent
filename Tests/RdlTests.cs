@@ -179,7 +179,7 @@ namespace LibDescent.Tests
             // Player
             Assert.AreEqual(ObjectType.Player, level.Objects[0].type);
             Assert.AreEqual(0, level.Objects[0].id);
-            Assert.AreEqual(MovementTypeID.Physics, level.Objects[0].moveType);
+            Assert.AreEqual(MovementTypeID.Physics, level.Objects[0].MoveTypeID);
             Assert.AreEqual(ControlTypeID.Slew, level.Objects[0].ControlTypeID);
             Assert.AreEqual(RenderTypeID.Polyobj, level.Objects[0].RenderTypeID);
             Assert.AreEqual(new FixVector(0, -10, -70), level.Objects[0].position);
@@ -193,7 +193,7 @@ namespace LibDescent.Tests
             // Powerup
             Assert.AreEqual(ObjectType.Powerup, level.Objects[1].type);
             Assert.AreEqual(5, level.Objects[1].id); // red key
-            Assert.AreEqual(MovementTypeID.None, level.Objects[1].moveType);
+            Assert.AreEqual(MovementTypeID.None, level.Objects[1].MoveTypeID);
             Assert.AreEqual(ControlTypeID.Powerup, level.Objects[1].ControlTypeID);
             Assert.AreEqual(RenderTypeID.Powerup, level.Objects[1].RenderTypeID);
             Assert.AreEqual(new FixVector(-80, -10, 10), level.Objects[1].position);
@@ -203,7 +203,7 @@ namespace LibDescent.Tests
             // Reactor
             Assert.AreEqual(ObjectType.ControlCenter, level.Objects[2].type);
             Assert.AreEqual(0, level.Objects[2].id);
-            Assert.AreEqual(MovementTypeID.None, level.Objects[2].moveType);
+            Assert.AreEqual(MovementTypeID.None, level.Objects[2].MoveTypeID);
             Assert.AreEqual(ControlTypeID.ControlCenter, level.Objects[2].ControlTypeID);
             Assert.AreEqual(RenderTypeID.Polyobj, level.Objects[2].RenderTypeID);
             Assert.AreEqual(new FixVector(40, -10, 50), level.Objects[2].position);
@@ -215,7 +215,7 @@ namespace LibDescent.Tests
             // Hostage
             Assert.AreEqual(ObjectType.Hostage, level.Objects[3].type);
             Assert.AreEqual(0, level.Objects[3].id);
-            Assert.AreEqual(MovementTypeID.None, level.Objects[3].moveType);
+            Assert.AreEqual(MovementTypeID.None, level.Objects[3].MoveTypeID);
             Assert.AreEqual(ControlTypeID.Powerup, level.Objects[3].ControlTypeID);
             Assert.AreEqual(RenderTypeID.Hostage, level.Objects[3].RenderTypeID);
             Assert.AreEqual(new FixVector(80, -15, 10), level.Objects[3].position);
@@ -227,15 +227,15 @@ namespace LibDescent.Tests
             // Robot
             Assert.AreEqual(ObjectType.Robot, level.Objects[4].type);
             Assert.AreEqual(0, level.Objects[4].id); // medium hulk
-            Assert.AreEqual(MovementTypeID.Physics, level.Objects[4].moveType);
+            Assert.AreEqual(MovementTypeID.Physics, level.Objects[4].MoveTypeID);
             Assert.AreEqual(ControlTypeID.AI, level.Objects[4].ControlTypeID);
             Assert.AreEqual(RenderTypeID.Polyobj, level.Objects[4].RenderTypeID);
             Assert.AreEqual(new FixVector(40, -10, -30), level.Objects[4].position);
             Assert.AreEqual(expectedOrientation, level.Objects[4].orientation);
             // Physics info seems to be blank, probably initialized from HAM/HXM data
-            Assert.AreEqual((Fix)0, level.Objects[4].physicsInfo.mass);
-            Assert.AreEqual((Fix)0, level.Objects[4].physicsInfo.drag);
-            Assert.AreEqual(0, level.Objects[4].physicsInfo.flags);
+            Assert.AreEqual((Fix)0, ((PhysicsMoveType)level.Objects[4].MoveType).Mass);
+            Assert.AreEqual((Fix)0, ((PhysicsMoveType)level.Objects[4].MoveType).Drag);
+            Assert.AreEqual((PhysicsFlags)0, ((PhysicsMoveType)level.Objects[4].MoveType).Flags);
             Assert.AreEqual((Fix)100, level.Objects[4].shields);
             Assert.AreEqual(7, level.Objects[4].containsType); // powerup
             Assert.AreEqual(1, level.Objects[4].containsCount);

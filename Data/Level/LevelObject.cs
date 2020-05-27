@@ -234,7 +234,15 @@ namespace LibDescent.Data
                 return ControlType.Identifier;
             }
         }
-public MovementTypeID moveType;
+        public MovementTypeID MoveTypeID
+        {
+            get
+            {
+                if (RenderType == null)
+                    return MovementTypeID.None;
+                return MoveType.Identifier;
+            }
+        }
         public RenderTypeID RenderTypeID
         {
             get
@@ -264,8 +272,7 @@ public MovementTypeID moveType;
         public byte containsId;
         public byte containsCount;
         //Move info
-        public PhysicsInfo physicsInfo;
-        public FixVector spinRate;
+        public MovementType MoveType { get; set; }
         //Control info
         public ControlType ControlType { get; set; }
         //Render info

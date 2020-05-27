@@ -4,6 +4,23 @@ using System.Text;
 
 namespace LibDescent.Data
 {
+    public static class MovementTypeFactory
+    {
+        public static MovementType NewMovementType(MovementTypeID id)
+        {
+            switch (id)
+            {
+                case MovementTypeID.Physics:
+                    return new PhysicsMoveType();
+                case MovementTypeID.Spinning:
+                    return new SpinningMoveType();
+
+                case MovementTypeID.None:
+                    return new NullMovementType();
+            }
+            throw new ArgumentException("MovementTypeFactory::NewMovementType: bad movementtype");
+        }
+    }
     public abstract class MovementType
     {
         public abstract MovementTypeID Identifier { get; }
@@ -39,7 +56,7 @@ namespace LibDescent.Data
         /// <summary>
         /// this object uses its thrust
         /// </summary>
-        UsesTHrust = 0x40
+        UsesThrust = 0x40
     }
 
     public class PhysicsMoveType : MovementType
@@ -62,5 +79,10 @@ namespace LibDescent.Data
         public override MovementTypeID Identifier => MovementTypeID.Spinning;
 
         public FixVector SpinRate { get; set; }
+    }
+
+    public class NullMovementType : MovementType
+    {
+        public override MovementTypeID Identifier => MovementTypeID.None;
     }
 }

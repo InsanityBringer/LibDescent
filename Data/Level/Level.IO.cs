@@ -561,7 +561,7 @@ namespace LibDescent.Data
             levelObject.type = (ObjectType)reader.ReadSByte();
             levelObject.id = reader.ReadByte();
             levelObject.ControlType = ControlTypeFactory.NewControlType((ControlTypeID)reader.ReadByte());
-            levelObject.moveType = (MovementTypeID)reader.ReadByte();
+            levelObject.MoveType = MovementTypeFactory.NewMovementType((MovementTypeID)reader.ReadByte());
             levelObject.RenderType = RenderTypeFactory.NewRenderType((RenderTypeID)reader.ReadByte());
             levelObject.flags = reader.ReadByte();
             levelObject.MultiplayerOnly = (_fileInfo.version > 37) ? (reader.ReadByte() > 0) : false;
@@ -576,21 +576,21 @@ namespace LibDescent.Data
             levelObject.containsId = reader.ReadByte();
             levelObject.containsCount = reader.ReadByte();
 
-            switch (levelObject.moveType)
+            switch (levelObject.MoveType)
             {
-                case MovementTypeID.Physics:
-                    levelObject.physicsInfo.velocity = ReadFixVector(reader);
-                    levelObject.physicsInfo.thrust = ReadFixVector(reader);
-                    levelObject.physicsInfo.mass = new Fix(reader.ReadInt32());
-                    levelObject.physicsInfo.drag = new Fix(reader.ReadInt32());
-                    levelObject.physicsInfo.brakes = new Fix(reader.ReadInt32());
-                    levelObject.physicsInfo.angVel = ReadFixVector(reader);
-                    levelObject.physicsInfo.rotThrust = ReadFixVector(reader);
-                    levelObject.physicsInfo.turnroll = reader.ReadInt16();
-                    levelObject.physicsInfo.flags = reader.ReadInt16();
+                case PhysicsMoveType physics:
+                    physics.Velocity = ReadFixVector(reader);
+                    physics.Thrust = ReadFixVector(reader);
+                    physics.Mass = new Fix(reader.ReadInt32());
+                    physics.Drag = new Fix(reader.ReadInt32());
+                    physics.Brakes = new Fix(reader.ReadInt32());
+                    physics.AngularVel = ReadFixVector(reader);
+                    physics.RotationalThrust = ReadFixVector(reader);
+                    physics.Turnroll = reader.ReadInt16();
+                    physics.Flags = (PhysicsFlags)reader.ReadInt16();
                     break;
-                case MovementTypeID.Spinning:
-                    levelObject.spinRate = ReadFixVector(reader);
+                case SpinningMoveType spin:
+                    spin.SpinRate = ReadFixVector(reader);
                     break;
             }
             switch (levelObject.ControlType)
@@ -1832,7 +1832,7 @@ namespace LibDescent.Data
             writer.Write((byte)levelObject.type);
             writer.Write(levelObject.id);
             writer.Write((byte)levelObject.ControlTypeID);
-            writer.Write((byte)levelObject.moveType);
+            writer.Write((byte)levelObject.MoveTypeID);
             writer.Write((byte)levelObject.RenderTypeID);
             writer.Write(levelObject.flags);
             if (GameDataVersion > 37)
@@ -1849,21 +1849,21 @@ namespace LibDescent.Data
             writer.Write(levelObject.containsId);
             writer.Write(levelObject.containsCount);
 
-            switch (levelObject.moveType)
+            switch (levelObject.MoveType)
             {
-                case MovementTypeID.Physics:
-                    WriteFixVector(writer, levelObject.physicsInfo.velocity);
-                    WriteFixVector(writer, levelObject.physicsInfo.thrust);
-                    writer.Write(levelObject.physicsInfo.mass.value);
-                    writer.Write(levelObject.physicsInfo.drag.value);
-                    writer.Write(levelObject.physicsInfo.brakes.value);
-                    WriteFixVector(writer, levelObject.physicsInfo.angVel);
-                    WriteFixVector(writer, levelObject.physicsInfo.rotThrust);
-                    writer.Write(levelObject.physicsInfo.turnroll);
-                    writer.Write(levelObject.physicsInfo.flags);
+                case PhysicsMoveType physics:
+                    WriteFixVector(writer, physics.Velocity);
+                    WriteFixVector(writer, physics.Thrust);
+                    writer.Write(physics.Mass.value);
+                    writer.Write(physics.Drag.value);
+                    writer.Write(physics.Brakes.value);
+                    WriteFixVector(writer, physics.AngularVel);
+                    WriteFixVector(writer, physics.RotationalThrust);
+                    writer.Write(physics.Turnroll);
+                    writer.Write((short)physics.Flags);
                     break;
-                case MovementTypeID.Spinning:
-                    WriteFixVector(writer, levelObject.spinRate);
+                case SpinningMoveType spin:
+                    WriteFixVector(writer, spin.SpinRate);
                     break;
             }
             switch (levelObject.ControlType)
