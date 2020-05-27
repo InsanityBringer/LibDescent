@@ -560,7 +560,7 @@ namespace LibDescent.Data
             var levelObject = new LevelObject();
             levelObject.type = (ObjectType)reader.ReadSByte();
             levelObject.id = reader.ReadByte();
-            levelObject.controlType = (ControlTypeID)reader.ReadByte();
+            levelObject.ControlType = ControlTypeFactory.NewControlType((ControlTypeID)reader.ReadByte());
             levelObject.moveType = (MovementTypeID)reader.ReadByte();
             levelObject.RenderType = RenderTypeFactory.NewRenderType((RenderTypeID)reader.ReadByte());
             levelObject.flags = reader.ReadByte();
@@ -593,38 +593,46 @@ namespace LibDescent.Data
                     levelObject.spinRate = ReadFixVector(reader);
                     break;
             }
-            switch (levelObject.controlType)
+            switch (levelObject.ControlType)
             {
-                case ControlTypeID.AI:
-                    levelObject.aiInfo.behavior = reader.ReadByte();
+                case AIControl ai:
+                    ai.Behavior = reader.ReadByte();
                     for (int i = 0; i < AIInfo.NumAIFlags; i++)
-                        levelObject.aiInfo.aiFlags[i] = reader.ReadByte();
+                        ai.AIFlags[i] = reader.ReadByte();
 
-                    levelObject.aiInfo.hideSegment = reader.ReadInt16();
-                    levelObject.aiInfo.hideIndex = reader.ReadInt16();
-                    levelObject.aiInfo.pathLength = reader.ReadInt16();
-                    levelObject.aiInfo.curPathIndex = reader.ReadInt16();
+                    ai.HideSegment = reader.ReadInt16();
+                    ai.HideIndex = reader.ReadInt16();
+                    ai.PathLength = reader.ReadInt16();
+                    ai.CurPathIndex = reader.ReadInt16();
 
                     if (_fileInfo.version <= 25)
                     {
-                        reader.ReadInt32();
+                        reader.ReadInt32(); //These are supposed to be the path start and end for robots with the "FollowPath" AI behavior in Descent 1, but these fields are unused
                     }
                     break;
-                case ControlTypeID.Explosion:
-                    levelObject.explosionInfo.SpawnTime = new Fix(reader.ReadInt32());
-                    levelObject.explosionInfo.DeleteTime = new Fix(reader.ReadInt32());
-                    levelObject.explosionInfo.DeleteObject = reader.ReadInt16();
+                case ExplosionControl explosion:
+                    explosion.SpawnTime = new Fix(reader.ReadInt32());
+                    explosion.DeleteTime = new Fix(reader.ReadInt32());
+                    explosion.DeleteObject = reader.ReadInt16();
                     break;
-                case ControlTypeID.Powerup:
+                case PowerupControl powerup:
                     if (_fileInfo.version >= 25)
                     {
-                        levelObject.powerupCount = reader.ReadInt32();
+                        powerup.Count = reader.ReadInt32();
                     }
                     break;
-                case ControlTypeID.Waypoint:
-                    levelObject.waypointInfo.waypointId = reader.ReadInt32();
-                    levelObject.waypointInfo.nextWaypointId = reader.ReadInt32();
-                    levelObject.waypointInfo.speed = reader.ReadInt32();
+                case WeaponControl weapon:
+                    weapon.ParentType = reader.ReadInt16();
+                    weapon.ParentNum = reader.ReadInt16();
+                    weapon.ParentSig = reader.ReadInt32();
+                    break;
+                case LightControl light:
+                    light.Intensity = new Fix(reader.ReadInt32());
+                    break;
+                case WaypointControl waypoint:
+                    waypoint.WaypointId = reader.ReadInt32();
+                    waypoint.NextWaypointId = reader.ReadInt32();
+                    waypoint.Speed = reader.ReadInt32();
                     // Fix IDs from old D2X-XL levels
                     const int WAYPOINT_ID = 3;
                     if (levelObject.id != WAYPOINT_ID)
@@ -647,9 +655,6 @@ namespace LibDescent.Data
                     }
                     break;
                 case FireballRenderType fb:
-                //case RenderTypeID.Hostage:
-                //case RenderTypeID.Powerup:
-                //case RenderTypeID.Fireball:
                     fb.VClipNum = reader.ReadInt32();
                     fb.FrameTime = new Fix(reader.ReadInt32());
                     fb.FrameNumber = reader.ReadByte();
@@ -1826,7 +1831,7 @@ namespace LibDescent.Data
         {
             writer.Write((byte)levelObject.type);
             writer.Write(levelObject.id);
-            writer.Write((byte)levelObject.controlType);
+            writer.Write((byte)levelObject.ControlTypeID);
             writer.Write((byte)levelObject.moveType);
             writer.Write((byte)levelObject.RenderTypeID);
             writer.Write(levelObject.flags);
@@ -1861,17 +1866,17 @@ namespace LibDescent.Data
                     WriteFixVector(writer, levelObject.spinRate);
                     break;
             }
-            switch (levelObject.controlType)
+            switch (levelObject.ControlType)
             {
-                case ControlTypeID.AI:
-                    writer.Write(levelObject.aiInfo.behavior);
+                case AIControl ai:
+                    writer.Write(ai.Behavior);
                     for (int i = 0; i < AIInfo.NumAIFlags; i++)
-                        writer.Write(levelObject.aiInfo.aiFlags[i]);
+                        writer.Write(ai.AIFlags[i]);
 
-                    writer.Write(levelObject.aiInfo.hideSegment);
-                    writer.Write(levelObject.aiInfo.hideIndex);
-                    writer.Write(levelObject.aiInfo.pathLength);
-                    writer.Write(levelObject.aiInfo.curPathIndex);
+                    writer.Write(ai.HideSegment);
+                    writer.Write(ai.HideIndex);
+                    writer.Write(ai.PathLength);
+                    writer.Write(ai.CurPathIndex);
 
                     if (GameDataVersion <= 25)
                     {
@@ -1881,21 +1886,29 @@ namespace LibDescent.Data
                     }
 
                     break;
-                case ControlTypeID.Explosion:
-                    writer.Write(levelObject.explosionInfo.SpawnTime.value);
-                    writer.Write(levelObject.explosionInfo.DeleteTime.value);
-                    writer.Write(levelObject.explosionInfo.DeleteObject);
+                case ExplosionControl explosion:
+                    writer.Write(explosion.SpawnTime.value);
+                    writer.Write(explosion.DeleteTime.value);
+                    writer.Write(explosion.DeleteObject);
                     break;
-                case ControlTypeID.Powerup:
+                case PowerupControl powerup:
                     if (GameDataVersion >= 25)
                     {
-                        writer.Write(levelObject.powerupCount);
+                        writer.Write(powerup.Count);
                     }
                     break;
-                case ControlTypeID.Waypoint:
-                    writer.Write(levelObject.waypointInfo.waypointId);
-                    writer.Write(levelObject.waypointInfo.nextWaypointId);
-                    writer.Write(levelObject.waypointInfo.speed);
+                case WeaponControl weapon:
+                    writer.Write(weapon.ParentType);
+                    writer.Write(weapon.ParentNum);
+                    writer.Write(weapon.ParentSig);
+                    break;
+                case LightControl light:
+                    writer.Write(light.Intensity.value);
+                    break;
+                case WaypointControl waypoint:
+                    writer.Write(waypoint.WaypointId);
+                    writer.Write(waypoint.NextWaypointId);
+                    writer.Write(waypoint.Speed);
                     break;
             }
             switch (levelObject.RenderType)

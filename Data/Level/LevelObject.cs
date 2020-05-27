@@ -225,9 +225,16 @@ namespace LibDescent.Data
         public ObjectType type;
         public byte id;
 
-        public ControlTypeID controlType;
-        public MovementTypeID moveType;
-        //public RenderTypeID renderType;
+        public ControlTypeID ControlTypeID
+        {
+            get
+            {
+                if (ControlType == null)
+                    return ControlTypeID.None;
+                return ControlType.Identifier;
+            }
+        }
+public MovementTypeID moveType;
         public RenderTypeID RenderTypeID
         {
             get
@@ -260,10 +267,7 @@ namespace LibDescent.Data
         public PhysicsInfo physicsInfo;
         public FixVector spinRate;
         //Control info
-        public AIInfo aiInfo = new AIInfo();
-        public ExplosionInfo explosionInfo = new ExplosionInfo();
-        public int powerupCount;
-        public WaypointInfo waypointInfo = new WaypointInfo();
+        public ControlType ControlType { get; set; }
         //Render info
         public RenderType RenderType { get; set; }
 
