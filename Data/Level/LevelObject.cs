@@ -215,11 +215,6 @@ namespace LibDescent.Data
         public RenderType RenderType { get; set; }
 
         /// <summary>
-        /// The signature of this object, a unique value to disambiguate similar objects. (Unused in level files?)
-        /// </summary>
-        public int Signature { get; set; }
-
-        /// <summary>
         /// The object trigger assigned to this object. D2X-XL only.
         /// </summary>
         public D2XXLTrigger Trigger { get; set; }
