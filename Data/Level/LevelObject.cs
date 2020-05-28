@@ -54,7 +54,7 @@ namespace LibDescent.Data
         Explosion, // D2X-XL
         Effect, // D2X-XL
     }
-    public enum ControlType
+    public enum ControlTypeID
     {
         None,
         AI,
@@ -76,14 +76,14 @@ namespace LibDescent.Data
         Waypoint, // D2X-XL
     }
 
-    public enum MovementType
+    public enum MovementTypeID
     {
         None = 0,
         Physics,
         Spinning = 3,
     }
 
-    public enum RenderType
+    public enum RenderTypeID
     {
         None,
         Polyobj,
@@ -101,167 +101,118 @@ namespace LibDescent.Data
         Sound, // D2X-XL
     }
 
-    //Move info
-    public struct PhysicsInfo
-    {
-        public FixVector velocity;
-        public FixVector thrust;
-        public Fix mass;
-        public Fix drag;
-        public Fix brakes;
-        public FixVector angVel;
-        public FixVector rotThrust;
-        public short turnroll; //fixang
-        public short flags;
-    }
-
-    //Control info
-    //man wouldn't it be nice if you could have a small array in a struct
-    //I guess it doesn't matter much since we're not making a million of these each frame
-    public class AIInfo
-    {
-        public const int NumAIFlags = 11;
-        public byte behavior;
-        public byte flags;
-        public byte[] aiFlags = new byte[NumAIFlags];
-        public short hideSegment;
-        public short hideIndex;
-        public short pathLength;
-        public short curPathIndex;
-    }
-
-    public struct ExplosionInfo
-    {
-        public Fix SpawnTime;
-        public Fix DeleteTime;
-        public short DeleteObject;
-    }
-
-    public struct PowerupInfo
-    {
-        public int count;
-    }
-
-    // D2X-XL
-    public struct WaypointInfo
-    {
-        public int waypointId;
-        public int nextWaypointId;
-        public int speed;
-    }
-
-    // D2X-XL
-    public struct ParticleInfo
-    {
-        public int nLife;
-        // nSize is a 2-element array in DLE, but the second element isn't used...
-        // I guess that means we don't need it?
-        public int nSize;
-        public int nParts;
-        public int nSpeed;
-        public int nDrift;
-        public int nBrightness;
-        public Color color;
-        public byte nSide;
-        public byte nType;
-        public bool enabled;
-    }
-
-    // D2X-XL
-    public struct LightningInfo
-    {
-        public int nLife;
-        public int nDelay;
-        public int nLength;
-        public int nAmplitude;
-        public int nOffset;
-        public int nWayPoint;
-        public short nBolts;
-        public short nId;
-        public short nTarget;
-        public short nNodes;
-        public short nChildren;
-        public short nFrames;
-        public byte nWidth;
-        public byte nAngle;
-        public byte nStyle;
-        public byte nSmoothe;
-        public byte bClamp;
-        public byte bPlasma;
-        public byte bSound;
-        public byte bRandom;
-        public byte bInPlane;
-        public Color color;
-        public bool enabled;
-    }
-
-    // D2X-XL
-    public struct SoundInfo
-    {
-        public string filename;
-        // Expected range 0-10, indicates how loud the sound should be
-        public int volume;
-        public bool enabled;
-    }
-
-    //Render info
-    public class PolymodelInfo
-    {
-        public int modelNum;
-        public FixAngles[] animAngles = new FixAngles[Polymodel.MAX_SUBMODELS];
-        public int flags;
-        public int textureOverride;
-    }
-
-    public struct SpriteInfo
-    {
-        public int vclipNum;
-        public Fix frameTime;
-        public byte frameNumber;
-    }
-
     public class LevelObject
     {
-        public ObjectType type;
-        public byte id;
+        /// <summary>
+        /// The object's basic type.
+        /// </summary>
+        public ObjectType Type { get; set; }
+        /// <summary>
+        /// The ID of the object's subtype. Meaning is based on the value of Type.
+        /// </summary>
+        public byte SubtypeID { get; set; }
 
-        public ControlType controlType;
-        public MovementType moveType;
-        public RenderType renderType;
-        public byte flags;
+        /// <summary>
+        /// Gets the numeric ID of the current ControlType.
+        /// </summary>
+        public ControlTypeID ControlTypeID
+        {
+            get
+            {
+                if (ControlType == null)
+                    return ControlTypeID.None;
+                return ControlType.Identifier;
+            }
+        }
+        /// <summary>
+        /// Gets the numeric ID of the current MoveType.
+        /// </summary>
+        public MovementTypeID MoveTypeID
+        {
+            get
+            {
+                if (RenderType == null)
+                    return MovementTypeID.None;
+                return MoveType.Identifier;
+            }
+        }
+        /// <summary>
+        /// Gets the numeric ID of the current RenderType.
+        /// </summary>
+        public RenderTypeID RenderTypeID
+        {
+            get
+            {
+                if (RenderType == null)
+                    return RenderTypeID.None;
+                return RenderType.Identifier;
+            }
+        }
+
+        /// <summary>
+        /// Misc object flags. Not generally useful in level files.
+        /// </summary>
+        public byte Flags { get; set; }
 
         /// <summary>
         /// Indicates if this object is only present in multiplayer modes. D2X-XL only.
         /// </summary>
         public bool MultiplayerOnly { get; set; }
-        public short segnum;
-        public short attachedObject;
+        /// <summary>
+        /// Number of the segment containing this object.
+        /// </summary>
+        public short Segnum { get; set; }
+        /// <summary>
+        /// Number of the object this is attached to. Only useful for Fireball objects.
+        /// </summary>
+        public short AttachedObject { get; set; }
 
-        public FixVector position;
-        public FixMatrix orientation;
-        public Fix size;
-        public Fix shields;
-        public FixVector lastPos;
+        /// <summary>
+        /// The current position of the object.
+        /// </summary>
+        public FixVector Position { get; set; }
+        /// <summary>
+        /// The current orientation of the object.
+        /// </summary>
+        public FixMatrix Orientation { get; set; }
+        /// <summary>
+        /// Radius of the object's collision sphere, in map units.
+        /// </summary>
+        public Fix Size { get; set; }
+        /// <summary>
+        /// Amount of hit points the object has.
+        /// </summary>
+        public Fix Shields { get; set; }
+        /// <summary>
+        /// The position of the object in the previous frame.
+        /// </summary>
+        public FixVector LastPos { get; set; }
 
-        public byte containsType;
-        public byte containsId;
-        public byte containsCount;
-        //Move info
-        public PhysicsInfo physicsInfo;
-        public FixVector spinRate;
-        //Control info
-        public AIInfo aiInfo = new AIInfo();
-        public ExplosionInfo explosionInfo = new ExplosionInfo();
-        public int powerupCount;
-        public WaypointInfo waypointInfo = new WaypointInfo();
-        public ParticleInfo particleInfo = new ParticleInfo();
-        public LightningInfo lightningInfo = new LightningInfo();
-        public SoundInfo soundInfo = new SoundInfo();
+        /// <summary>
+        /// The type of the object this object contains. Should either be Powerup (2) or Robot (7) if ContainsCount > 0. 
+        /// </summary>
+        public ObjectType ContainsType { get; set; }
+        /// <summary>
+        /// The ID of the subtype of the object this object contains. 
+        /// </summary>
+        public byte ContainsId { get; set; }
+        /// <summary>
+        /// The amount of objects contained in this object. Set to 0 to use default drops.
+        /// </summary>
+        public byte ContainsCount { get; set; }
+        /// <summary>
+        /// The current movement type for this object.
+        /// </summary>
+        public MovementType MoveType { get; set; }
+        /// <summary>
+        /// The current control type for this object.
+        /// </summary>
+        public ControlType ControlType { get; set; }
+        /// <summary>
+        /// The current render type for this object.
+        /// </summary>
         //Render info
-        public PolymodelInfo modelInfo = new PolymodelInfo();
-        public SpriteInfo spriteInfo;
-
-        public int sig;
+        public RenderType RenderType { get; set; }
 
         /// <summary>
         /// The object trigger assigned to this object. D2X-XL only.
