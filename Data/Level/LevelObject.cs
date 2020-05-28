@@ -191,7 +191,7 @@ namespace LibDescent.Data
         /// <summary>
         /// The type of the object this object contains. Should either be Powerup (2) or Robot (7) if ContainsCount > 0. 
         /// </summary>
-        public byte ContainsType { get; set; }
+        public ObjectType ContainsType { get; set; }
         /// <summary>
         /// The ID of the subtype of the object this object contains. 
         /// </summary>

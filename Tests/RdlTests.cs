@@ -237,7 +237,7 @@ namespace LibDescent.Tests
             Assert.AreEqual((Fix)0, ((PhysicsMoveType)level.Objects[4].MoveType).Drag);
             Assert.AreEqual((PhysicsFlags)0, ((PhysicsMoveType)level.Objects[4].MoveType).Flags);
             Assert.AreEqual((Fix)100, level.Objects[4].Shields);
-            Assert.AreEqual(7, level.Objects[4].ContainsType); // powerup
+            Assert.AreEqual((ObjectType)7, level.Objects[4].ContainsType); // powerup
             Assert.AreEqual(1, level.Objects[4].ContainsCount);
             Assert.AreEqual(11, level.Objects[4].ContainsId); // 4-pack conc
             Assert.AreEqual(0, ((PolymodelRenderType)level.Objects[4].RenderType).ModelNum);

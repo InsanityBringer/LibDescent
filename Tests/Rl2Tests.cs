@@ -153,7 +153,7 @@ namespace LibDescent.Tests
             Assert.AreEqual(new FixVector(120, -20, -105), level.Objects[21].Position);
             Assert.AreEqual(expectedOrientation, level.Objects[21].Orientation);
             Assert.AreEqual((Fix)120, level.Objects[21].Shields);
-            Assert.AreEqual(2, level.Objects[21].ContainsType); // robot
+            Assert.AreEqual((ObjectType)2, level.Objects[21].ContainsType); // robot
             Assert.AreEqual(4, level.Objects[21].ContainsCount);
             Assert.AreEqual(50, level.Objects[21].ContainsId); // sidearm modula
             Assert.AreEqual(47, ((PolymodelRenderType)level.Objects[21].RenderType).ModelNum);

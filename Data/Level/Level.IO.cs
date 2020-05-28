@@ -572,7 +572,7 @@ namespace LibDescent.Data
             levelObject.Size = new Fix(reader.ReadInt32());
             levelObject.Shields = new Fix(reader.ReadInt32());
             levelObject.LastPos = ReadFixVector(reader);
-            levelObject.ContainsType = reader.ReadByte();
+            levelObject.ContainsType = (ObjectType)reader.ReadByte();
             levelObject.ContainsId = reader.ReadByte();
             levelObject.ContainsCount = reader.ReadByte();
 
@@ -1845,7 +1845,7 @@ namespace LibDescent.Data
             writer.Write(levelObject.Size.value);
             writer.Write(levelObject.Shields.value);
             WriteFixVector(writer, levelObject.LastPos);
-            writer.Write(levelObject.ContainsType);
+            writer.Write((byte)levelObject.ContainsType);
             writer.Write(levelObject.ContainsId);
             writer.Write(levelObject.ContainsCount);
 
