@@ -87,7 +87,7 @@ namespace LibDescent.Data
             }
             startptr = (int)br.BaseStream.Position;
 
-            for (int i = 1; i < Bitmaps.Count; i++)
+            for (int i = 0; i < Bitmaps.Count; i++)
             {
                 br.BaseStream.Seek(startptr + Bitmaps[i].Offset, SeekOrigin.Begin);
                 if ((Bitmaps[i].Flags & PIGImage.BM_FLAG_RLE) != 0)
