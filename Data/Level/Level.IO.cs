@@ -559,7 +559,7 @@ namespace LibDescent.Data
         {
             var levelObject = new LevelObject();
             levelObject.Type = (ObjectType)reader.ReadSByte();
-            levelObject.ID = reader.ReadByte();
+            levelObject.SubtypeID = reader.ReadByte();
             levelObject.ControlType = ControlTypeFactory.NewControlType((ControlTypeID)reader.ReadByte());
             levelObject.MoveType = MovementTypeFactory.NewMovementType((MovementTypeID)reader.ReadByte());
             levelObject.RenderType = RenderTypeFactory.NewRenderType((RenderTypeID)reader.ReadByte());
@@ -635,9 +635,9 @@ namespace LibDescent.Data
                     waypoint.Speed = reader.ReadInt32();
                     // Fix IDs from old D2X-XL levels
                     const int WAYPOINT_ID = 3;
-                    if (levelObject.ID != WAYPOINT_ID)
+                    if (levelObject.SubtypeID != WAYPOINT_ID)
                     {
-                        levelObject.ID = WAYPOINT_ID;
+                        levelObject.SubtypeID = WAYPOINT_ID;
                     }
                     break;
             }
@@ -719,9 +719,9 @@ namespace LibDescent.Data
                     s.Enabled = (_levelVersion < 19) ? true : (reader.ReadSByte() > 0);
                     // Fix IDs from old D2X-XL levels
                     const int SOUND_ID = 2;
-                    if (levelObject.ID != SOUND_ID)
+                    if (levelObject.SubtypeID != SOUND_ID)
                     {
-                        levelObject.ID = SOUND_ID;
+                        levelObject.SubtypeID = SOUND_ID;
                     }
                     break;
             }
@@ -1830,7 +1830,7 @@ namespace LibDescent.Data
         private void WriteObject(BinaryWriter writer, LevelObject levelObject)
         {
             writer.Write((byte)levelObject.Type);
-            writer.Write(levelObject.ID);
+            writer.Write(levelObject.SubtypeID);
             writer.Write((byte)levelObject.ControlTypeID);
             writer.Write((byte)levelObject.MoveTypeID);
             writer.Write((byte)levelObject.RenderTypeID);

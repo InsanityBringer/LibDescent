@@ -110,7 +110,7 @@ namespace LibDescent.Data
         /// <summary>
         /// The ID of the object's subtype. Meaning is based on the value of Type.
         /// </summary>
-        public byte ID { get; set; }
+        public byte SubtypeID { get; set; }
 
         /// <summary>
         /// Gets the numeric ID of the current ControlType.

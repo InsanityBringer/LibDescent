@@ -88,7 +88,7 @@ namespace LibDescent.Tests
 
             // Object 0 - player
             Assert.AreEqual(ObjectType.Player, level.Objects[0].Type);
-            Assert.AreEqual(0, level.Objects[0].ID);
+            Assert.AreEqual(0, level.Objects[0].SubtypeID);
             Assert.AreEqual(MovementTypeID.Physics, level.Objects[0].MoveTypeID);
             Assert.AreEqual(ControlTypeID.Slew, level.Objects[0].ControlTypeID);
             Assert.AreEqual(RenderTypeID.Polyobj, level.Objects[0].RenderTypeID);
@@ -100,7 +100,7 @@ namespace LibDescent.Tests
 
             // Object 1 - reactor
             Assert.AreEqual(ObjectType.ControlCenter, level.Objects[1].Type);
-            Assert.AreEqual(2, level.Objects[1].ID);
+            Assert.AreEqual(2, level.Objects[1].SubtypeID);
             Assert.AreEqual(MovementTypeID.None, level.Objects[1].MoveTypeID);
             Assert.AreEqual(ControlTypeID.ControlCenter, level.Objects[1].ControlTypeID);
             Assert.AreEqual(RenderTypeID.Polyobj, level.Objects[1].RenderTypeID);
@@ -111,7 +111,7 @@ namespace LibDescent.Tests
 
             // Object 3 - hostage
             Assert.AreEqual(ObjectType.Hostage, level.Objects[3].Type);
-            Assert.AreEqual(0, level.Objects[3].ID);
+            Assert.AreEqual(0, level.Objects[3].SubtypeID);
             Assert.AreEqual(MovementTypeID.None, level.Objects[3].MoveTypeID);
             Assert.AreEqual(ControlTypeID.Powerup, level.Objects[3].ControlTypeID);
             Assert.AreEqual(RenderTypeID.Hostage, level.Objects[3].RenderTypeID);
@@ -122,7 +122,7 @@ namespace LibDescent.Tests
 
             // Object 6 - co-op player
             Assert.AreEqual(ObjectType.Coop, level.Objects[6].Type);
-            Assert.AreEqual(8, level.Objects[6].ID);
+            Assert.AreEqual(8, level.Objects[6].SubtypeID);
             Assert.AreEqual(MovementTypeID.Physics, level.Objects[6].MoveTypeID);
             Assert.AreEqual(ControlTypeID.None, level.Objects[6].ControlTypeID);
             Assert.AreEqual(RenderTypeID.Polyobj, level.Objects[6].RenderTypeID);
@@ -134,7 +134,7 @@ namespace LibDescent.Tests
 
             // Object 9 - Guide-bot
             Assert.AreEqual(ObjectType.Robot, level.Objects[9].Type);
-            Assert.AreEqual(33, level.Objects[9].ID);
+            Assert.AreEqual(33, level.Objects[9].SubtypeID);
             Assert.AreEqual(MovementTypeID.Physics, level.Objects[9].MoveTypeID);
             Assert.AreEqual(ControlTypeID.AI, level.Objects[9].ControlTypeID);
             Assert.AreEqual(RenderTypeID.Polyobj, level.Objects[9].RenderTypeID);
@@ -146,7 +146,7 @@ namespace LibDescent.Tests
 
             // Object 21 - robot (Sidearm) with contained robots
             Assert.AreEqual(ObjectType.Robot, level.Objects[21].Type);
-            Assert.AreEqual(30, level.Objects[21].ID);
+            Assert.AreEqual(30, level.Objects[21].SubtypeID);
             Assert.AreEqual(MovementTypeID.Physics, level.Objects[21].MoveTypeID);
             Assert.AreEqual(ControlTypeID.AI, level.Objects[21].ControlTypeID);
             Assert.AreEqual(RenderTypeID.Polyobj, level.Objects[21].RenderTypeID);
@@ -161,7 +161,7 @@ namespace LibDescent.Tests
 
             // Object 25 - blue flag
             Assert.AreEqual(ObjectType.Powerup, level.Objects[25].Type);
-            Assert.AreEqual(46, level.Objects[25].ID);
+            Assert.AreEqual(46, level.Objects[25].SubtypeID);
             Assert.AreEqual(MovementTypeID.None, level.Objects[25].MoveTypeID);
             Assert.AreEqual(ControlTypeID.Powerup, level.Objects[25].ControlTypeID);
             Assert.AreEqual(RenderTypeID.Powerup, level.Objects[25].RenderTypeID);

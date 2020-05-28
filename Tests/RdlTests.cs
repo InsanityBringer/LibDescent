@@ -178,7 +178,7 @@ namespace LibDescent.Tests
 
             // Player
             Assert.AreEqual(ObjectType.Player, level.Objects[0].Type);
-            Assert.AreEqual(0, level.Objects[0].ID);
+            Assert.AreEqual(0, level.Objects[0].SubtypeID);
             Assert.AreEqual(MovementTypeID.Physics, level.Objects[0].MoveTypeID);
             Assert.AreEqual(ControlTypeID.Slew, level.Objects[0].ControlTypeID);
             Assert.AreEqual(RenderTypeID.Polyobj, level.Objects[0].RenderTypeID);
@@ -192,7 +192,7 @@ namespace LibDescent.Tests
 
             // Powerup
             Assert.AreEqual(ObjectType.Powerup, level.Objects[1].Type);
-            Assert.AreEqual(5, level.Objects[1].ID); // red key
+            Assert.AreEqual(5, level.Objects[1].SubtypeID); // red key
             Assert.AreEqual(MovementTypeID.None, level.Objects[1].MoveTypeID);
             Assert.AreEqual(ControlTypeID.Powerup, level.Objects[1].ControlTypeID);
             Assert.AreEqual(RenderTypeID.Powerup, level.Objects[1].RenderTypeID);
@@ -202,7 +202,7 @@ namespace LibDescent.Tests
 
             // Reactor
             Assert.AreEqual(ObjectType.ControlCenter, level.Objects[2].Type);
-            Assert.AreEqual(0, level.Objects[2].ID);
+            Assert.AreEqual(0, level.Objects[2].SubtypeID);
             Assert.AreEqual(MovementTypeID.None, level.Objects[2].MoveTypeID);
             Assert.AreEqual(ControlTypeID.ControlCenter, level.Objects[2].ControlTypeID);
             Assert.AreEqual(RenderTypeID.Polyobj, level.Objects[2].RenderTypeID);
@@ -214,7 +214,7 @@ namespace LibDescent.Tests
 
             // Hostage
             Assert.AreEqual(ObjectType.Hostage, level.Objects[3].Type);
-            Assert.AreEqual(0, level.Objects[3].ID);
+            Assert.AreEqual(0, level.Objects[3].SubtypeID);
             Assert.AreEqual(MovementTypeID.None, level.Objects[3].MoveTypeID);
             Assert.AreEqual(ControlTypeID.Powerup, level.Objects[3].ControlTypeID);
             Assert.AreEqual(RenderTypeID.Hostage, level.Objects[3].RenderTypeID);
@@ -226,7 +226,7 @@ namespace LibDescent.Tests
 
             // Robot
             Assert.AreEqual(ObjectType.Robot, level.Objects[4].Type);
-            Assert.AreEqual(0, level.Objects[4].ID); // medium hulk
+            Assert.AreEqual(0, level.Objects[4].SubtypeID); // medium hulk
             Assert.AreEqual(MovementTypeID.Physics, level.Objects[4].MoveTypeID);
             Assert.AreEqual(ControlTypeID.AI, level.Objects[4].ControlTypeID);
             Assert.AreEqual(RenderTypeID.Polyobj, level.Objects[4].RenderTypeID);
