@@ -106,7 +106,7 @@ namespace LibDescent.Data
         public override RenderTypeID Identifier => RenderTypeID.Particle;
 
         public int Life { get; set; }
-        // nSize is a 2-element array in DLE, but the second element isn't used...
+        // Size is a 2-element array in DLE, but the second element isn't used...
         // I guess that means we don't need it?
         public int Size { get; set; }
         public int Parts { get; set; }
