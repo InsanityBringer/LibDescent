@@ -1,5 +1,5 @@
 ﻿/*
-    Copyright (c) 2019 SaladBadger
+    Copyright (c) 2019 The LibDescent Team
 
     Permission is hereby granted, free of charge, to any person obtaining a copy
     of this software and associated documentation files (the "Software"), to deal
@@ -75,6 +75,23 @@ namespace LibDescent.Data
         public int SubmodelProperty { get; set; }
 
         public int ID;
+
+        public Submodel()
+        {
+        }
+
+        public Submodel(Submodel other)
+        {
+            Pointer = other.Pointer;
+            Offset = other.Offset;
+            RenderOffset = other.RenderOffset;
+            Normal = other.Normal;
+            Point = other.Point;
+            Radius = other.Radius;
+            Parent = other.Parent;
+            Mins = other.Mins;
+            Maxs = other.Maxs;
+        }
     }
 
     /// <summary>
@@ -210,6 +227,52 @@ namespace LibDescent.Data
             InterpreterData = new byte[2]; //just terminator instruction
         }
         public Polymodel() : this(0) { }
+
+        public Polymodel(Polymodel other)
+        {
+            NumSubmodels = other.NumSubmodels;
+            ModelIDTASize = other.ModelIDTASize;
+            mInterpreterData = new byte[other.mInterpreterData.Length]; Array.Copy(other.mInterpreterData, mInterpreterData, other.mInterpreterData.Length);
+            Mins = other.Mins;
+            Maxs = other.Maxs;
+            Radius = other.Radius;
+            NumTextures = other.NumTextures;
+            FirstTexture = other.FirstTexture;
+            SimplerModels = other.SimplerModels;
+
+            UseTextureList = other.UseTextureList;
+            foreach (string tex in other.TextureList)
+                TextureList.Add(tex);
+
+            foreach (Submodel submodel in other.Submodels)
+            {
+                Submodels.Add(new Submodel(submodel));
+            }
+
+            DyingModelnum = other.DyingModelnum;
+            DeadModelnum = other.DeadModelnum;
+
+            numGuns = other.numGuns;
+            Array.Copy(other.gunPoints, gunPoints, MAX_GUNS);
+            Array.Copy(other.gunDirs, gunDirs, MAX_GUNS);
+            Array.Copy(other.gunSubmodels, gunSubmodels, MAX_GUNS);
+
+            isAnimated = other.isAnimated;
+
+            //TODO: Can I Array.Copy a multidimensional array?
+            for (int x = 0; x < MAX_SUBMODELS; x++)
+            {
+                for (int y = 0; y < Robot.NumAnimationStates; y++)
+                {
+                    animationMatrix[x, y] = other.animationMatrix[x, y];
+                }
+            }
+
+            replacementID = other.replacementID;
+
+            BaseTexture = other.BaseTexture;
+            ID = other.ID;
+        }
 
         /// <summary>
         /// Initalizes a object to have MAX_SUBMODELS submodels and MAX_GUNS guns.
