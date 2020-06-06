@@ -558,7 +558,7 @@ namespace LibDescent.Data
                 bw.BaseStream.Seek(ptr, SeekOrigin.Begin);
                 bw.Write(sounddata);
             }
-            bw.Dispose();
+            //bw.Dispose(); //[ISB] disposing a BinaryWriter seems to close the underlying stream. That's nice. 
         }
 
         public TMAPInfo GetTMAPInfo(int id)
