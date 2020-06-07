@@ -36,7 +36,6 @@ namespace LibDescent.Data
     }
     public class HXMFile : IDataFile
     {
-        public int sig, ver;
         public List<Robot> replacedRobots { get; private set; }
         public List<JointPos> replacedJoints { get; private set; }
         public List<Polymodel> replacedModels { get; private set; }
@@ -67,8 +66,8 @@ namespace LibDescent.Data
 
             HAMDataReader data = new HAMDataReader();
 
-            sig = br.ReadInt32();
-            ver = br.ReadInt32();
+            int sig = br.ReadInt32();
+            int ver = br.ReadInt32();
 
             if (sig != 559435080)
             {
@@ -140,8 +139,8 @@ namespace LibDescent.Data
             BinaryWriter bw = new BinaryWriter(stream);
             HAMDataWriter datawriter = new HAMDataWriter();
 
-            bw.Write(sig);
-            bw.Write(ver);
+            bw.Write(559435080);
+            bw.Write(1);
 
             bw.Write(replacedRobots.Count);
             for (int x = 0; x < replacedRobots.Count; x++)
