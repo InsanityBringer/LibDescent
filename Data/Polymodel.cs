@@ -347,6 +347,52 @@ namespace LibDescent.Data
             Submodels[num].Mins = mins;
             Submodels[num].Maxs = maxs;
         }
+
+        /// <summary>
+        /// Copies geometry-related data into this Polymodel, leaving data not directly related to rendering untouched.
+        /// </summary>
+        /// <param name="other">The model to copy from.</param>
+        public void PartialCopy(Polymodel other)
+        {
+            NumSubmodels = other.NumSubmodels;
+            ModelIDTASize = other.ModelIDTASize;
+            mInterpreterData = new byte[other.mInterpreterData.Length]; Array.Copy(other.mInterpreterData, mInterpreterData, other.mInterpreterData.Length);
+            Mins = other.Mins;
+            Maxs = other.Maxs;
+            Radius = other.Radius;
+            NumTextures = other.NumTextures;
+            FirstTexture = other.FirstTexture;
+
+            UseTextureList = other.UseTextureList;
+            TextureList.Clear();
+            foreach (string tex in other.TextureList)
+                TextureList.Add(tex);
+
+            Submodels.Clear();
+            foreach (Submodel submodel in other.Submodels)
+            {
+                Submodels.Add(new Submodel(submodel));
+            }
+
+            numGuns = other.numGuns;
+            Array.Copy(other.gunPoints, gunPoints, MAX_GUNS);
+            Array.Copy(other.gunDirs, gunDirs, MAX_GUNS);
+            Array.Copy(other.gunSubmodels, gunSubmodels, MAX_GUNS);
+
+            isAnimated = other.isAnimated;
+
+            //TODO: Can I Array.Copy a multidimensional array?
+            for (int x = 0; x < MAX_SUBMODELS; x++)
+            {
+                for (int y = 0; y < Robot.NumAnimationStates; y++)
+                {
+                    animationMatrix[x, y] = other.animationMatrix[x, y];
+                }
+            }
+
+            BaseTexture = other.BaseTexture;
+            ID = other.ID;
+        }
     }
 
     /// <summary>
