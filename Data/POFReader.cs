@@ -20,6 +20,7 @@
     SOFTWARE.
 */
 
+using System;
 using System.IO;
 
 namespace LibDescent.Data
@@ -33,6 +34,11 @@ namespace LibDescent.Data
 
             int sig = br.ReadInt32();
             short ver = br.ReadInt16();
+
+            if (ver < 6 || ver > 8)
+            {
+                throw new InvalidDataException(string.Format("POF File has unsupported version. Expected 6, 7, or 8, got {0}.", ver));
+            }
 
             int chunk = br.ReadInt32();
             int datasize = br.ReadInt32();
@@ -89,11 +95,6 @@ namespace LibDescent.Data
                             submodel.Normal = ReadVector(br);
                             submodel.Point = ReadVector(br);
                             submodel.Offset = ReadVector(br);
-                            if (ver > 8)
-                            {
-                                submodel.Mins = ReadVector(br);
-                                submodel.Maxs = ReadVector(br);
-                            }
                             submodel.Radius = new Fix(br.ReadInt32());
                             submodel.Pointer = br.ReadInt32();
                             model.Submodels.Add(submodel);
@@ -156,12 +157,9 @@ namespace LibDescent.Data
                 datasize = br.ReadInt32();
                 dest = br.BaseStream.Position + datasize;
             }
-            if (ver < 9)
+            for (int i = 0; i < model.NumSubmodels; i++)
             {
-                for (int i = 0; i < model.NumSubmodels; i++)
-                {
-                    model.GetSubmodelMinMaxs(i, model);
-                }
+                model.GetSubmodelMinMaxs(i);
             }
 
             br.Close();

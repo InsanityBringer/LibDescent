@@ -290,11 +290,11 @@ namespace LibDescent.Data
             }
         }
 
-        public void GetSubmodelMinMaxs(int num, Polymodel host)
+        public void GetSubmodelMinMaxs(int num)
         {
             MemoryStream ms = new MemoryStream(mInterpreterData);
             BinaryReader br = new BinaryReader(ms);
-            br.BaseStream.Seek(host.Submodels[num].Pointer, SeekOrigin.Begin);
+            br.BaseStream.Seek(Submodels[num].Pointer, SeekOrigin.Begin);
             short opcode = br.ReadInt16();
             FixVector mins = FixVector.FromRawValues(int.MaxValue, int.MaxValue, int.MaxValue);
             FixVector maxs = FixVector.FromRawValues(int.MinValue, int.MinValue, int.MinValue);

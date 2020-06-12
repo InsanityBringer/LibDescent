@@ -99,9 +99,7 @@ namespace LibDescent.Data
         private static void SerializeSubobject(BinaryWriter bw, int id, Submodel model, short version)
         {
             bw.Write(0x4A424F53);
-            if (version >= 9)
-                bw.Write(72);
-            else bw.Write(48);
+            bw.Write(48);
             bw.Write((short)id);
             if (model.Parent == 255)
                 bw.Write((short)-1);
@@ -116,15 +114,6 @@ namespace LibDescent.Data
             bw.Write(model.Offset.x.value);
             bw.Write(model.Offset.y.value);
             bw.Write(model.Offset.z.value);
-            if (version >= 9)
-            {
-                bw.Write(model.Mins.x.value);
-                bw.Write(model.Mins.y.value);
-                bw.Write(model.Mins.z.value);
-                bw.Write(model.Maxs.x.value);
-                bw.Write(model.Maxs.y.value);
-                bw.Write(model.Maxs.z.value);
-            }
             bw.Write(model.Radius.value);
             bw.Write(model.Pointer);
         }
