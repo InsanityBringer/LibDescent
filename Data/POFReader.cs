@@ -61,7 +61,7 @@ namespace LibDescent.Data
                                 }
                                 string name = new string(texchars);
                                 name = name.Trim(' ', '\0');
-                                model.TextureList.Add(name);
+                                model.TextureList.Add(name.ToLower());
                             }
                         }
                         break;
