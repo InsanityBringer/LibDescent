@@ -145,14 +145,14 @@ namespace LibDescent.Edit
             if (model.replacementID == -1) return;
             List<FixAngles> jointlist = new List<FixAngles>();
             model.numGuns = robot.NumGuns;
-            for (int i = 0; i < Polymodel.MAX_GUNS; i++)
+            for (int i = 0; i < Polymodel.MaxGuns; i++)
             {
                 model.gunPoints[i] = robot.GunPoints[i];
                 model.gunDirs[i] = FixVector.FromRawValues(65536, 0, 0);
                 model.gunSubmodels[i] = robot.GunSubmodels[i];
             }
             int[,] jointmapping = new int[10, 5];
-            for (int m = 0; m < Polymodel.MAX_SUBMODELS; m++)
+            for (int m = 0; m < Polymodel.MaxSubmodels; m++)
             {
                 for (int f = 0; f < Robot.NumAnimationStates; f++)
                 {
@@ -178,7 +178,7 @@ namespace LibDescent.Edit
                 }
             }
 
-            for (int m = 1; m < Polymodel.MAX_SUBMODELS; m++)
+            for (int m = 1; m < Polymodel.MaxSubmodels; m++)
             {
                 for (int f = 0; f < Robot.NumAnimationStates; f++)
                 {

@@ -93,11 +93,11 @@ namespace LibDescent.Data
         /// <summary>
         /// where each gun model is
         /// </summary>
-        public FixVector[] GunPoints { get; } = new FixVector[Polymodel.MAX_GUNS];
+        public FixVector[] GunPoints { get; } = new FixVector[Polymodel.MaxGuns];
         /// <summary>
         /// which submodel is each gun in?
         /// </summary>
-        public byte[] GunSubmodels { get; } = new byte[Polymodel.MAX_GUNS];
+        public byte[] GunSubmodels { get; } = new byte[Polymodel.MaxGuns];
         /// <summary>
         /// VClip shown when robot is hit.
         /// </summary>
@@ -295,7 +295,7 @@ namespace LibDescent.Data
         /// <summary>
         /// animation info
         /// </summary>
-        public JointList[,] AnimStates { get; } = new JointList[Polymodel.MAX_GUNS + 1, NumAnimationStates];
+        public JointList[,] AnimStates { get; } = new JointList[Polymodel.MaxGuns + 1, NumAnimationStates];
         public int baseJoint = 0; //for HXM files aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa
 
         /// <summary>

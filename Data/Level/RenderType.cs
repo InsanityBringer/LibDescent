@@ -78,7 +78,7 @@ namespace LibDescent.Data
         public override RenderTypeID Identifier => RenderTypeID.Polyobj;
 
         public int ModelNum { get; set; }
-        public FixAngles[] BodyAngles { get; } = new FixAngles[Polymodel.MAX_SUBMODELS];
+        public FixAngles[] BodyAngles { get; } = new FixAngles[Polymodel.MaxSubmodels];
         /// <summary>
         /// Specifies which subobjects to render. Set to 0 to make all of the model's submodels render.
         /// </summary>

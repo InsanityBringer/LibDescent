@@ -103,11 +103,11 @@ namespace LibDescent.Data
         /// <summary>
         /// The maximum amount of submodels that Descent supports.
         /// </summary>
-        public const int MAX_SUBMODELS = 10;
+        public const int MaxSubmodels = 10;
         /// <summary>
         /// The maximum amount of guns that Descent supports.
         /// </summary>
-        public const int MAX_GUNS = 8;
+        public const int MaxGuns = 8;
 
         /// <summary>
         /// Number of submodels for this object.
@@ -187,15 +187,15 @@ namespace LibDescent.Data
         /// <summary>
         /// Positions of each of the object's guns.
         /// </summary>
-        public FixVector[] gunPoints = new FixVector[MAX_GUNS];
+        public FixVector[] gunPoints = new FixVector[MaxGuns];
         /// <summary>
         /// Facing of each of the object's guns.
         /// </summary>
-        public FixVector[] gunDirs = new FixVector[MAX_GUNS];
+        public FixVector[] gunDirs = new FixVector[MaxGuns];
         /// <summary>
         /// IDs of the submodels that each gun is attached to.
         /// </summary>
-        public int[] gunSubmodels = new int[MAX_GUNS];
+        public int[] gunSubmodels = new int[MaxGuns];
 
         //A model can have subobjects, but not actually be animated. Avoid creating extra joints if this is the case. 
         /// <summary>
@@ -205,7 +205,7 @@ namespace LibDescent.Data
         /// <summary>
         /// Matrix of the object's animation frames. Only supports five frames.
         /// </summary>
-        public FixAngles[,] animationMatrix = new FixAngles[MAX_SUBMODELS, Robot.NumAnimationStates];
+        public FixAngles[,] animationMatrix = new FixAngles[MaxSubmodels, Robot.NumAnimationStates];
 
         /// <summary>
         /// Object ID that this object overrides when in a HXM file.
@@ -253,14 +253,14 @@ namespace LibDescent.Data
             DeadModelnum = other.DeadModelnum;
 
             numGuns = other.numGuns;
-            Array.Copy(other.gunPoints, gunPoints, MAX_GUNS);
-            Array.Copy(other.gunDirs, gunDirs, MAX_GUNS);
-            Array.Copy(other.gunSubmodels, gunSubmodels, MAX_GUNS);
+            Array.Copy(other.gunPoints, gunPoints, MaxGuns);
+            Array.Copy(other.gunDirs, gunDirs, MaxGuns);
+            Array.Copy(other.gunSubmodels, gunSubmodels, MaxGuns);
 
             isAnimated = other.isAnimated;
 
             //TODO: Can I Array.Copy a multidimensional array?
-            for (int x = 0; x < MAX_SUBMODELS; x++)
+            for (int x = 0; x < MaxSubmodels; x++)
             {
                 for (int y = 0; y < Robot.NumAnimationStates; y++)
                 {
@@ -279,11 +279,11 @@ namespace LibDescent.Data
         /// </summary>
         public void ExpandSubmodels()
         {
-            while (Submodels.Count < MAX_SUBMODELS)
+            while (Submodels.Count < MaxSubmodels)
             {
                 Submodels.Add(new Submodel());
             }
-            for (int x = numGuns; x < MAX_GUNS; x++)
+            for (int x = numGuns; x < MaxGuns; x++)
             {
                 gunPoints[x] = new FixVector();
                 gunDirs[x] = new FixVector(1, 0, 0);
@@ -361,7 +361,7 @@ namespace LibDescent.Data
             Maxs = other.Maxs;
             Radius = other.Radius;
             NumTextures = other.NumTextures;
-            FirstTexture = other.FirstTexture;
+            //FirstTexture = other.FirstTexture;
 
             UseTextureList = other.UseTextureList;
             TextureList.Clear();
@@ -375,14 +375,14 @@ namespace LibDescent.Data
             }
 
             numGuns = other.numGuns;
-            Array.Copy(other.gunPoints, gunPoints, MAX_GUNS);
-            Array.Copy(other.gunDirs, gunDirs, MAX_GUNS);
-            Array.Copy(other.gunSubmodels, gunSubmodels, MAX_GUNS);
+            Array.Copy(other.gunPoints, gunPoints, MaxGuns);
+            Array.Copy(other.gunDirs, gunDirs, MaxGuns);
+            Array.Copy(other.gunSubmodels, gunSubmodels, MaxGuns);
 
             isAnimated = other.isAnimated;
 
             //TODO: Can I Array.Copy a multidimensional array?
-            for (int x = 0; x < MAX_SUBMODELS; x++)
+            for (int x = 0; x < MaxSubmodels; x++)
             {
                 for (int y = 0; y < Robot.NumAnimationStates; y++)
                 {
@@ -390,7 +390,7 @@ namespace LibDescent.Data
                 }
             }
 
-            BaseTexture = other.BaseTexture;
+            //BaseTexture = other.BaseTexture;
             ID = other.ID;
         }
     }

@@ -234,7 +234,7 @@ namespace LibDescent.Data
             Robot robot = new Robot();
             robot.ModelNum = br.ReadInt32();
 
-            for (int s = 0; s < Polymodel.MAX_GUNS; s++)
+            for (int s = 0; s < Polymodel.MaxGuns; s++)
             {
                 robot.GunPoints[s] = FixVector.FromRawValues(br.ReadInt32(), br.ReadInt32(), br.ReadInt32());
             }
@@ -344,7 +344,7 @@ namespace LibDescent.Data
             robot.ModelNum = br.ReadInt32();
             robot.NumGuns = (sbyte)br.ReadInt32();
 
-            for (int s = 0; s < Polymodel.MAX_GUNS; s++)
+            for (int s = 0; s < Polymodel.MaxGuns; s++)
             {
                 robot.GunPoints[s] = FixVector.FromRawValues(br.ReadInt32(), br.ReadInt32(), br.ReadInt32());
             }
@@ -434,7 +434,7 @@ namespace LibDescent.Data
             robot.ModelNum = br.ReadInt32();
             robot.NumGuns = (sbyte)br.ReadInt32();
 
-            for (int s = 0; s < Polymodel.MAX_GUNS; s++)
+            for (int s = 0; s < Polymodel.MaxGuns; s++)
             {
                 robot.GunPoints[s] = FixVector.FromRawValues(br.ReadInt32(), br.ReadInt32(), br.ReadInt32());
             }
@@ -776,50 +776,50 @@ namespace LibDescent.Data
 
         public Polymodel ReadPolymodelInfo(BinaryReader br)
         {
-            Polymodel model = new Polymodel(Polymodel.MAX_SUBMODELS);
+            Polymodel model = new Polymodel(Polymodel.MaxSubmodels);
             model.NumSubmodels = br.ReadInt32();
             model.ModelIDTASize = br.ReadInt32();
             model.ModelIDTAPointer = br.ReadInt32();
-            for (int s = 0; s < Polymodel.MAX_SUBMODELS; s++)
+            for (int s = 0; s < Polymodel.MaxSubmodels; s++)
             {
                 model.Submodels[s].Pointer = br.ReadInt32();
             }
-            for (int s = 0; s < Polymodel.MAX_SUBMODELS; s++)
+            for (int s = 0; s < Polymodel.MaxSubmodels; s++)
             {
                 model.Submodels[s].Offset.x = new Fix(br.ReadInt32());
                 model.Submodels[s].Offset.y = new Fix(br.ReadInt32());
                 model.Submodels[s].Offset.z = new Fix(br.ReadInt32());
             }
-            for (int s = 0; s < Polymodel.MAX_SUBMODELS; s++)
+            for (int s = 0; s < Polymodel.MaxSubmodels; s++)
             {
                 model.Submodels[s].Normal.x = new Fix(br.ReadInt32());
                 model.Submodels[s].Normal.y = new Fix(br.ReadInt32());
                 model.Submodels[s].Normal.z = new Fix(br.ReadInt32());
             }
-            for (int s = 0; s < Polymodel.MAX_SUBMODELS; s++)
+            for (int s = 0; s < Polymodel.MaxSubmodels; s++)
             {
                 model.Submodels[s].Point.x = new Fix(br.ReadInt32());
                 model.Submodels[s].Point.y = new Fix(br.ReadInt32());
                 model.Submodels[s].Point.z = new Fix(br.ReadInt32());
             }
-            for (int s = 0; s < Polymodel.MAX_SUBMODELS; s++)
+            for (int s = 0; s < Polymodel.MaxSubmodels; s++)
             {
                 model.Submodels[s].Radius = new Fix(br.ReadInt32());
             }
-            for (int s = 0; s < Polymodel.MAX_SUBMODELS; s++)
+            for (int s = 0; s < Polymodel.MaxSubmodels; s++)
             {
                 byte parent = br.ReadByte();
                 model.Submodels[s].Parent = parent;
                 if (parent != 255)
                     model.Submodels[parent].Children.Add(model.Submodels[s]);
             }
-            for (int s = 0; s < Polymodel.MAX_SUBMODELS; s++)
+            for (int s = 0; s < Polymodel.MaxSubmodels; s++)
             {
                 model.Submodels[s].Mins.x = new Fix(br.ReadInt32());
                 model.Submodels[s].Mins.y = new Fix(br.ReadInt32());
                 model.Submodels[s].Mins.z = new Fix(br.ReadInt32());
             }
-            for (int s = 0; s < Polymodel.MAX_SUBMODELS; s++)
+            for (int s = 0; s < Polymodel.MaxSubmodels; s++)
             {
                 model.Submodels[s].Maxs.x = new Fix(br.ReadInt32());
                 model.Submodels[s].Maxs.y = new Fix(br.ReadInt32());
@@ -837,37 +837,37 @@ namespace LibDescent.Data
 
         public Polymodel ReadPolymodelInfoPSX(BinaryReader br)
         {
-            Polymodel model = new Polymodel(Polymodel.MAX_SUBMODELS);
+            Polymodel model = new Polymodel(Polymodel.MaxSubmodels);
             model.NumSubmodels = br.ReadInt32();
             model.ModelIDTASize = br.ReadInt32();
             model.ModelIDTAPointer = br.ReadInt32();
-            for (int s = 0; s < Polymodel.MAX_SUBMODELS; s++)
+            for (int s = 0; s < Polymodel.MaxSubmodels; s++)
             {
                 model.Submodels[s].Pointer = br.ReadInt32();
             }
-            for (int s = 0; s < Polymodel.MAX_SUBMODELS; s++)
+            for (int s = 0; s < Polymodel.MaxSubmodels; s++)
             {
                 model.Submodels[s].Offset.x = new Fix(br.ReadInt32());
                 model.Submodels[s].Offset.y = new Fix(br.ReadInt32());
                 model.Submodels[s].Offset.z = new Fix(br.ReadInt32());
             }
-            for (int s = 0; s < Polymodel.MAX_SUBMODELS; s++)
+            for (int s = 0; s < Polymodel.MaxSubmodels; s++)
             {
                 model.Submodels[s].Normal.x = new Fix(br.ReadInt32());
                 model.Submodels[s].Normal.y = new Fix(br.ReadInt32());
                 model.Submodels[s].Normal.z = new Fix(br.ReadInt32());
             }
-            for (int s = 0; s < Polymodel.MAX_SUBMODELS; s++)
+            for (int s = 0; s < Polymodel.MaxSubmodels; s++)
             {
                 model.Submodels[s].Point.x = new Fix(br.ReadInt32());
                 model.Submodels[s].Point.y = new Fix(br.ReadInt32());
                 model.Submodels[s].Point.z = new Fix(br.ReadInt32());
             }
-            for (int s = 0; s < Polymodel.MAX_SUBMODELS; s++)
+            for (int s = 0; s < Polymodel.MaxSubmodels; s++)
             {
                 model.Submodels[s].Radius = new Fix(br.ReadInt32());
             }
-            for (int s = 0; s < Polymodel.MAX_SUBMODELS; s++)
+            for (int s = 0; s < Polymodel.MaxSubmodels; s++)
             {
                 byte parent = br.ReadByte();
                 model.Submodels[s].Parent = parent;
@@ -875,13 +875,13 @@ namespace LibDescent.Data
                     model.Submodels[parent].Children.Add(model.Submodels[s]);
             }
             short unk1 = br.ReadInt16();
-            for (int s = 0; s < Polymodel.MAX_SUBMODELS; s++)
+            for (int s = 0; s < Polymodel.MaxSubmodels; s++)
             {
                 model.Submodels[s].Mins.x = new Fix(br.ReadInt32());
                 model.Submodels[s].Mins.y = new Fix(br.ReadInt32());
                 model.Submodels[s].Mins.z = new Fix(br.ReadInt32());
             }
-            for (int s = 0; s < Polymodel.MAX_SUBMODELS; s++)
+            for (int s = 0; s < Polymodel.MaxSubmodels; s++)
             {
                 model.Submodels[s].Maxs.x = new Fix(br.ReadInt32());
                 model.Submodels[s].Maxs.y = new Fix(br.ReadInt32());

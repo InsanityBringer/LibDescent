@@ -646,7 +646,7 @@ namespace LibDescent.Data
                 case PolymodelRenderType pm:
                     {
                         pm.ModelNum = reader.ReadInt32();
-                        for (int i = 0; i < Polymodel.MAX_SUBMODELS; i++)
+                        for (int i = 0; i < Polymodel.MaxSubmodels; i++)
                         {
                             pm.BodyAngles[i] = ReadFixAngles(reader);
                         }
@@ -1916,7 +1916,7 @@ namespace LibDescent.Data
                 case PolymodelRenderType pm:
                     {
                         writer.Write(pm.ModelNum);
-                        for (int i = 0; i < Polymodel.MAX_SUBMODELS; i++)
+                        for (int i = 0; i < Polymodel.MaxSubmodels; i++)
                         {
                             WriteFixAngles(writer, pm.BodyAngles[i]);
                         }

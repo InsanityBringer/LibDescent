@@ -27,7 +27,7 @@ namespace LibDescent.Data
 {
     public class POFReader
     {
-        public static Polymodel ReadPOFFile(string filename, string traceto)
+        public static Polymodel ReadPOFFile(string filename)
         {
             BinaryReader br = new BinaryReader(File.Open(filename, FileMode.Open));
             Polymodel model = new Polymodel();
@@ -37,7 +37,7 @@ namespace LibDescent.Data
 
             if (ver < 6 || ver > 8)
             {
-                throw new InvalidDataException(string.Format("POF File has unsupported version. Expected 6, 7, or 8, got {0}.", ver));
+                throw new InvalidDataException(string.Format("POF File has unsupported version. Got {0}, but expected \"6\", \"7\", or \"8\".", ver));
             }
 
             int chunk = br.ReadInt32();
@@ -128,9 +128,12 @@ namespace LibDescent.Data
                             {
                                 for (int i = 0; i < numFrames; i++)
                                 {
-                                    model.animationMatrix[submodel, i].p = br.ReadInt16();
-                                    model.animationMatrix[submodel, i].b = br.ReadInt16();
-                                    model.animationMatrix[submodel, i].h = br.ReadInt16();
+                                    if (i < 5) //bounds check to avoid issues with more frames than intended
+                                    {
+                                        model.animationMatrix[submodel, i].p = br.ReadInt16();
+                                        model.animationMatrix[submodel, i].b = br.ReadInt16();
+                                        model.animationMatrix[submodel, i].h = br.ReadInt16();
+                                    }
                                 }
                             }
                         }
