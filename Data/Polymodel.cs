@@ -173,11 +173,11 @@ namespace LibDescent.Data
         /// <summary>
         /// ID of alternate model shown when this object is generating debris.
         /// </summary>
-        public int DyingModelnum = -1;
+        public int DyingModelnum { get; set; } = -1;
         /// <summary>
         /// ID of alternate model shown when this object is destroyed.
         /// </summary>
-        public int DeadModelnum = -1;
+        public int DeadModelnum { get; set; } = -1;
 
         //Things needed to simplify animation
         /// <summary>
@@ -214,7 +214,7 @@ namespace LibDescent.Data
         /// <summary>
         /// For HXM saving, a base offset for the object's new Object Bitmaps.
         /// </summary>
-        public int BaseTexture;
+        public int BaseTexture { get; set; }
 
         public int ID;
 
