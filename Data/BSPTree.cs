@@ -87,59 +87,52 @@ namespace LibDescent.Data
             List<BSPFace> frontList = new List<BSPFace>();
             List<BSPFace> backList = new List<BSPFace>();
             node.Splitter = FindSplitter(faces, ref node.Point, ref node.Normal);
-            foreach (BSPFace face in faces)
+            if (node.Splitter == null) //If a splitter wasn't found, this set of faces is convex
             {
-                if (face != node.Splitter)
+                node.faces = faces;
+                node.type = BSPNodeType.Leaf;
+            }
+            else //A splitter is known, so do any needed splits and recurse
+            {
+                foreach (BSPFace face in faces)
                 {
-                    ClassifyFace(face, node.Point, node.Normal);
-                    switch (face.Classification)
+                    if (face != node.Splitter)
                     {
-                        case BSPClassification.Front:
-                            frontList.Add(face);
-                            break;
-                        case BSPClassification.Back:
-                            backList.Add(face);
-                            break;
-                        case BSPClassification.Spanning:
-                            BSPFace frontFace = new BSPFace();
-                            BSPFace backFace = new BSPFace();
-                            SplitPolygon(face, node.Point, node.Normal, ref frontFace, ref backFace);
-                            frontList.Add(frontFace);
-                            backList.Add(backFace);
-                            break;
+                        ClassifyFace(face, node.Point, node.Normal);
+                        switch (face.Classification)
+                        {
+                            case BSPClassification.Front:
+                                frontList.Add(face);
+                                break;
+                            case BSPClassification.Back:
+                                backList.Add(face);
+                                break;
+                            case BSPClassification.Spanning:
+                                BSPFace frontFace = new BSPFace();
+                                BSPFace backFace = new BSPFace();
+                                SplitPolygon(face, node.Point, node.Normal, ref frontFace, ref backFace);
+                                frontList.Add(frontFace);
+                                backList.Add(backFace);
+                                break;
+                        }
                     }
                 }
-            }
-            /*if (frontList.Count == 0)
-            {
-                BSPNode newNode = new BSPNode();
-                newNode.type = BSPNodeType.Leaf;
-                newNode.faces = frontList;
-                node.Front = newNode;
-            }
-            else*/
-            if (frontList.Count > 0)
-            {
-                BSPNode newNode = new BSPNode();
-                newNode.type = BSPNodeType.Node;
-                BuildTree(newNode, frontList);
-                node.Front = newNode;
-           }
 
-            /*if (backList.Count == 0)
-            {
-                BSPNode newNode = new BSPNode();
-                newNode.type = BSPNodeType.Leaf;
-                newNode.faces = backList;
-                node.Back = newNode;
-            }
-            else*/
-            if (backList.Count > 0)
-            {
-                BSPNode newNode = new BSPNode();
-                newNode.type = BSPNodeType.Node;
-                BuildTree(newNode, faces);
-                node.Back = newNode;
+                if (frontList.Count > 0)
+                {
+                    BSPNode newNode = new BSPNode();
+                    newNode.type = BSPNodeType.Node;
+                    BuildTree(newNode, frontList);
+                    node.Front = newNode;
+                }
+
+                if (backList.Count > 0)
+                {
+                    BSPNode newNode = new BSPNode();
+                    newNode.type = BSPNodeType.Node;
+                    BuildTree(newNode, faces);
+                    node.Back = newNode;
+                }
             }
         }
 
@@ -162,25 +155,14 @@ namespace LibDescent.Data
                     return;
                 }
             }
+            if (face.Classification == BSPClassification.OnPlane) //Place coplanar faces on the front side of the plane if it is facing the same direction
+            {
+                if (Vector3.Dot(face.Normal, planeNorm) >= 0)
+                    face.Classification = BSPClassification.Front;
+                else
+                    face.Classification = BSPClassification.Back;
+            }
             face.Classification = face.Points[0].Classification;
-        }
-
-        public bool SplitEdge(Vector3 point1, Vector3 point2, Vector3 planePoint, Vector3 planeNorm, ref float percentage, ref Vector3 intersect)
-        {
-            Vector3 direction = point2 - point1;
-            float lineLength = Vector3.Dot(direction, planeNorm);
-
-            if (Math.Abs(lineLength) < 0.0001)
-                return false;
-
-            Vector3 L1 = planePoint - point1;
-            float distFromPlane = Vector3.Dot(L1, planeNorm);
-            percentage = distFromPlane / lineLength;
-
-            if (percentage < 0) return false;
-            if (percentage > 1) return false;
-            intersect = point1 + (direction * percentage);
-            return true;
         }
 
         public int EvalulateSplitter(List<BSPFace> faces, Vector3 planePoint, Vector3 planeNorm, BSPFace splitter)
@@ -203,6 +185,11 @@ namespace LibDescent.Data
                         break;
                 }
             }
+
+            if (numSplits == 0 && (numFront == 0 || numBack == 0)) //If everything is on one side of this splitter, it has no value. 
+            {
+                return int.MaxValue;
+            }
             return Math.Abs(numFront - numBack) + (numSplits * 8);
         }
 
@@ -220,13 +207,31 @@ namespace LibDescent.Data
                     bestFace = potential;
                 }
             }
-            if (bestFace != null)
+            /*if (bestFace != null) //Splitter can fail to be found if volume is convex
             {
                 planePoint = bestFace.Point;
                 planeNorm = bestFace.Normal;
                 return bestFace;
-            }
-            return null;
+            }*/
+            return bestFace;
+        }
+
+        public bool SplitEdge(Vector3 point1, Vector3 point2, Vector3 planePoint, Vector3 planeNorm, ref float percentage, ref Vector3 intersect)
+        {
+            Vector3 direction = point2 - point1;
+            float lineLength = Vector3.Dot(direction, planeNorm);
+
+            if (Math.Abs(lineLength) < 0.0001)
+                return false;
+
+            Vector3 L1 = planePoint - point1;
+            float distFromPlane = Vector3.Dot(L1, planeNorm);
+            percentage = distFromPlane / lineLength;
+
+            if (percentage < 0) return false;
+            if (percentage > 1) return false;
+            intersect = point1 + (direction * percentage);
+            return true;
         }
 
         public void SplitPolygon(BSPFace face, Vector3 planePoint, Vector3 planeNorm, ref BSPFace front, ref BSPFace back)

@@ -361,7 +361,6 @@ namespace LibDescent.Data
             Maxs = other.Maxs;
             Radius = other.Radius;
             NumTextures = other.NumTextures;
-            //FirstTexture = other.FirstTexture;
 
             UseTextureList = other.UseTextureList;
             TextureList.Clear();
@@ -390,7 +389,6 @@ namespace LibDescent.Data
                 }
             }
 
-            //BaseTexture = other.BaseTexture;
             ID = other.ID;
         }
     }
