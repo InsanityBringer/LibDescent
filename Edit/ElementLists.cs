@@ -24,8 +24,7 @@ namespace LibDescent.Edit
 {
     class ElementLists
     {
-        //all guns
-        public static string[] guns = {"Laser level 1", "Laser level 2", "Laser level 3", "Laser level 4",
+        public static readonly string[] DefaultWeaponNames = {"Laser level 1", "Laser level 2", "Laser level 3", "Laser level 4",
                             "Blue Energy Ball",
                             "Class 1 Drone Fireball", "Reactor Energy Ball", "Nothing", "Concussion Missile", "Flare",
                             "Robot Blue Laser", "Vulcan Bullet", "Spreadfire Blob", "Plasma Ball", "Fusion Blob",
@@ -42,7 +41,7 @@ namespace LibDescent.Edit
                             "Fast Smart Mine Child", "Robot Smart Missile", "Robot Earthshaker Missile",
                             "Robot Earthshaker Tracker", "Robot Omega Beam", "Robot Homing Flash Missile"};
 
-        public static string[] vclips = {"Explosion13", "RedSpark", "Explosion20", "ScreenShatter", "Unused4",
+        public static readonly string[] DefaultVClipNames = {"Explosion13", "RedSpark", "Explosion20", "ScreenShatter", "Unused4",
                             "MissileExplosion", "Unused6", "Explosion15", "UnusedGetHostage", "BlackSpark",
                             "MatcenCreate", "RedMuzzleFlash", "GreenMuzzleFlash", "Unused13", "BlueMuzzleFlash", "PurpleMuzzleFlash",
                             "Unused16", "Unused17", "EnergyPickup", "ShieldPickup", "LaserCannon",
@@ -63,7 +62,7 @@ namespace LibDescent.Edit
                             "PESTProjectile", "HelixProjectile", "MonitorStatic", "BlueFlag", "RedFlag", "MercuryMissilePackItem",
                             "OmegaProjectile", "EarthshakerMissileImpact", "OmegaImpact", "MercuryExplosion" };
 
-        public static string[] eclips = {"ArrowStrip", "Unused1", "EnergySparkles", "Fan", "Unused4", "Unused5", "Unused6",
+        public static readonly string[] DefaultEClipNames = {"ArrowStrip", "Unused1", "EnergySparkles", "Fan", "Unused4", "Unused5", "Unused6",
                             "Unused7", "Unused8", "Slime", "Unused10", "Unused11", "ReactorRoom1", "ReactorRoom2",
                             "ReactorRoom3", "ReactorRoom4", "MatcenEdge", "Matcen", "Unused18", "LandingPad", "Screen1",
                             "Screen2", "Screen3", "Screen4", "Screen5", "Screen6", "Screen7", "Screen8", "Unused28", "Unused29",
@@ -80,8 +79,7 @@ namespace LibDescent.Edit
                             "EBanditLightning", "Screen9", "Screen9Break", "Screen10Crit", "Screen10", "Screen10Break", "Unused102",
                             "Screen11Crit", "BossWeakSpot"};
 
-        //all robots
-        public static string[] robots = {"Medium Hulk", "Medium Lifter", "Spider Processer", "Class 1 Drone", "Class 2 Drone",
+        public static readonly string[] DefaultRobotNames = {"Medium Hulk", "Medium Lifter", "Spider Processer", "Class 1 Drone", "Class 2 Drone",
                     "Cloaked Driller", "Cloaked Medium Hulk", "Supervisor", "Alternate Lifter", "Heavy Driller",
                     "Gopher", "Laser Platform Robot", "Missile Platform Robot", "Splitter Pod", "Baby Spider",
                     "Fusion Hulk", "Supermech", "Level 7 Boss", "Cloaked Lifter", "Class 1 Driller", "Light Hulk",
@@ -94,8 +92,7 @@ namespace LibDescent.Edit
                     "Omega Defense Spawn Clone", "BPER Bot Clone", "Spider Clone", "Spawn Clone", "Ice Boss", "Spawn",
                     "Final Boss", "Mini Reactor"};
 
-         //powerups
-        public static string[] powerups = {"Extra Life", "Energy", "Shield", "Laser Cannon", "Blue Key", "Red Key", "Yellow Key",
+        public static readonly string[] DefaultPowerupNames = {"Extra Life", "Energy", "Shield", "Laser Cannon", "Blue Key", "Red Key", "Yellow Key",
                       "Hoard Orb", "Unused (Powerup Revealer)", "Unused (Map Revealer)", "Concussion Missile", "Concussion Pack", "Quad Laser",
                       "Vulcan Cannon", "Spreadfire Cannon", "Plasma Cannon", "Fusion Cannon", "Proximity Bomb", "Homing Missile", "Homing Pack", 
                       "Smart Missile", "Mega Missile", "Vulcan Ammo", "Cloak", "Unused (Turbo)", "Invulnerability",
@@ -104,7 +101,7 @@ namespace LibDescent.Edit
                       "Flash Pack", "Guided Missile", "Guided Pack", "Smart Mine", "Mercury Missile",
                       "Mercury Pack", "Earthshaker Missile", "Blue Flag", "Red Flag"};
 
-        public static string[] polymodels = {"Medium Hulk", "Medium Hulk LOD", "Medium Lifter", "Medium Lifter LOD", "Spider Processor",
+        public static readonly string[] DefaultPolymodelNames = {"Medium Hulk", "Medium Hulk LOD", "Medium Lifter", "Medium Lifter LOD", "Spider Processor",
                       "Spider Processor LOD", "Class 1 Drone", "Class 1 Drone LOD", "Class 2 Drone", "Class 2 Drone LOD", "Cloaked Driller",
                       "Cloaked Driller LOD", "Cloaked Hulk", "Cloaked Hulk LOD", "Supervisor", "Alternate Lifter", "Alternate Lifter LOD", 
                       "Heavy Driller", "Heavy Driller LOD", "Gopher", "Laser Platform Robot", "Missile Platform Robot", "Splitter Pod", "Baby Spider", 
@@ -129,7 +126,8 @@ namespace LibDescent.Edit
                       "Robot Vulcan", "Robot White Laser", "Robot White Laser Core", "Robot Flash Missile", "Mine", "Earthshaker Child", "Robot Mercury Missile", "Robot Smart Missile", 
                       "Robot Earthshaker Missile", "Robot Earthshaker Missile Child", "Robot Homing Flash Missile"};
 
-        public static string[] polymodelsDemo = { "Smelter", "Smelter LOD", "Sidearm", "Sidearm LOD", "Red Fatty", "Red Fatty LOD",
+        //Wait, what is this doing here...
+        public static readonly string[] DefaultDemoPolymodelNames = { "Smelter", "Smelter LOD", "Sidearm", "Sidearm LOD", "Red Fatty", "Red Fatty LOD",
             "Guidebot", "Guidebot LOD", "ITD", "ITD LOD", "PEST", "PEST LOD", "PIG", "PIG LOD", "Diamond Claw", "Diamond Claw LOD",
             "Thief Bot", "Thief Bot LOD", "Sidearm Modula", "Sidearm Modula LOD", "Zeta Aquilae Reactor", "Zeta Aquilae Reactor Destroyed",
             "Marker", "Pyro-GX", "Pyro-GX LOD", "Pyro-GX Dying", "Mine Exit", "Mine Exit Destroyed", "Red Laser", "Red Laser LOD",
@@ -137,13 +135,11 @@ namespace LibDescent.Edit
             "Light Blue Laser", "Light Blue Laser LOD", "Light Blue Laser LOD2", "Light Blue Laser Core", "Green Laser", "Green Laser LOD",
             "Green Laser LOD 2", "Green Laser Core", "Concussion Missile", "Flare", "Robot Blue Laser", "Robot Blue Laser Core",
             "Homing Missile", "Smart Missile", "Robot Homing Missile", "Robot Concussion Missile", "Robot Red Laser", "Robot Red Laser Core",
-            "Robot Green Laser", "Robot Green Laser Core", "Yellow Laser", "Yellow Laser 2", "Yellow Laser 3", "Yellow Laser 4", "White Laser",
+            "Robot Green Laser", "Robot Green Laser Core", "Yellow Laser", "Yellow Laser LOD", "Yellow Laser LOD 2", "Yellow Laser Core", "White Laser",
             "White Laser LOD", "White Laser LOD 2", "White Laser Core", "Flash Missile", "Guided Missile", "Robot Vulcan", "Robot White Laser",
             "Robot White Laser Core", "Robot Flash Missile", "Mine" };
 
-        public static string[] cockpits = { "Cockpit", "Cockpit rearview", "Status bar" };
-
-        public static string[] sounds = {"Silence", "Seeker sight", "Seeker attack", "BPER sight", "BPER attack", "Boarshed sight", "Boarshed attack",
+        public static readonly string[] DefaultSoundNames = {"Silence", "Seeker sight", "Seeker attack", "BPER sight", "BPER attack", "Boarshed sight", "Boarshed attack",
                       "TRN Racer sight", "TRN Racer attack", "Bulk Destroyer sight", "Unused laser fire", "Explosion", "Smart Blob launch",
                       "Laser level 1 fire", "Laser level 2 fire", "Laser level 3 fire", "Laser level 4 fire", "Player hit robot", "Spreadfire fire",
                       "Class 1 drone fire", "Robot hit explosion", "Robot died explosion", "Reactor fire", "Flare fire", "Fusion fire",
@@ -175,78 +171,78 @@ namespace LibDescent.Edit
                       "Converter", "E-Bandit drain", "Unused #243", "Thief steal", "Earthshaker Missile explode", "Illusionary Wall disabled", "Afterburner", "Afterburner end",
                       "Secret warp", "Earthshaker launch", "Earthquake", "Unsued #252", "Unused #253"};
 
-        public static string[] reactors = { "Descent 1 Reactor", "Alien Reactor", "Zeta Aquilae Reactor", "Water Reactor", "Fire Reactor", "Alien 1 Reactor", "Ice Reactor" };
+        public static readonly string[] DefaultReactorNames = { "Descent 1 Reactor", "Alien Reactor", "Zeta Aquilae Reactor", "Water Reactor", "Fire Reactor", "Alien 1 Reactor", "Ice Reactor" };
 
         public static string GetWeaponName(int weapon_type)
         {
-            if (weapon_type >= ElementLists.guns.Length)
+            if (weapon_type >= DefaultWeaponNames.Length)
             {
                 return "New weapon " + weapon_type.ToString();
             }
-            return ElementLists.guns[weapon_type] + " #" + weapon_type.ToString();
+            return DefaultWeaponNames[weapon_type] + " #" + weapon_type.ToString();
         }
 
         public static string GetVClipName(int vclip)
         {
-            if (vclip >= ElementLists.vclips.Length)
+            if (vclip >= DefaultVClipNames.Length)
             {
-                return "NewVClip " + vclip.ToString();
+                return "NewVClip" + vclip.ToString();
             }
-            return ElementLists.vclips[vclip] + " #" + vclip.ToString();
+            return DefaultVClipNames[vclip] + " #" + vclip.ToString();
         }
         public static string GetEClipName(int eclip)
         {
-            if (eclip >= ElementLists.eclips.Length)
+            if (eclip >= DefaultEClipNames.Length)
             {
                 return "NewEClip" + eclip.ToString();
             }
-            return ElementLists.eclips[eclip];
+            return DefaultEClipNames[eclip];
         }
         public static string GetRobotName(int robot_type)
         {
-            if (robot_type >= ElementLists.robots.Length)
+            if (robot_type >= DefaultRobotNames.Length)
             {
                 return "New robot " + robot_type.ToString();
             }
-            return ElementLists.robots[robot_type] + " #" + robot_type.ToString();
+            return DefaultRobotNames[robot_type] + " #" + robot_type.ToString();
         }
         public static string GetPowerupName(int powerup)
         {
-            if (powerup >= ElementLists.powerups.Length)
+            if (powerup >= DefaultPowerupNames.Length)
             {
                 return "New Powerup " + powerup.ToString();
             }
-            return ElementLists.powerups[powerup];
+            return DefaultPowerupNames[powerup];
         }
         public static string GetModelName(int model)
         {
-            if (model >= ElementLists.polymodels.Length)
+            if (model >= DefaultPolymodelNames.Length)
             {
                 return "New Model " + model.ToString();
             }
-            return ElementLists.polymodels[model];
+            return DefaultPolymodelNames[model];
         }
         public static string GetDemoModelName(int model)
         {
-            if (model >= ElementLists.polymodelsDemo.Length)
+            if (model >= DefaultDemoPolymodelNames.Length)
             {
                 return "New Model " + model.ToString();
             }
-            return ElementLists.polymodelsDemo[model];
+            return DefaultDemoPolymodelNames[model];
         }
         public static string GetSoundName(int soundID)
         {
-            if (soundID >= sounds.Length)
+            if (soundID >= DefaultSoundNames.Length)
             {
                 return "New sound " + soundID.ToString();
             }
-            return ElementLists.sounds[soundID];
+            return DefaultSoundNames[soundID];
         }
         public static string GetReactorName(int reactor)
         {
-            if (reactor >= reactors.Length)
+            if (reactor >= DefaultReactorNames.Length)
                 return "New Reactor " + reactor.ToString();
-            return reactors[reactor];
+            return DefaultReactorNames[reactor];
         }
     }
 }
