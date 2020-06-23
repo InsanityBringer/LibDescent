@@ -59,6 +59,11 @@ namespace LibDescent.Data
         /// </summary>
         public HOGFormat Format { get; set; }
 
+        /// <summary>
+        /// Collection of lumps, for iteration purposes.
+        /// </summary>
+        public ICollection<HOGLump> Lumps { get { return lumps; } }
+
         public HOGFile() { }
 
         /// <summary>
