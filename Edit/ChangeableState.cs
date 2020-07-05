@@ -111,6 +111,20 @@ namespace LibDescent.Edit
         }
 
         /// <summary>
+        /// Changes the value of a field or variable and returns the new value.
+        /// </summary>
+        /// <typeparam name="T">The type to use.</typeparam>
+        /// <param name="variable">The variable that will be changed.</param>
+        /// <param name="newValue">The new value to apply.</param>
+        /// <returns></returns>
+        protected T Exchange<T>(ref T variable, T newValue)
+        {
+            T oldValue = variable;
+            variable = newValue;
+            return oldValue;
+        }
+
+        /// <summary>
         /// Assigns a new value to a variable. Returns whether the value was changed
         /// (i.e. whether the old value was different from the new value), and if
         /// so, will also automatically call OnPropertyChanged with the name of 
@@ -135,6 +149,29 @@ namespace LibDescent.Edit
         /// <summary>
         /// Assigns a new value to a variable. Returns whether the value was changed
         /// (i.e. whether the old value was different from the new value), and if
+        /// so, will also automatically call OnPropertyChanged with the name of 
+        /// the property that this was called from.
+        /// </summary>
+        /// <typeparam name="T"></typeparam>
+        /// <param name="variable">The variable to assign to.</param>
+        /// <param name="newValue">The new value to assign.</param>
+        /// <param name="oldValue">The old value of the variable that was present before the new value was assigned.</param>
+        /// <param name="property">The property name. This is filled in automatically;
+        /// if you want to enter another value, please use AssignChanged.</param>
+        /// <returns></returns>
+        protected bool AssignChanged<T>(ref T variable, T newValue, out T oldValue, [CallerMemberName] string property = null)
+        {
+            oldValue = variable;
+            bool changed = !EqualityComparer<T>.Default.Equals(oldValue, newValue);
+            if (changed && _pausedStateDirtySet != null) this.BeforePropertyChanged?.Invoke(this, new BeforePropertyChangeEventArgs(property, oldValue, newValue));
+            variable = newValue;
+            if (changed) OnPropertyChanged(property, newValue);
+            return changed;
+        }
+
+        /// <summary>
+        /// Assigns a new value to a variable. Returns whether the value was changed
+        /// (i.e. whether the old value was different from the new value), and if
         /// so, will also automatically call OnPropertyChanged. Use this if the
         /// property name that is reported for events needs to be different from the
         /// actual name of the property this is called from.
@@ -149,6 +186,31 @@ namespace LibDescent.Edit
         protected bool AssignChangedRename<T>(ref T variable, T newValue, string property)
         {
             T oldValue = variable;
+            bool changed = !EqualityComparer<T>.Default.Equals(oldValue, newValue);
+            if (changed && _pausedStateDirtySet != null) this.BeforePropertyChanged?.Invoke(this, new BeforePropertyChangeEventArgs(property, oldValue, newValue));
+            variable = newValue;
+            if (changed) OnPropertyChanged(property, newValue);
+            return changed;
+        }
+
+        /// <summary>
+        /// Assigns a new value to a variable. Returns whether the value was changed
+        /// (i.e. whether the old value was different from the new value), and if
+        /// so, will also automatically call OnPropertyChanged. Use this if the
+        /// property name that is reported for events needs to be different from the
+        /// actual name of the property this is called from.
+        /// </summary>
+        /// <typeparam name="T"></typeparam>
+        /// <param name="variable">The variable to assign to.</param>
+        /// <param name="newValue">The new value to assign.</param>
+        /// <param name="oldValue">The old value of the variable that was present before the new value was assigned.</param>
+        /// <param name="property">The property name. This should be the
+        /// plain property name (i.e. no nesting or dots) and must be a valid
+        /// property name for the object (a property with the name must exist).</param>
+        /// <returns></returns>
+        protected bool AssignChangedRename<T>(ref T variable, T newValue, out T oldValue, string property)
+        {
+            oldValue = variable;
             bool changed = !EqualityComparer<T>.Default.Equals(oldValue, newValue);
             if (changed && _pausedStateDirtySet != null) this.BeforePropertyChanged?.Invoke(this, new BeforePropertyChangeEventArgs(property, oldValue, newValue));
             variable = newValue;
