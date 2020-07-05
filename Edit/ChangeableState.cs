@@ -125,6 +125,29 @@ namespace LibDescent.Edit
         }
 
         /// <summary>
+        /// Returns the value unchanged, but subscribes to its events if it is itself
+        /// a ChangeableState. Designed to be used with read-only properties with
+        /// pre-initialized values.
+        /// </summary>
+        /// <typeparam name="T">The type of the value.</typeparam>
+        /// <param name="property">The name of the property the value will be assigned to.</param>
+        /// <param name="value">The value to subscribe to, if it is a ChangeableState.</param>
+        /// <returns></returns>
+        protected T Subscribe<T>(string property, T value)
+        {
+            if (value is ChangeableState newSubstate)
+            {
+                PropertyChangeEventHandler newHandler = (object sender, PropertyChangeEventArgs e) =>
+                {
+                    this.OnPropertyChanged(property + "." + e.PropertyName, e.NewValue);
+                };
+                _substates[property] = new SubstateListener(newSubstate, newHandler);
+                newSubstate.PropertyChanged += newHandler;
+            }
+            return value;
+        }
+
+        /// <summary>
         /// Assigns a new value to a variable. Returns whether the value was changed
         /// (i.e. whether the old value was different from the new value), and if
         /// so, will also automatically call OnPropertyChanged with the name of 
@@ -140,7 +163,7 @@ namespace LibDescent.Edit
         {
             T oldValue = variable;
             bool changed = !EqualityComparer<T>.Default.Equals(oldValue, newValue);
-            if (changed && _pausedStateDirtySet != null) this.BeforePropertyChanged?.Invoke(this, new BeforePropertyChangeEventArgs(property, oldValue, newValue));
+            if (changed && _pausedStateDirtySet == null) this.BeforePropertyChanged?.Invoke(this, new BeforePropertyChangeEventArgs(property, oldValue, newValue));
             variable = newValue;
             if (changed) OnPropertyChanged(property, newValue);
             return changed;
@@ -163,7 +186,7 @@ namespace LibDescent.Edit
         {
             oldValue = variable;
             bool changed = !EqualityComparer<T>.Default.Equals(oldValue, newValue);
-            if (changed && _pausedStateDirtySet != null) this.BeforePropertyChanged?.Invoke(this, new BeforePropertyChangeEventArgs(property, oldValue, newValue));
+            if (changed && _pausedStateDirtySet == null) this.BeforePropertyChanged?.Invoke(this, new BeforePropertyChangeEventArgs(property, oldValue, newValue));
             variable = newValue;
             if (changed) OnPropertyChanged(property, newValue);
             return changed;
@@ -187,7 +210,7 @@ namespace LibDescent.Edit
         {
             T oldValue = variable;
             bool changed = !EqualityComparer<T>.Default.Equals(oldValue, newValue);
-            if (changed && _pausedStateDirtySet != null) this.BeforePropertyChanged?.Invoke(this, new BeforePropertyChangeEventArgs(property, oldValue, newValue));
+            if (changed && _pausedStateDirtySet == null) this.BeforePropertyChanged?.Invoke(this, new BeforePropertyChangeEventArgs(property, oldValue, newValue));
             variable = newValue;
             if (changed) OnPropertyChanged(property, newValue);
             return changed;
@@ -212,7 +235,7 @@ namespace LibDescent.Edit
         {
             oldValue = variable;
             bool changed = !EqualityComparer<T>.Default.Equals(oldValue, newValue);
-            if (changed && _pausedStateDirtySet != null) this.BeforePropertyChanged?.Invoke(this, new BeforePropertyChangeEventArgs(property, oldValue, newValue));
+            if (changed && _pausedStateDirtySet == null) this.BeforePropertyChanged?.Invoke(this, new BeforePropertyChangeEventArgs(property, oldValue, newValue));
             variable = newValue;
             if (changed) OnPropertyChanged(property, newValue);
             return changed;
@@ -231,7 +254,7 @@ namespace LibDescent.Edit
         /// <returns></returns>
         protected void AssignAlways<T>(ref T variable, T newValue, [CallerMemberName] string property = null)
         {
-            if (_pausedStateDirtySet != null) this.BeforePropertyChanged?.Invoke(this, new BeforePropertyChangeEventArgs(property, variable, newValue));
+            if (_pausedStateDirtySet == null) this.BeforePropertyChanged?.Invoke(this, new BeforePropertyChangeEventArgs(property, variable, newValue));
             variable = newValue;
             OnPropertyChanged(property, newValue);
         }
@@ -251,7 +274,7 @@ namespace LibDescent.Edit
         /// <returns></returns>
         protected void AssignAlwaysRename<T>(ref T variable, T newValue, string property)
         {
-            if (_pausedStateDirtySet != null) this.BeforePropertyChanged?.Invoke(this, new BeforePropertyChangeEventArgs(property, variable, newValue));
+            if (_pausedStateDirtySet == null) this.BeforePropertyChanged?.Invoke(this, new BeforePropertyChangeEventArgs(property, variable, newValue));
             variable = newValue;
             OnPropertyChanged(property, newValue);
         }
@@ -301,6 +324,15 @@ namespace LibDescent.Edit
     /// <typeparam name="T">The class to proxy.</typeparam>
     public abstract class ChangeableStateProxy<T> : ChangeableState where T : class
     {
+        /// <summary>
+        /// Used to initialize a proxy.
+        /// </summary>
+        /// <param name="Host">The underlying host object.</param>
+        protected ChangeableStateProxy(T Host)
+        {
+            this.Host = Host;
+        }
+
         /// <summary>
         /// The underlying proxied class. Properties, methods and constructors should
         /// use this for backing.
