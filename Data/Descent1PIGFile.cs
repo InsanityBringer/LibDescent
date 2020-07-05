@@ -24,6 +24,7 @@ using System;
 using System.Collections.Generic;
 using System.Text;
 using System.IO;
+using System.Linq;
 
 namespace LibDescent.Data
 {
@@ -288,14 +289,28 @@ namespace LibDescent.Data
                 {
                     int num = br.ReadInt32();
                     if (i < numModels)
+                    {
                         Models[i].DyingModelnum = num;
+                    }
+                    else
+                    {
+                        int wtfIsThis = num;
+                    }
                 }
                 for (int i = 0; i < 85; i++)
                 {
                     int num = br.ReadInt32();
+
                     if (i < numModels)
+                    {
                         Models[i].DeadModelnum = num;
+                    }
+                    else
+                    {
+                        int wtfIsThis = num;
+                    }
                 }
+
                 for (int i = 0; i < 210; i++)
                 {
                     ObjBitmaps[i] = br.ReadUInt16();
@@ -452,5 +467,357 @@ namespace LibDescent.Data
 
             return 0;
         }
+
+//#if JAAPIO
+        public int Write(Stream stream)
+        {
+            //BinaryReader br = new BinaryReader(stream);
+
+            BinaryWriter bw = new BinaryWriter(stream);
+            //HAMDataReader reader = new HAMDataReader();
+            HAMDataWriter writer = new HAMDataWriter();
+
+            Int32 DataPointer = 0; // update this later on
+
+            {
+                bw.Write(DataPointer); // update this later on
+
+                bw.Write((Int32)numTextures);
+
+                for (int i = 0; i < 800; i++)
+                {
+                    //Textures[i] = br.ReadUInt16();
+                    bw.Write((UInt16)Textures[i]);
+                }
+
+                for (int i = 0; i < 800; i++)
+                {
+                    // TMapInfo[i] = reader.ReadTMAPInfoDescent1(br);
+                    writer.WriteTMAPInfoDescent1(bw, TMapInfo[i]);
+                }
+
+                //Sounds = bw.ReadBytes(250);
+                bw.Write(Sounds);
+
+                //AltSounds = br.ReadBytes(250);
+                bw.Write(AltSounds);
+
+                //numVClips = br.ReadInt32(); //this value is bogus. rip
+                bw.Write((Int32)numVClips); //this value is bogus. rip
+
+                for (int i = 0; i < 70; i++)
+                {
+                    //VClips[i] = reader.ReadVClip(br);
+                    writer.WriteVClip(VClips[i], bw);
+                }
+
+                //numEClips = br.ReadInt32();
+                bw.Write((Int32)numEClips);
+
+                for (int i = 0; i < 60; i++)
+                {
+                    //EClips[i] = reader.ReadEClip(br);
+                    writer.WriteEClip(EClips[i], bw);
+                }
+
+                //numWClips = br.ReadInt32();
+                bw.Write((Int32)numWClips);
+                for (int i = 0; i < 30; i++)
+                {
+                    //WClips[i] = reader.ReadWClipDescent1(br);
+                    writer.WriteWClip(WClips[i], bw);
+                }
+
+                //numRobots = br.ReadInt32();
+                bw.Write((Int32)numRobots);
+                for (int i = 0; i < 30; i++)
+                {
+                    //Robots[i] = reader.ReadRobotDescent1(br);
+                    writer.WriteRobotDescent1(Robots[i], bw);
+                }
+
+                //numJoints = br.ReadInt32();
+                bw.Write((Int32)numJoints);
+                for (int i = 0; i < 600; i++)
+                {
+                    //JointPos joint = new JointPos();
+                    JointPos joint = Joints[i];
+
+                    //joint.jointnum = br.ReadInt16();
+                    bw.Write((Int16)joint.jointnum);
+                    //joint.angles.p = br.ReadInt16();
+                    bw.Write((Int16)joint.angles.p);
+                    //joint.angles.b = br.ReadInt16();
+                    bw.Write((Int16)joint.angles.b);
+                    //joint.angles.h = br.ReadInt16();
+                    bw.Write((Int16)joint.angles.h);
+
+                    //Joints[i] = joint;
+                }
+
+                //numWeapons = br.ReadInt32();
+                bw.Write((Int32)numWeapons);
+                for (int i = 0; i < 30; i++)
+                {
+                    //Weapons[i] = reader.ReadWeaponInfoDescent1(br);
+                    writer.WriteWeaponInfoDescent1(bw, Weapons[i]);
+                }
+
+                //numPowerups = br.ReadInt32();
+                bw.Write((Int32)numPowerups);
+                for (int i = 0; i < 29; i++)
+                {
+                    //Powerup powerup = new Powerup();
+
+                    var powerup = this.Powerups[i];
+
+                    //powerup.VClipNum = br.ReadInt32();
+                    HAMDataWriter.WriteInt32(bw, powerup.VClipNum);
+                    //powerup.HitSound = br.ReadInt32();
+                    HAMDataWriter.WriteInt32(bw, powerup.HitSound);
+                    //powerup.Size = new Fix(br.ReadInt32());
+                    HAMDataWriter.WriteInt32(bw, (int)powerup.Size);
+                    //powerup.Light = new Fix(br.ReadInt32());
+                    HAMDataWriter.WriteInt32(bw, (int)powerup.Light);
+                }
+
+                //numModels = br.ReadInt32();
+                bw.Write((Int32)numModels);
+                for (int i = 0; i < numModels; i++)
+                {
+                    //Models[i] = reader.ReadPolymodelInfo(br);
+                    writer.WritePolymodel(Models[i], bw);
+                }
+
+                for (int i = 0; i < numModels; i++)
+                {
+                    //Models[i].InterpreterData = br.ReadBytes(Models[i].ModelIDTASize);
+                    bw.Write(Models[i].InterpreterData, 0, Models[i].ModelIDTASize);
+                }
+
+                for (int i = 0; i < Gauges.Length; i++)
+                {
+                    //Gauges[i] = br.ReadUInt16();
+                    writer.WriteUInt16(bw, Gauges[i]);
+                }
+
+                for (int i = 0; i < 85; i++)
+                {
+                    //int num = br.ReadInt32();
+                    //if (i < numModels)
+                    //    Models[i].DyingModelnum = num;
+
+                    if (Models[i] == null)
+                    {
+                        HAMDataWriter.WriteInt32(bw, -1);
+                    }
+                    else
+                    {
+                        HAMDataWriter.WriteInt32(bw, Models[i].DyingModelnum);
+                    }
+                }
+
+                for (int i = 0; i < 85; i++)
+                {
+
+                    //int num = br.ReadInt32();
+                    //if (i < numModels)
+                    //    Models[i].DeadModelnum = num;
+
+                    if (Models[i] == null)
+                    {
+                        HAMDataWriter.WriteInt32(bw, -1);
+                    }
+                    else
+                    {
+                        HAMDataWriter.WriteInt32(bw, Models[i].DeadModelnum);
+                    }
+                }
+
+                for (int i = 0; i < 210; i++)
+                {
+                    //ObjBitmaps[i] = br.ReadUInt16();
+                    writer.WriteUInt16(bw, ObjBitmaps[i]);
+                }
+
+                for (int i = 0; i < 210; i++)
+                {
+                    //ObjBitmapPointers[i] = br.ReadUInt16();
+                    writer.WriteUInt16(bw, ObjBitmapPointers[i]);
+                }
+
+                //PlayerShip = new Ship();
+                //PlayerShip.ModelNum = br.ReadInt32();
+                HAMDataWriter.WriteInt32(bw, PlayerShip.ModelNum);
+                //PlayerShip.DeathVClipNum = br.ReadInt32();
+                HAMDataWriter.WriteInt32(bw, PlayerShip.DeathVClipNum);
+                //PlayerShip.Mass = new Fix(br.ReadInt32());
+                HAMDataWriter.WriteInt32(bw, (int)PlayerShip.Mass);
+                //PlayerShip.Drag = new Fix(br.ReadInt32());
+                HAMDataWriter.WriteInt32(bw, (int)PlayerShip.Drag);
+                //PlayerShip.MaxThrust = new Fix(br.ReadInt32());
+                HAMDataWriter.WriteInt32(bw, (int)PlayerShip.MaxThrust);
+                //PlayerShip.ReverseThrust = new Fix(br.ReadInt32());
+                HAMDataWriter.WriteInt32(bw, (int)PlayerShip.ReverseThrust);
+                //PlayerShip.Brakes = new Fix(br.ReadInt32());
+                HAMDataWriter.WriteInt32(bw, (int)PlayerShip.Brakes);
+                //PlayerShip.Wiggle = new Fix(br.ReadInt32());
+                HAMDataWriter.WriteInt32(bw, (int)PlayerShip.Wiggle);
+                //PlayerShip.MaxRotationThrust = new Fix(br.ReadInt32());
+                HAMDataWriter.WriteInt32(bw, (int)PlayerShip.MaxRotationThrust);
+
+                for (int x = 0; x < 8; x++)
+                {
+                    //PlayerShip.GunPoints[x] = FixVector.FromRawValues(br.ReadInt32(), br.ReadInt32(), br.ReadInt32());
+                    HAMDataWriter.WriteFixVector(bw, PlayerShip.GunPoints[x]);
+                }
+
+                //numCockpits = br.ReadInt32();
+                bw.Write((Int32)numCockpits); // update the data pointer
+                for (int i = 0; i < 4; i++)
+                {
+                    //Cockpits[i] = br.ReadUInt16();
+                    bw.Write((Int16)Cockpits[i]);
+                }
+
+                //heh
+                //Sounds = br.ReadBytes(250);
+                bw.Write(Sounds, 0, 250);
+                //AltSounds = br.ReadBytes(250);
+                bw.Write(AltSounds, 0, 250);
+
+                //numObjects = br.ReadInt32();
+                bw.Write((Int32)numObjects);
+                for (int i = 0; i < 100; i++)
+                {
+                    //ObjectTypes[i].type = (EditorObjectType)(br.ReadSByte());
+                    bw.Write((sbyte)ObjectTypes[i].type);
+                }
+                for (int i = 0; i < 100; i++)
+                {
+                    //ObjectTypes[i].id = br.ReadByte();
+                    bw.Write((byte)ObjectTypes[i].id);
+                }
+                for (int i = 0; i < 100; i++)
+                {
+                    //ObjectTypes[i].strength = new Fix(br.ReadInt32());
+                    bw.Write((Int32)ObjectTypes[i].strength);
+                    //Console.WriteLine("type: {0}({3})\nid: {1}\nstr: {2}", ObjectTypes[i].type, ObjectTypes[i].id, ObjectTypes[i].strength, (int)ObjectTypes[i].type);
+                }
+
+                //FirstMultiBitmapNum = br.ReadInt32();
+                bw.Write((Int32)FirstMultiBitmapNum);
+                //reactor.NumGuns = br.ReadInt32();
+                bw.Write((Int32)reactor.NumGuns);
+
+                for (int y = 0; y < 4; y++)
+                {
+                    //reactor.GunPoints[y] = FixVector.FromRawValues(br.ReadInt32(), br.ReadInt32(), br.ReadInt32());
+                    HAMDataWriter.WriteFixVector(bw, reactor.GunPoints[y]);
+                }
+                for (int y = 0; y < 4; y++)
+                {
+                    //reactor.GunDirs[y] = FixVector.FromRawValues(br.ReadInt32(), br.ReadInt32(), br.ReadInt32());
+                    HAMDataWriter.WriteFixVector(bw, reactor.GunDirs[y]);
+                }
+
+                //exitModelnum = br.ReadInt32();
+                bw.Write((Int32)exitModelnum);
+                //destroyedExitModelnum = br.ReadInt32();
+                bw.Write((Int32)destroyedExitModelnum);
+
+                for (int i = 0; i < 1800; i++)
+                {
+                    //BitmapXLATData[i] = br.ReadUInt16();
+                    bw.Write((Int16)BitmapXLATData[i]);
+                }
+            }
+
+            // Now update the DataPointer
+            DataPointer = (int)bw.BaseStream.Position;
+
+            bw.BaseStream.Seek(0, SeekOrigin.Begin);
+            bw.Write((Int32)DataPointer); // update the data pointer
+
+            // Return to where we were
+            bw.BaseStream.Seek(DataPointer, SeekOrigin.Begin);
+
+            //int numBitmaps = br.ReadInt32();
+            bw.Write((Int32)Bitmaps.Count);
+            //int numSounds = br.ReadInt32();
+            bw.Write((Int32)PIGSounds.Count);
+
+            //for (int i = 0; i < numBitmaps; i++)
+            for (int i = 0; i < Bitmaps.Count; i++)
+            {
+                var bitmap = Bitmaps[i];
+
+                var nameBytes = GetNameBytes(bitmap.Name, 8);
+                bw.Write(nameBytes);
+
+                writer.WriteByte(bw, (byte)bitmap.DFlags);
+                writer.WriteByte(bw, (byte)bitmap.Width);
+                writer.WriteByte(bw, (byte)bitmap.Height);
+                writer.WriteByte(bw, (byte)bitmap.Flags);
+                writer.WriteByte(bw, (byte)bitmap.AverageIndex);
+
+                HAMDataWriter.WriteInt32(bw, (byte)bitmap.Offset); // make this one correct later on
+            }
+
+            //for (int i = 0; i < numSounds; i++)
+            for (int i = 0; i < PIGSounds.Count; i++)
+            {
+                var sound = PIGSounds[i];
+
+                var nameBytes = GetNameBytes(sound.name, 8);
+                bw.Write(nameBytes);
+
+                HAMDataWriter.WriteInt32(bw, sound.len);
+                HAMDataWriter.WriteInt32(bw, sound.len);
+                HAMDataWriter.WriteInt32(bw, sound.offset); // make this one correct later on
+            }
+
+            //int basePointer = (int)br.BaseStream.Position;
+            int basePointer = (int)bw.BaseStream.Position;
+
+            for (int i = 1; i < Bitmaps.Count; i++)
+            {
+                br.BaseStream.Seek(basePointer + Bitmaps[i].Offset, SeekOrigin.Begin);
+                if ((Bitmaps[i].Flags & PIGImage.BM_FLAG_RLE) != 0)
+                {
+                    int compressedSize = br.ReadInt32();
+                    Bitmaps[i].Data = br.ReadBytes(compressedSize - 4);
+                }
+                else
+                {
+                    Bitmaps[i].Data = br.ReadBytes(Bitmaps[i].Width * Bitmaps[i].Height);
+                }
+            }
+
+            //br.Dispose();
+            bw.Dispose();
+
+            return 0;
+        }
+
+        private static byte[] GetNameBytes(string name, int lenght)
+        {
+            var resultBytes = new byte[lenght];
+
+            var nameBytes = name.ToCharArray().Select(c => (byte)c).ToArray();
+
+            if (name.Length >= lenght)
+            {
+                Array.Copy(nameBytes, resultBytes, lenght);
+            }
+            else
+            {
+                Array.Copy(nameBytes, resultBytes, nameBytes.Length);
+            }
+
+            return resultBytes;
+        }
+
+//#endif
     }
 }
