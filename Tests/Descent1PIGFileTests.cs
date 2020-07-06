@@ -12,7 +12,7 @@ namespace LibDescent.Tests
         const string PigFileLocation = @"D:\GOG Games\Descent\rDESCENT.PIG";
 
         [Test]
-        //[Ignore("Requires real Descent 1 (1.5) pig file")]
+        [Ignore("Requires real Descent 1 (1.5) pig file")]
         public void LoadD15PigFile()
         {
             Descent1PIGFile piggie = new Descent1PIGFile();
@@ -24,7 +24,7 @@ namespace LibDescent.Tests
         }
 
         [Test]
-        //[Ignore("Requires real Descent 1 (1.5) pig file")]
+        [Ignore("Requires real Descent 1 (1.5) pig file")]
         public void SaveD15PigFile()
         {
             Descent1PIGFile piggie = new Descent1PIGFile();

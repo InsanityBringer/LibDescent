@@ -579,8 +579,8 @@ namespace LibDescent.Data
 
                 descentWriter.WriteInt32(powerup.VClipNum);
                 descentWriter.WriteInt32(powerup.HitSound);
-                descentWriter.WriteInt32(powerup.Size.Value);
-                descentWriter.WriteInt32(powerup.Light.Value);
+                descentWriter.WriteFix(powerup.Size);
+                descentWriter.WriteFix(powerup.Light);
             }
 
             descentWriter.WriteInt32(numModels);
@@ -635,13 +635,13 @@ namespace LibDescent.Data
 
             descentWriter.WriteInt32(PlayerShip.ModelNum);
             descentWriter.WriteInt32(PlayerShip.DeathVClipNum);
-            descentWriter.WriteInt32(PlayerShip.Mass.Value);
-            descentWriter.WriteInt32(PlayerShip.Drag.Value);
-            descentWriter.WriteInt32(PlayerShip.MaxThrust.Value);
-            descentWriter.WriteInt32(PlayerShip.ReverseThrust.Value);
-            descentWriter.WriteInt32(PlayerShip.Brakes.Value);
-            descentWriter.WriteInt32(PlayerShip.Wiggle.Value);
-            descentWriter.WriteInt32(PlayerShip.MaxRotationThrust.Value);
+            descentWriter.WriteFix(PlayerShip.Mass);
+            descentWriter.WriteFix(PlayerShip.Drag);
+            descentWriter.WriteFix(PlayerShip.MaxThrust);
+            descentWriter.WriteFix(PlayerShip.ReverseThrust);
+            descentWriter.WriteFix(PlayerShip.Brakes);
+            descentWriter.WriteFix(PlayerShip.Wiggle);
+            descentWriter.WriteFix(PlayerShip.MaxRotationThrust);
 
             for (int x = 0; x < 8; x++)
             {
@@ -669,7 +669,7 @@ namespace LibDescent.Data
             }
             for (int i = 0; i < 100; i++)
             {
-                descentWriter.Write(ObjectTypes[i].strength.Value);
+                descentWriter.WriteFix(ObjectTypes[i].strength);
             }
 
             descentWriter.WriteInt32(FirstMultiBitmapNum);
@@ -759,14 +759,14 @@ namespace LibDescent.Data
             bw.Write(temp, 0, 13);
 
             bw.WriteByte(tMAPInfo.Flags);
-            bw.WriteInt32(tMAPInfo.Lighting.Value);
-            bw.WriteInt32(tMAPInfo.Damage.Value);
+            bw.WriteFix(tMAPInfo.Lighting);
+            bw.WriteFix(tMAPInfo.Damage);
             bw.WriteInt32(tMAPInfo.EClipNum);
         }
 
         internal void WriteWClipDescent1(WClip clip, DescentWriter bw)
         {
-            bw.WriteInt32(clip.PlayTime.Value);
+            bw.WriteFix(clip.PlayTime);
             bw.WriteInt16(clip.NumFrames);
 
             for (int f = 0; f < 20; f++)
@@ -808,25 +808,25 @@ namespace LibDescent.Data
 
             bw.WriteInt32(robot.ScoreValue);
 
-            bw.WriteInt32(robot.Lighting.Value);
-            bw.WriteInt32(robot.Strength.Value);
+            bw.WriteFix(robot.Lighting);
+            bw.WriteFix(robot.Strength);
 
-            bw.WriteInt32(robot.Mass.Value);
-            bw.WriteInt32(robot.Drag.Value);
+            bw.WriteFix(robot.Mass);
+            bw.WriteFix(robot.Drag);
 
-            bw.WriteMany(Robot.NumDifficultyLevels, robot.FieldOfView, (writer, a) => writer.WriteInt32(a.Value));
+            bw.WriteMany(Robot.NumDifficultyLevels, robot.FieldOfView, (writer, a) => writer.WriteFix(a));
 
-            bw.WriteMany(Robot.NumDifficultyLevels, robot.FiringWait, (writer, a) => writer.WriteInt32(a.Value));
+            bw.WriteMany(Robot.NumDifficultyLevels, robot.FiringWait, (writer, a) => writer.WriteFix(a));
 
-            bw.WriteMany(Robot.NumDifficultyLevels, robot.TurnTime, (writer, a) => writer.WriteInt32(a.Value));
+            bw.WriteMany(Robot.NumDifficultyLevels, robot.TurnTime, (writer, a) => writer.WriteFix(a));
 
-            bw.WriteMany(Robot.NumDifficultyLevels, robot.FirePower, (writer, a) => writer.WriteInt32(a.Value));
+            bw.WriteMany(Robot.NumDifficultyLevels, robot.FirePower, (writer, a) => writer.WriteFix(a));
 
-            bw.WriteMany(Robot.NumDifficultyLevels, robot.Shield, (writer, a) => writer.WriteInt32(a.Value));
+            bw.WriteMany(Robot.NumDifficultyLevels, robot.Shield, (writer, a) => writer.WriteFix(a));
 
-            bw.WriteMany(Robot.NumDifficultyLevels, robot.MaxSpeed, (writer, a) => writer.WriteInt32(a.Value));
+            bw.WriteMany(Robot.NumDifficultyLevels, robot.MaxSpeed, (writer, a) => writer.WriteFix(a));
 
-            bw.WriteMany(Robot.NumDifficultyLevels, robot.CircleDistance, (writer, a) => writer.WriteInt32(a.Value));
+            bw.WriteMany(Robot.NumDifficultyLevels, robot.CircleDistance, (writer, a) => writer.WriteFix(a));
 
             bw.WriteMany(Robot.NumDifficultyLevels, robot.RapidfireCount, (writer, a) => writer.WriteSByte(a));
 
@@ -877,31 +877,31 @@ namespace LibDescent.Data
             writer.WriteByte((byte)(weapon.HomingFlag ? 1 : 0));
             writer.Write(weapon.Padding);
 
-            writer.WriteInt32(weapon.EnergyUsage.Value);
-            writer.WriteInt32(weapon.FireWait.Value);
+            writer.WriteFix(weapon.EnergyUsage);
+            writer.WriteFix(weapon.FireWait);
 
             writer.WriteUInt16(weapon.Bitmap);
 
-            writer.WriteInt32(weapon.BlobSize.Value);
-            writer.WriteInt32(weapon.FlashSize.Value);
-            writer.WriteInt32(weapon.ImpactSize.Value);
+            writer.WriteFix(weapon.BlobSize);
+            writer.WriteFix(weapon.FlashSize);
+            writer.WriteFix(weapon.ImpactSize);
 
             for (int s = 0; s < 5; s++)
             {
-                writer.WriteInt32(weapon.Strength[s].Value);
+                writer.WriteFix(weapon.Strength[s]);
             }
             for (int s = 0; s < 5; s++)
             {
-                writer.WriteInt32(weapon.Speed[s].Value);
+                writer.WriteFix(weapon.Speed[s]);
             }
 
-            writer.WriteInt32(weapon.Mass.Value);
-            writer.WriteInt32(weapon.Drag.Value);
-            writer.WriteInt32(weapon.Thrust.Value);
-            writer.WriteInt32(weapon.POLenToWidthRatio.Value);
-            writer.WriteInt32(weapon.Light.Value);
-            writer.WriteInt32(weapon.Lifetime.Value);
-            writer.WriteInt32(weapon.DamageRadius.Value);
+            writer.WriteFix(weapon.Mass);
+            writer.WriteFix(weapon.Drag);
+            writer.WriteFix(weapon.Thrust);
+            writer.WriteFix(weapon.POLenToWidthRatio);
+            writer.WriteFix(weapon.Light);
+            writer.WriteFix(weapon.Lifetime);
+            writer.WriteFix(weapon.DamageRadius);
             writer.WriteUInt16(weapon.CockpitPicture);
         }
 
