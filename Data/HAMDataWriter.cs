@@ -20,7 +20,6 @@
     SOFTWARE.
 */
 
-using System;
 using System.IO;
 
 namespace LibDescent.Data
