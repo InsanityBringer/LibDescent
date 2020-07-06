@@ -346,16 +346,11 @@ namespace LibDescent.Data
 
             for (int s = 0; s < Polymodel.MaxGuns; s++)
             {
-                int x = br.ReadInt32();
-                int y = br.ReadInt32();
-                int z = br.ReadInt32();
-
-                robot.GunPoints[s] = FixVector.FromRawValues(x,y,z);
+                robot.GunPoints[s] = FixVector.FromRawValues(br.ReadInt32(), br.ReadInt32(), br.ReadInt32());
             }
             for (int s = 0; s < 8; s++)
             {
-                byte g = br.ReadByte();
-                robot.GunSubmodels[s] = g;
+                robot.GunSubmodels[s] = br.ReadByte();
             }
 
             robot.HitVClipNum = br.ReadInt16();
