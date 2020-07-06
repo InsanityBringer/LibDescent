@@ -40,7 +40,7 @@ namespace LibDescent.Tests
             byte[] newFileBytes = null;
 
 
-            using (var newFile = File.OpenWrite(@"D:\GOG Games\Descent\DESCENT.PIG")) {  piggie.Write(newFile); }
+            //using (var newFile = File.OpenWrite(@"D:\GOG Games\Descent\DESCENT.PIG")) {  piggie.Write(newFile); }
 
             using (MemoryStream ms = new MemoryStream())
             {
@@ -67,8 +67,8 @@ namespace LibDescent.Tests
 
         }
 
-
         [Test]
+        [Ignore("This just swaps a model")]
         public void SwapModelsTest()
         {
             Descent1PIGFile piggie = new Descent1PIGFile();

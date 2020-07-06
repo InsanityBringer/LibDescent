@@ -413,7 +413,7 @@ namespace LibDescent.Data
                 sb?.AppendLine($"Post XLAT:\t{stream.Position}");
             }
 
-            /*
+
             //Init a bogus texture for all piggyfiles
             PIGImage bogusTexture = new PIGImage(64, 64, 0, 0, 0, 0, "bogus", 0);
             bogusTexture.Data = new byte[64 * 64];
@@ -428,7 +428,6 @@ namespace LibDescent.Data
                 bogusTexture.Data[i * 64 + (63 - i)] = 193;
             }
             Bitmaps.Add(bogusTexture);
-            */
 
             if (LoadData)
                 br.BaseStream.Seek(DataPointer, SeekOrigin.Begin);
@@ -509,7 +508,7 @@ namespace LibDescent.Data
 
             sb?.AppendLine($"Pre bitmaps:\t{stream.Position}");
 
-            for (int i = 0; i < Bitmaps.Count; i++)
+            for (int i = 1; i < Bitmaps.Count; i++)
             {
                 br.BaseStream.Seek(basePointer + Bitmaps[i].Offset, SeekOrigin.Begin);
                 if ((Bitmaps[i].Flags & PIGImage.BM_FLAG_RLE) != 0)
@@ -840,18 +839,18 @@ namespace LibDescent.Data
             bw.BaseStream.Seek(DataPointer, SeekOrigin.Begin);
 
             //int numBitmaps = br.ReadInt32();
-            bw.Write((Int32)Bitmaps.Count);
+            bw.Write((Int32)Bitmaps.Count-1);
             //int numSounds = br.ReadInt32();
             bw.Write((Int32)PIGSounds.Count);
 
             sb?.AppendLine($"Post PIGSounds:\t{stream.Position}");
 
-            sb?.AppendLine($"Bitmap Count:\t{Bitmaps.Count}");
+            sb?.AppendLine($"Bitmap Count:\t{Bitmaps.Count-1}");
 
             int dynamicOffset = 0;
 
             //for (int i = 0; i < numBitmaps; i++)
-            for (int i = 0; i < Bitmaps.Count; i++)
+            for (int i = 1; i < Bitmaps.Count; i++)
             {
                 var bitmap = Bitmaps[i];
 
@@ -890,7 +889,7 @@ namespace LibDescent.Data
 
             sb?.AppendLine($"Pre bitmaps:\t{stream.Position}");
 
-            for (int i = 0; i < Bitmaps.Count; i++)
+            for (int i = 1; i < Bitmaps.Count; i++)
             {
                 Bitmaps[i].WriteImage(bw);
             }
