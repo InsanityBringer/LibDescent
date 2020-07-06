@@ -201,7 +201,7 @@ namespace LibDescent.Data
             this.LoadData = loadData;
         }
 
-        public int Read(Stream stream)
+        public int Read(Stream stream, StringBuilder sb = null)
         {
             BinaryReader br = new BinaryReader(stream);
             HAMDataReader reader = new HAMDataReader();
@@ -257,11 +257,13 @@ namespace LibDescent.Data
                     joint.angles.h = br.ReadInt16();
                     Joints[i] = joint;
                 }
+
                 numWeapons = br.ReadInt32();
                 for (int i = 0; i < 30; i++)
                 {
                     Weapons[i] = reader.ReadWeaponInfoDescent1(br);
                 }
+
                 numPowerups = br.ReadInt32();
                 for (int i = 0; i < 29; i++)
                 {
@@ -272,6 +274,9 @@ namespace LibDescent.Data
                     powerup.Light = new Fix(br.ReadInt32());
                     Powerups[i] = powerup;
                 }
+
+                sb?.AppendLine($"Post powerups:\t{stream.Position}");
+
                 numModels = br.ReadInt32();
                 for (int i = 0; i < numModels; i++)
                 {
@@ -319,6 +324,9 @@ namespace LibDescent.Data
                 {
                     ObjBitmapPointers[i] = br.ReadUInt16();
                 }
+
+                sb?.AppendLine($"Pre ship:\t{stream.Position}");
+
                 PlayerShip = new Ship();
                 PlayerShip.ModelNum = br.ReadInt32();
                 PlayerShip.DeathVClipNum = br.ReadInt32();
@@ -338,6 +346,9 @@ namespace LibDescent.Data
                 {
                     Cockpits[i] = br.ReadUInt16();
                 }
+
+                sb?.AppendLine($"Post cockpits:\t{stream.Position}");
+
                 //heh
                 Sounds = br.ReadBytes(250);
                 AltSounds = br.ReadBytes(250);
@@ -366,6 +377,9 @@ namespace LibDescent.Data
                 {
                     reactor.GunDirs[y] = FixVector.FromRawValues(br.ReadInt32(), br.ReadInt32(), br.ReadInt32());
                 }
+
+                sb?.AppendLine($"Post reactor:\t{stream.Position}");
+
                 exitModelnum = br.ReadInt32();
                 destroyedExitModelnum = br.ReadInt32();
 
@@ -373,6 +387,8 @@ namespace LibDescent.Data
                 {
                     BitmapXLATData[i] = br.ReadUInt16();
                 }
+
+                sb?.AppendLine($"Post XLAT:\t{stream.Position}");
             }
 
             //Init a bogus texture for all piggyfiles
@@ -394,6 +410,10 @@ namespace LibDescent.Data
 
             int numBitmaps = br.ReadInt32();
             int numSounds = br.ReadInt32();
+
+            sb?.AppendLine($"Post PIGSounds:\t{stream.Position}");
+
+            sb?.AppendLine($"Bitmap Count:\t{numBitmaps}");
 
             for (int i = 0; i < numBitmaps; i++)
             {
@@ -420,6 +440,9 @@ namespace LibDescent.Data
                 Bitmaps.Add(image);
             }
 
+            sb?.AppendLine($"Post BMPS:\t{stream.Position}");
+
+
             for (int i = 0; i < numSounds; i++)
             {
                 bool hashitnull = false;
@@ -442,13 +465,17 @@ namespace LibDescent.Data
                 int num2 = br.ReadInt32();
                 int offset = br.ReadInt32();
 
-                SoundData sound;
+                SoundData sound = new SoundData { data = null };
                 sound.name = soundname;
                 sound.offset = offset;
                 sound.len = num1;
                 PIGSounds.Add(sound);
             }
+            
             int basePointer = (int)br.BaseStream.Position;
+
+            sb?.AppendLine($"Pre bitmaps:\t{stream.Position}");
+
             for (int i = 1; i < Bitmaps.Count; i++)
             {
                 br.BaseStream.Seek(basePointer + Bitmaps[i].Offset, SeekOrigin.Begin);
@@ -463,13 +490,29 @@ namespace LibDescent.Data
                 }
             }
 
+            sb?.AppendLine($"Pre sounds:\t{stream.Position}");
+
+
+            for (int i = 0; i < PIGSounds.Count; i++)
+            {
+                br.BaseStream.Seek(basePointer + PIGSounds[i].offset, SeekOrigin.Begin);
+
+                var soundBytes = br.ReadBytes(PIGSounds[i].len);
+
+                var ps = PIGSounds[i];
+
+                ps.data = soundBytes;
+            }
+
+            sb?.AppendLine($"End:\t{stream.Position}");
+
             br.Dispose();
 
             return 0;
         }
 
 //#if JAAPIO
-        public int Write(Stream stream)
+        public int Write(Stream stream, StringBuilder sb = null)
         {
             //BinaryReader br = new BinaryReader(stream);
 
@@ -510,7 +553,6 @@ namespace LibDescent.Data
                     //VClips[i] = reader.ReadVClip(br);
                     writer.WriteVClip(VClips[i], bw);
                 }
-
                 //numEClips = br.ReadInt32();
                 bw.Write((Int32)numEClips);
 
@@ -519,13 +561,12 @@ namespace LibDescent.Data
                     //EClips[i] = reader.ReadEClip(br);
                     writer.WriteEClip(EClips[i], bw);
                 }
-
                 //numWClips = br.ReadInt32();
                 bw.Write((Int32)numWClips);
                 for (int i = 0; i < 30; i++)
                 {
                     //WClips[i] = reader.ReadWClipDescent1(br);
-                    writer.WriteWClip(WClips[i], bw);
+                    writer.WriteWClipD1(WClips[i], bw);
                 }
 
                 //numRobots = br.ReadInt32();
@@ -535,6 +576,7 @@ namespace LibDescent.Data
                     //Robots[i] = reader.ReadRobotDescent1(br);
                     writer.WriteRobotDescent1(Robots[i], bw);
                 }
+                //sb?.AppendLine($"Post robots:\t{stream.Position}");
 
                 //numJoints = br.ReadInt32();
                 bw.Write((Int32)numJoints);
@@ -580,6 +622,8 @@ namespace LibDescent.Data
                     //powerup.Light = new Fix(br.ReadInt32());
                     HAMDataWriter.WriteInt32(bw, (int)powerup.Light);
                 }
+
+                sb?.AppendLine($"Post powerups:\t{stream.Position}");
 
                 //numModels = br.ReadInt32();
                 bw.Write((Int32)numModels);
@@ -646,6 +690,8 @@ namespace LibDescent.Data
                     writer.WriteUInt16(bw, ObjBitmapPointers[i]);
                 }
 
+                sb?.AppendLine($"Pre ship:\t{stream.Position}");
+
                 //PlayerShip = new Ship();
                 //PlayerShip.ModelNum = br.ReadInt32();
                 HAMDataWriter.WriteInt32(bw, PlayerShip.ModelNum);
@@ -679,6 +725,8 @@ namespace LibDescent.Data
                     //Cockpits[i] = br.ReadUInt16();
                     bw.Write((Int16)Cockpits[i]);
                 }
+
+                sb?.AppendLine($"Post cockpits:\t{stream.Position}");
 
                 //heh
                 //Sounds = br.ReadBytes(250);
@@ -721,6 +769,8 @@ namespace LibDescent.Data
                     HAMDataWriter.WriteFixVector(bw, reactor.GunDirs[y]);
                 }
 
+                sb?.AppendLine($"Post reactor:\t{stream.Position}");
+
                 //exitModelnum = br.ReadInt32();
                 bw.Write((Int32)exitModelnum);
                 //destroyedExitModelnum = br.ReadInt32();
@@ -731,6 +781,8 @@ namespace LibDescent.Data
                     //BitmapXLATData[i] = br.ReadUInt16();
                     bw.Write((Int16)BitmapXLATData[i]);
                 }
+
+                sb?.AppendLine($"Post XLAT:\t{stream.Position}");
             }
 
             // Now update the DataPointer
@@ -743,16 +795,20 @@ namespace LibDescent.Data
             bw.BaseStream.Seek(DataPointer, SeekOrigin.Begin);
 
             //int numBitmaps = br.ReadInt32();
-            bw.Write((Int32)Bitmaps.Count);
+            bw.Write((Int32)Bitmaps.Count-1);
             //int numSounds = br.ReadInt32();
             bw.Write((Int32)PIGSounds.Count);
 
+            sb?.AppendLine($"Post PIGSounds:\t{stream.Position}");
+
+            sb?.AppendLine($"Bitmap Count:\t{Bitmaps.Count-1}");
+
             //for (int i = 0; i < numBitmaps; i++)
-            for (int i = 0; i < Bitmaps.Count; i++)
+            for (int i = 1; i < Bitmaps.Count; i++)
             {
                 var bitmap = Bitmaps[i];
 
-                var nameBytes = GetNameBytes(bitmap.Name, 8);
+                var nameBytes = NameHelper.GetNameBytes(bitmap.Name, 8);
                 bw.Write(nameBytes);
 
                 writer.WriteByte(bw, (byte)bitmap.DFlags);
@@ -761,15 +817,17 @@ namespace LibDescent.Data
                 writer.WriteByte(bw, (byte)bitmap.Flags);
                 writer.WriteByte(bw, (byte)bitmap.AverageIndex);
 
-                HAMDataWriter.WriteInt32(bw, (byte)bitmap.Offset); // make this one correct later on
+                HAMDataWriter.WriteInt32(bw, bitmap.Offset); // make this one correct later on
             }
+
+            sb?.AppendLine($"Post BMPS:\t{stream.Position}");
 
             //for (int i = 0; i < numSounds; i++)
             for (int i = 0; i < PIGSounds.Count; i++)
             {
                 var sound = PIGSounds[i];
 
-                var nameBytes = GetNameBytes(sound.name, 8);
+                var nameBytes = NameHelper.GetNameBytes(sound.name, 8);
                 bw.Write(nameBytes);
 
                 HAMDataWriter.WriteInt32(bw, sound.len);
@@ -780,43 +838,43 @@ namespace LibDescent.Data
             //int basePointer = (int)br.BaseStream.Position;
             int basePointer = (int)bw.BaseStream.Position;
 
+            sb?.AppendLine($"Pre bitmaps:\t{stream.Position}");
+
             for (int i = 1; i < Bitmaps.Count; i++)
             {
-                br.BaseStream.Seek(basePointer + Bitmaps[i].Offset, SeekOrigin.Begin);
-                if ((Bitmaps[i].Flags & PIGImage.BM_FLAG_RLE) != 0)
-                {
-                    int compressedSize = br.ReadInt32();
-                    Bitmaps[i].Data = br.ReadBytes(compressedSize - 4);
-                }
-                else
-                {
-                    Bitmaps[i].Data = br.ReadBytes(Bitmaps[i].Width * Bitmaps[i].Height);
-                }
+                //br.BaseStream.Seek(basePointer + Bitmaps[i].Offset, SeekOrigin.Begin);
+
+                //if ((Bitmaps[i].Flags & PIGImage.BM_FLAG_RLE) != 0)
+                //{
+                //    int compressedSize = br.ReadInt32();
+                //    Bitmaps[i].Data = br.ReadBytes(compressedSize - 4);
+                //}
+                //else
+                //{
+                //    Bitmaps[i].Data = br.ReadBytes(Bitmaps[i].Width * Bitmaps[i].Height);
+                //}
+
+                Bitmaps[i].WriteImage(bw);
+            }
+            sb?.AppendLine($"Pre sounds:\t{stream.Position}");
+
+            for (int i = 0; i < PIGSounds.Count; i++)
+            {
+                //br.BaseStream.Seek(basePointer + PIGSounds[i].offset, SeekOrigin.Begin);
+
+                bw.Write(PIGSounds[i].data);
             }
 
+            sb?.AppendLine($"End:\t{stream.Position}");
+
+
+
             //br.Dispose();
-            bw.Dispose();
 
             return 0;
         }
 
-        private static byte[] GetNameBytes(string name, int lenght)
-        {
-            var resultBytes = new byte[lenght];
 
-            var nameBytes = name.ToCharArray().Select(c => (byte)c).ToArray();
-
-            if (name.Length >= lenght)
-            {
-                Array.Copy(nameBytes, resultBytes, lenght);
-            }
-            else
-            {
-                Array.Copy(nameBytes, resultBytes, nameBytes.Length);
-            }
-
-            return resultBytes;
-        }
 
 //#endif
     }

@@ -601,6 +601,38 @@ namespace LibDescent.Data
 
         }
 
+        internal void WriteWClipD1(WClip clip, BinaryWriter bw)
+        {
+            //WClip clip = new WClip();
+            //clip.PlayTime = new Fix(br.ReadInt32());
+            WriteInt32(bw, (int)clip.PlayTime);
+            //clip.NumFrames = br.ReadInt16();
+            WriteInt16(bw, clip.NumFrames);
+
+            for (int f = 0; f < 20; f++)
+            {
+                //clip.Frames[f] = br.ReadUInt16();
+                WriteUInt16(bw, clip.Frames[f]);
+            }
+
+            //clip.OpenSound = br.ReadInt16();
+            WriteInt16(bw, clip.OpenSound);
+            //clip.CloseSound = br.ReadInt16();
+            WriteInt16(bw, clip.CloseSound);
+            //clip.Flags = br.ReadInt16();
+            WriteInt16(bw, clip.Flags);
+
+            //for (int c = 0; c < 13; c++)
+            //{
+            //clip.Filename[c] = (char)br.ReadByte();
+            //}
+            var nameBytes = NameHelper.GetNameBytes(clip.Filename, 13);
+            bw.Write(nameBytes);
+
+            //clip.Pad = br.ReadByte();
+            WriteByte(bw, clip.Pad);
+        }
+
         internal void WriteWeaponInfoDescent1(BinaryWriter bw, Weapon weapon)
         {
             //weapon.RenderType = (WeaponRenderType)br.ReadByte();
@@ -643,6 +675,7 @@ namespace LibDescent.Data
             //weapon.HomingFlag = br.ReadByte() != 0 ? true : false;
             this.WriteByte(bw, (byte)(weapon.Destroyable ? 1 : 0));
             //br.ReadBytes(3);
+            bw.Write(weapon.Padding);
 
             //weapon.EnergyUsage = new Fix(br.ReadInt32());
             WriteInt32(bw, (int)weapon.EnergyUsage);

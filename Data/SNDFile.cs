@@ -26,11 +26,13 @@ using System.IO;
 
 namespace LibDescent.Data
 {
-    public struct SoundData
+    public class SoundData
     {
         public string name;
         public int len;
         public int offset;
+
+        public byte[] data;
     }
     public class SNDFile
     {
@@ -101,7 +103,7 @@ namespace LibDescent.Data
                 int num2 = br.ReadInt32();
                 int offset = br.ReadInt32();
 
-                SoundData sound;
+                SoundData sound = new SoundData { data = null };
                 sound.name = soundname;
                 sound.offset = offset;
                 sound.len = num1;

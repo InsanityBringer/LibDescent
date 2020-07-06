@@ -217,6 +217,8 @@ namespace LibDescent.Data
             }
         }
 
+        public byte[] Padding { get; set; }
+
         public int ID;
 
         public Weapon()
