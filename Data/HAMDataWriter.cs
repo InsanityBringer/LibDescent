@@ -416,8 +416,8 @@ namespace LibDescent.Data
             bw.Write(temp, 0, 13);
 
             bw.Write((byte)tMAPInfo.Flags);
-            bw.Write((Int32)tMAPInfo.Lighting);
-            bw.Write((Int32)tMAPInfo.Damage);
+            bw.Write((Int32)tMAPInfo.Lighting.Value);
+            bw.Write((Int32)tMAPInfo.Damage.Value);
             bw.Write((Int32)tMAPInfo.EClipNum);
         }
 
@@ -447,13 +447,9 @@ namespace LibDescent.Data
         }
         public static void WriteFixVector(BinaryWriter bw, FixVector a)
         {
-            int x = (int)a.x;
-            int y = (int)a.y;
-            int z = (int)a.z;
-
-            WriteInt32(bw, x);
-            WriteInt32(bw, y);
-            WriteInt32(bw, y);
+            WriteInt32(bw, a.x.Value);
+            WriteInt32(bw, a.y.Value);
+            WriteInt32(bw, a.z.Value);
         }
 
         public void WriteMany<T>(BinaryWriter bw, int count, T[] items, Action<T> writeAction)
@@ -509,56 +505,56 @@ namespace LibDescent.Data
             WriteInt32(bw, robot.ScoreValue);
 
             //robot.Lighting = new Fix(br.ReadInt32());
-            WriteInt32(bw, (int)robot.Lighting);
+            WriteInt32(bw, robot.Lighting.Value);
             //robot.Strength = new Fix(br.ReadInt32());
-            WriteInt32(bw, (int)robot.Strength);
+            WriteInt32(bw, robot.Strength.Value);
 
             //robot.Mass = new Fix(br.ReadInt32());
-            WriteInt32(bw, (int)robot.Mass);
+            WriteInt32(bw, robot.Mass.Value);
             //robot.Drag = new Fix(br.ReadInt32());
-            WriteInt32(bw, (int)robot.Drag);
+            WriteInt32(bw, robot.Drag.Value);
 
             //for (int s = 0; s < Robot.NumDifficultyLevels; s++)
             //{
             //    robot.FieldOfView[s] = new Fix(br.ReadInt32());
             //}
-            this.WriteMany(bw, Robot.NumDifficultyLevels, robot.FieldOfView, (a) => WriteInt32(bw, (int)a));
+            this.WriteMany(bw, Robot.NumDifficultyLevels, robot.FieldOfView, (a) => WriteInt32(bw, a.Value));
 
             //for (int s = 0; s < Robot.NumDifficultyLevels; s++)
             //{
             //    robot.FiringWait[s] = new Fix(br.ReadInt32());
             //}
-            this.WriteMany(bw, Robot.NumDifficultyLevels, robot.FiringWait, (a) => WriteInt32(bw, (int)a));
+            this.WriteMany(bw, Robot.NumDifficultyLevels, robot.FiringWait, (a) => WriteInt32(bw, a.Value));
 
             //for (int s = 0; s < Robot.NumDifficultyLevels; s++)
             //{
             //    robot.TurnTime[s] = new Fix(br.ReadInt32());
             //}
-            this.WriteMany(bw, Robot.NumDifficultyLevels, robot.TurnTime, (a) => WriteInt32(bw, (int)a));
+            this.WriteMany(bw, Robot.NumDifficultyLevels, robot.TurnTime, (a) => WriteInt32(bw, a.Value));
 
             //for (int s = 0; s < Robot.NumDifficultyLevels; s++)
             //{
             //    robot.FirePower[s] = new Fix(br.ReadInt32());
             //}
-            this.WriteMany(bw, Robot.NumDifficultyLevels, robot.FirePower, (a) => WriteInt32(bw, (int)a));
+            this.WriteMany(bw, Robot.NumDifficultyLevels, robot.FirePower, (a) => WriteInt32(bw, a.Value));
 
             //for (int s = 0; s < Robot.NumDifficultyLevels; s++)
             //{
             //    robot.Shield[s] = new Fix(br.ReadInt32());
             //}
-            this.WriteMany(bw, Robot.NumDifficultyLevels, robot.Shield, (a) => WriteInt32(bw, (int)a));
+            this.WriteMany(bw, Robot.NumDifficultyLevels, robot.Shield, (a) => WriteInt32(bw, a.Value));
 
             //for (int s = 0; s < Robot.NumDifficultyLevels; s++)
             //{
             //    robot.MaxSpeed[s] = new Fix(br.ReadInt32());
             //}
-            this.WriteMany(bw, Robot.NumDifficultyLevels, robot.MaxSpeed, (a) => WriteInt32(bw, (int)a));
+            this.WriteMany(bw, Robot.NumDifficultyLevels, robot.MaxSpeed, (a) => WriteInt32(bw, a.Value));
 
             //for (int s = 0; s < Robot.NumDifficultyLevels; s++)
             //{
             //    robot.CircleDistance[s] = new Fix(br.ReadInt32());
             //}
-            this.WriteMany(bw, Robot.NumDifficultyLevels, robot.CircleDistance, (a) => WriteInt32(bw, (int)a));
+            this.WriteMany(bw, Robot.NumDifficultyLevels, robot.CircleDistance, (a) => WriteInt32(bw, a.Value));
 
             //for (int s = 0; s < Robot.NumDifficultyLevels; s++)
             //{
@@ -605,7 +601,7 @@ namespace LibDescent.Data
         {
             //WClip clip = new WClip();
             //clip.PlayTime = new Fix(br.ReadInt32());
-            WriteInt32(bw, (int)clip.PlayTime);
+            WriteInt32(bw, clip.PlayTime.Value);
             //clip.NumFrames = br.ReadInt16();
             WriteInt16(bw, clip.NumFrames);
 
@@ -673,14 +669,14 @@ namespace LibDescent.Data
             //weapon.Bounce = (WeaponBounceType)br.ReadByte();
             this.WriteByte(bw, (byte)weapon.Bounce);
             //weapon.HomingFlag = br.ReadByte() != 0 ? true : false;
-            this.WriteByte(bw, (byte)(weapon.Destroyable ? 1 : 0));
+            this.WriteByte(bw, (byte)(weapon.HomingFlag ? 1 : 0));
             //br.ReadBytes(3);
             bw.Write(weapon.Padding);
 
             //weapon.EnergyUsage = new Fix(br.ReadInt32());
-            WriteInt32(bw, (int)weapon.EnergyUsage);
+            WriteInt32(bw, weapon.EnergyUsage.Value);
             //weapon.FireWait = new Fix(br.ReadInt32());
-            WriteInt32(bw, (int)weapon.FireWait);
+            WriteInt32(bw, weapon.FireWait.Value);
 
             //weapon.MultiDamageScale = 1;
 
@@ -688,37 +684,37 @@ namespace LibDescent.Data
             WriteUInt16(bw, weapon.Bitmap);
 
             //weapon.BlobSize = new Fix(br.ReadInt32());
-            WriteInt32(bw, (int)weapon.BlobSize);
+            WriteInt32(bw, weapon.BlobSize.Value);
             //weapon.FlashSize = new Fix(br.ReadInt32());
-            WriteInt32(bw, (int)weapon.FlashSize);
+            WriteInt32(bw, weapon.FlashSize.Value);
             //weapon.ImpactSize = new Fix(br.ReadInt32());
-            WriteInt32(bw, (int)weapon.ImpactSize);
+            WriteInt32(bw, weapon.ImpactSize.Value);
 
             for (int s = 0; s < 5; s++)
             {
                 //weapon.Strength[s] = new Fix(br.ReadInt32());
-                WriteInt32(bw, (int)weapon.Strength[s]);
+                WriteInt32(bw, weapon.Strength[s].Value);
             }
             for (int s = 0; s < 5; s++)
             {
                 //weapon.Speed[s] = new Fix(br.ReadInt32());
-                WriteInt32(bw, (int)weapon.Speed[s]);
+                WriteInt32(bw, weapon.Speed[s].Value);
             }
 
             //weapon.Mass = new Fix(br.ReadInt32());
-            WriteInt32(bw, (int)weapon.Mass);
+            WriteInt32(bw, weapon.Mass.Value);
             //weapon.Drag = new Fix(br.ReadInt32());
-            WriteInt32(bw, (int)weapon.Drag);
+            WriteInt32(bw, weapon.Drag.Value);
             //weapon.Thrust = new Fix(br.ReadInt32());
-            WriteInt32(bw, (int)weapon.Thrust);
+            WriteInt32(bw, weapon.Thrust.Value);
             //weapon.POLenToWidthRatio = new Fix(br.ReadInt32());
-            WriteInt32(bw, (int)weapon.POLenToWidthRatio);
+            WriteInt32(bw, weapon.POLenToWidthRatio.Value);
             //weapon.Light = new Fix(br.ReadInt32());
-            WriteInt32(bw, (int)weapon.Light);
+            WriteInt32(bw, weapon.Light.Value);
             //weapon.Lifetime = new Fix(br.ReadInt32());
-            WriteInt32(bw, (int)weapon.Lifetime);
+            WriteInt32(bw, weapon.Lifetime.Value);
             //weapon.DamageRadius = new Fix(br.ReadInt32());
-            WriteInt32(bw, (int)weapon.DamageRadius);
+            WriteInt32(bw, weapon.DamageRadius.Value);
 
             //weapon.CockpitPicture = br.ReadUInt16();
             WriteUInt16(bw, weapon.CockpitPicture);

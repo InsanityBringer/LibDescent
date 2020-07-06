@@ -33,6 +33,7 @@ namespace LibDescent.Data
         public int offset;
 
         public byte[] data;
+        public byte[] localName;
     }
     public class SNDFile
     {

@@ -201,6 +201,7 @@ namespace LibDescent.Data
             }
         }
         public bool Swap255 { get; }
+        public byte[] LocalName { get; set; }
 
         /// <summary>
         /// Creates a new PIG image that can be up to 1024x1024 in size. Used by Descent 2 PIG and POG files.

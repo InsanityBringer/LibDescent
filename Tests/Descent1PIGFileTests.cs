@@ -32,20 +32,39 @@ namespace LibDescent.Tests
             //using (var file = File.OpenRead(@"D:\games\DESCENT\DESCENT.PIG"))
             using (var file = File.OpenRead(@"D:\GOG Games\Descent\RDESCENT.PIG"))
             {
-                
+
                 piggie.Read(file, readLog);
             }
 
-            using (var newFile = File.Create(@"D:\GOG Games\Descent\DESCENT.PIG"))
+            byte[] newFileBytes = null;
+
+
+            using (var newFile = File.OpenWrite(@"D:\GOG Games\Descent\DESCENT.PIG")) {  piggie.Write(newFile); }
+
+            using (MemoryStream ms = new MemoryStream())
             {
-                piggie.Write(newFile, writeLog);
+                piggie.Write(ms, writeLog);
+
+                // Now compare the bytes
+                ms.Position = 0;
+                newFileBytes = ms.ToArray();
             }
 
-            // compara read log and write log
+            // compare read log and write log
             string read = readLog.ToString();
             string write = writeLog.ToString();
 
+            // they should be the same
             Assert.AreEqual(read, write);
+
+
+            var realBytes = File.ReadAllBytes(@"D:\GOG Games\Descent\RDESCENT.PIG");
+
+            Assert.AreEqual(realBytes.Length, newFileBytes.Length);
+
+            Assert.AreEqual(realBytes, newFileBytes);
+
         }
+
     }
 }
