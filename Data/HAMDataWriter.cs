@@ -402,18 +402,7 @@ namespace LibDescent.Data
         /// </summary>
         /// <param name="bw"></param>
         /// <param name="tMAPInfo"></param>
-        public void WriteTMAPInfoDescent1(BinaryWriter bw, TMAPInfo tMAPInfo)
-        {
-            byte[] temp = new byte[13];
 
-            Array.Copy(tMAPInfo.filename, temp, tMAPInfo.filename.Length);
-            bw.Write(temp, 0, 13);
-
-            bw.Write((byte)tMAPInfo.Flags);
-            bw.Write((Int32)tMAPInfo.Lighting.Value);
-            bw.Write((Int32)tMAPInfo.Damage.Value);
-            bw.Write((Int32)tMAPInfo.EClipNum);
-        }
 
         public void WriteByte(BinaryWriter bw, byte value)
         {
@@ -454,92 +443,6 @@ namespace LibDescent.Data
             }
         }
 
-        public void WriteRobotDescent1(Robot robot, BinaryWriter bw)
-        {
-            WriteInt32(bw, robot.ModelNum);
-            WriteInt32(bw, robot.NumGuns);
-
-            this.WriteMany(bw, Polymodel.MaxGuns, robot.GunPoints, (a) => WriteFixVector(bw, a));
-
-            this.WriteMany(bw, 8, robot.GunSubmodels, (a) => this.WriteByte(bw, a));
-
-            this.WriteInt16(bw, robot.HitVClipNum);
-            this.WriteInt16(bw, robot.HitSoundNum);
-
-            this.WriteInt16(bw, robot.DeathVClipNum);
-            this.WriteInt16(bw, robot.DeathSoundNum);
-
-            this.WriteInt16(bw, robot.WeaponType);
-            this.WriteSByte(bw, robot.ContainsID);
-            this.WriteSByte(bw, robot.ContainsCount);
-
-            this.WriteSByte(bw, robot.ContainsProbability);
-            this.WriteSByte(bw, robot.ContainsType);
-
-            WriteInt32(bw, robot.ScoreValue);
-
-            WriteInt32(bw, robot.Lighting.Value);
-            WriteInt32(bw, robot.Strength.Value);
-
-            WriteInt32(bw, robot.Mass.Value);
-            WriteInt32(bw, robot.Drag.Value);
-
-            this.WriteMany(bw, Robot.NumDifficultyLevels, robot.FieldOfView, (a) => WriteInt32(bw, a.Value));
-
-            this.WriteMany(bw, Robot.NumDifficultyLevels, robot.FiringWait, (a) => WriteInt32(bw, a.Value));
-
-            this.WriteMany(bw, Robot.NumDifficultyLevels, robot.TurnTime, (a) => WriteInt32(bw, a.Value));
-
-            this.WriteMany(bw, Robot.NumDifficultyLevels, robot.FirePower, (a) => WriteInt32(bw, a.Value));
-
-            this.WriteMany(bw, Robot.NumDifficultyLevels, robot.Shield, (a) => WriteInt32(bw, a.Value));
-
-            this.WriteMany(bw, Robot.NumDifficultyLevels, robot.MaxSpeed, (a) => WriteInt32(bw, a.Value));
-
-            this.WriteMany(bw, Robot.NumDifficultyLevels, robot.CircleDistance, (a) => WriteInt32(bw, a.Value));
-
-            this.WriteMany(bw, Robot.NumDifficultyLevels, robot.RapidfireCount, (a) => this.WriteSByte(bw, a));
-
-            this.WriteMany(bw, Robot.NumDifficultyLevels, robot.EvadeSpeed, (a) => this.WriteSByte(bw, a));
-
-            this.WriteSByte(bw, (sbyte)robot.CloakType);
-            this.WriteSByte(bw, (sbyte)robot.AttackType);
-            this.WriteSByte(bw, (sbyte)robot.BossFlag);
-            this.WriteByte(bw, robot.SeeSound);
-            this.WriteByte(bw, robot.AttackSound);
-            this.WriteByte(bw, robot.ClawSound);
-
-            for (int v = 0; v < 9; v++)
-            {
-                for (int u = 0; u < 5; u++)
-                {
-                    this.WriteInt16(bw, robot.AnimStates[v, u].NumJoints);
-                    this.WriteInt16(bw, robot.AnimStates[v, u].Offset);
-                }
-            }
-
-            WriteInt32(bw, robot.Always0xABCD);
-        }
-
-        internal void WriteWClipDescent1(WClip clip, BinaryWriter bw)
-        {
-            WriteInt32(bw, clip.PlayTime.Value);
-            WriteInt16(bw, clip.NumFrames);
-
-            for (int f = 0; f < 20; f++)
-            {
-                WriteUInt16(bw, clip.Frames[f]);
-            }
-
-            WriteInt16(bw, clip.OpenSound);
-            WriteInt16(bw, clip.CloseSound);
-            WriteInt16(bw, clip.Flags);
-
-            var nameBytes = NameHelper.GetNameBytes(clip.Filename, 13);
-            bw.Write(nameBytes);
-
-            WriteByte(bw, clip.Pad);
-        }
 
         internal void WriteWeaponInfoDescent1(BinaryWriter bw, Weapon weapon)
         {

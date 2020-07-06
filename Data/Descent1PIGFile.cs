@@ -522,7 +522,7 @@ namespace LibDescent.Data
 
             for (int i = 0; i < 800; i++)
             {
-                writer.WriteTMAPInfoDescent1(descentWriter, TMapInfo[i]);
+                this.WriteTMAPInfoDescent1(descentWriter, TMapInfo[i]);
             }
 
             descentWriter.Write(Sounds);
@@ -546,13 +546,13 @@ namespace LibDescent.Data
             descentWriter.Write((Int32)numWClips);
             for (int i = 0; i < 30; i++)
             {
-                writer.WriteWClipDescent1(WClips[i], descentWriter);
+                this.WriteWClipDescent1(WClips[i], descentWriter);
             }
 
             descentWriter.Write((Int32)numRobots);
             for (int i = 0; i < 30; i++)
             {
-                writer.WriteRobotDescent1(Robots[i], descentWriter);
+                this.WriteRobotDescent1(Robots[i], descentWriter);
             }
 
             descentWriter.Write((Int32)numJoints);
@@ -749,6 +749,106 @@ namespace LibDescent.Data
             }
 
             return 0;
+        }
+
+        public void WriteTMAPInfoDescent1(DescentWriter bw, TMAPInfo tMAPInfo)
+        {
+            byte[] temp = new byte[13];
+
+            Array.Copy(tMAPInfo.filename, temp, tMAPInfo.filename.Length);
+            bw.Write(temp, 0, 13);
+
+            bw.WriteByte(tMAPInfo.Flags);
+            bw.WriteInt32(tMAPInfo.Lighting.Value);
+            bw.WriteInt32(tMAPInfo.Damage.Value);
+            bw.WriteInt32(tMAPInfo.EClipNum);
+        }
+
+        internal void WriteWClipDescent1(WClip clip, DescentWriter bw)
+        {
+            bw.WriteInt32(clip.PlayTime.Value);
+            bw.WriteInt16(clip.NumFrames);
+
+            for (int f = 0; f < 20; f++)
+            {
+                bw.WriteUInt16(clip.Frames[f]);
+            }
+
+            bw.WriteInt16(clip.OpenSound);
+            bw.WriteInt16(clip.CloseSound);
+            bw.WriteInt16(clip.Flags);
+
+            var nameBytes = NameHelper.GetNameBytes(clip.Filename, 13);
+            bw.Write(nameBytes);
+
+            bw.WriteByte(clip.Pad);
+        }
+
+        public void WriteRobotDescent1(Robot robot, DescentWriter bw)
+        {
+            bw.WriteInt32(robot.ModelNum);
+            bw.WriteInt32(robot.NumGuns);
+
+            bw.WriteMany(Polymodel.MaxGuns, robot.GunPoints, (writer, a) => writer.WriteFixVector(a));
+
+            bw.WriteMany(8, robot.GunSubmodels, (writer, a) => writer.WriteByte(a));
+
+            bw.WriteInt16(robot.HitVClipNum);
+            bw.WriteInt16(robot.HitSoundNum);
+
+            bw.WriteInt16(robot.DeathVClipNum);
+            bw.WriteInt16(robot.DeathSoundNum);
+
+            bw.WriteInt16(robot.WeaponType);
+            bw.WriteSByte(robot.ContainsID);
+            bw.WriteSByte(robot.ContainsCount);
+
+            bw.WriteSByte(robot.ContainsProbability);
+            bw.WriteSByte(robot.ContainsType);
+
+            bw.WriteInt32(robot.ScoreValue);
+
+            bw.WriteInt32(robot.Lighting.Value);
+            bw.WriteInt32(robot.Strength.Value);
+
+            bw.WriteInt32(robot.Mass.Value);
+            bw.WriteInt32(robot.Drag.Value);
+
+            bw.WriteMany(Robot.NumDifficultyLevels, robot.FieldOfView, (writer, a) => writer.WriteInt32(a.Value));
+
+            bw.WriteMany(Robot.NumDifficultyLevels, robot.FiringWait, (writer, a) => writer.WriteInt32(a.Value));
+
+            bw.WriteMany(Robot.NumDifficultyLevels, robot.TurnTime, (writer, a) => writer.WriteInt32(a.Value));
+
+            bw.WriteMany(Robot.NumDifficultyLevels, robot.FirePower, (writer, a) => writer.WriteInt32(a.Value));
+
+            bw.WriteMany(Robot.NumDifficultyLevels, robot.Shield, (writer, a) => writer.WriteInt32(a.Value));
+
+            bw.WriteMany(Robot.NumDifficultyLevels, robot.MaxSpeed, (writer, a) => writer.WriteInt32(a.Value));
+
+            bw.WriteMany(Robot.NumDifficultyLevels, robot.CircleDistance, (writer, a) => writer.WriteInt32(a.Value));
+
+            bw.WriteMany(Robot.NumDifficultyLevels, robot.RapidfireCount, (writer, a) => writer.WriteSByte(a));
+
+            bw.WriteMany(Robot.NumDifficultyLevels, robot.EvadeSpeed, (writer, a) => writer.WriteSByte(a));
+
+            bw.WriteSByte((sbyte)robot.CloakType);
+            bw.WriteSByte((sbyte)robot.AttackType);
+            bw.WriteSByte((sbyte)robot.BossFlag);
+            bw.WriteByte(robot.SeeSound);
+            bw.WriteByte(robot.AttackSound);
+            bw.WriteByte(robot.ClawSound);
+
+            for (int v = 0; v < 9; v++)
+            {
+                for (int u = 0; u < 5; u++)
+                {
+                    bw.WriteInt16(robot.AnimStates[v, u].NumJoints);
+                    bw.WriteInt16(robot.AnimStates[v, u].Offset);
+                }
+            }
+
+            bw.WriteInt32(robot.Always0xABCD);
         }
 
     }
