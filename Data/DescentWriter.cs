@@ -36,11 +36,16 @@ namespace LibDescent.Data
             base.Write(value);
         }
 
+        public void WriteFix(Fix value)
+        {
+            this.WriteInt32(value.Value);
+        }
+
         public void WriteFixVector(FixVector a)
         {
-            this.WriteInt32(a.x.Value);
-            this.WriteInt32(a.y.Value);
-            this.WriteInt32(a.z.Value);
+            this.WriteFix(a.x);
+            this.WriteFix(a.y);
+            this.WriteFix(a.z);
         }
 
         public void WriteMany<T>(int count, T[] items, Action<DescentWriter, T> writeAction)

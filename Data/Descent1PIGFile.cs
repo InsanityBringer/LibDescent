@@ -569,7 +569,7 @@ namespace LibDescent.Data
             descentWriter.WriteInt32(numWeapons);
             for (int i = 0; i < 30; i++)
             {
-                writer.WriteWeaponInfoDescent1(descentWriter, Weapons[i]);
+                this.WriteWeaponInfoDescent1(descentWriter, Weapons[i]);
             }
 
             descentWriter.WriteInt32(numPowerups);
@@ -849,6 +849,60 @@ namespace LibDescent.Data
             }
 
             bw.WriteInt32(robot.Always0xABCD);
+        }
+
+        internal void WriteWeaponInfoDescent1(DescentWriter writer, Weapon weapon)
+        {
+            writer.WriteByte((byte)weapon.RenderType);
+            writer.WriteByte((byte)weapon.ModelNum);
+            writer.WriteByte((byte)weapon.ModelNumInner);
+            writer.WriteByte((byte)(weapon.Persistent ? 1 : 0));
+
+            writer.WriteSByte(weapon.MuzzleFlashVClip);
+            writer.WriteInt16(weapon.FiringSound);
+
+            writer.WriteSByte(weapon.RobotHitVClip);
+            writer.WriteInt16(weapon.RobotHitSound);
+
+            writer.WriteSByte(weapon.WallHitVClip);
+            writer.WriteInt16(weapon.WallHitSound);
+
+            writer.WriteByte(weapon.FireCount);
+            writer.WriteByte(weapon.AmmoUsage);
+            writer.WriteSByte(weapon.WeaponVClip);
+            writer.WriteByte((byte)(weapon.Destroyable ? 1 : 0));
+
+            writer.WriteByte((byte)(weapon.Matter ? 1 : 0));
+            writer.WriteByte((byte)weapon.Bounce);
+            writer.WriteByte((byte)(weapon.HomingFlag ? 1 : 0));
+            writer.Write(weapon.Padding);
+
+            writer.WriteInt32(weapon.EnergyUsage.Value);
+            writer.WriteInt32(weapon.FireWait.Value);
+
+            writer.WriteUInt16(weapon.Bitmap);
+
+            writer.WriteInt32(weapon.BlobSize.Value);
+            writer.WriteInt32(weapon.FlashSize.Value);
+            writer.WriteInt32(weapon.ImpactSize.Value);
+
+            for (int s = 0; s < 5; s++)
+            {
+                writer.WriteInt32(weapon.Strength[s].Value);
+            }
+            for (int s = 0; s < 5; s++)
+            {
+                writer.WriteInt32(weapon.Speed[s].Value);
+            }
+
+            writer.WriteInt32(weapon.Mass.Value);
+            writer.WriteInt32(weapon.Drag.Value);
+            writer.WriteInt32(weapon.Thrust.Value);
+            writer.WriteInt32(weapon.POLenToWidthRatio.Value);
+            writer.WriteInt32(weapon.Light.Value);
+            writer.WriteInt32(weapon.Lifetime.Value);
+            writer.WriteInt32(weapon.DamageRadius.Value);
+            writer.WriteUInt16(weapon.CockpitPicture);
         }
 
     }
