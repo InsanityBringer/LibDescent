@@ -9,28 +9,29 @@ namespace LibDescent.Tests
 {
     public class Descent1PIGFileTests
     {
+        const string PigFileLocation = @"D:\GOG Games\Descent\rDESCENT.PIG";
+
         [Test]
+        [Ignore("Requires real Descent 1 (1.5) pig file")]
         public void LoadD15PigFile()
         {
             Descent1PIGFile piggie = new Descent1PIGFile();
 
-            //using (var file = File.OpenRead(@"D:\games\DESCENT\DESCENT.PIG"))
-            using (var file = File.OpenRead(@"D:\GOG Games\Descent\DESCENT.PIG"))
+            using (var file = File.OpenRead(PigFileLocation))
             {
                 piggie.Read(file);
             }
         }
 
-
         [Test]
+        [Ignore("Requires real Descent 1 (1.5) pig file")]
         public void SaveD15PigFile()
         {
             Descent1PIGFile piggie = new Descent1PIGFile();
             StringBuilder readLog = new StringBuilder();
             StringBuilder writeLog = new StringBuilder();
 
-            //using (var file = File.OpenRead(@"D:\games\DESCENT\DESCENT.PIG"))
-            using (var file = File.OpenRead(@"D:\GOG Games\Descent\RDESCENT.PIG"))
+            using (var file = File.OpenRead(PigFileLocation))
             {
 
                 piggie.Read(file, readLog);
@@ -66,5 +67,24 @@ namespace LibDescent.Tests
 
         }
 
+
+        [Test]
+        public void SwapModelsTest()
+        {
+            Descent1PIGFile piggie = new Descent1PIGFile();
+            StringBuilder readLog = new StringBuilder();
+            StringBuilder writeLog = new StringBuilder();
+
+            using (var file = File.OpenRead(PigFileLocation))
+            {
+
+                piggie.Read(file, readLog);
+            }
+
+            piggie.Models[5] = piggie.Models[2];
+
+            using (var newFile = File.OpenWrite(@"D:\GOG Games\Descent\DESCENT.PIG")) { piggie.Write(newFile); }
+
+        }
     }
 }
