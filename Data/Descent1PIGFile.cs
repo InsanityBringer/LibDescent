@@ -848,6 +848,8 @@ namespace LibDescent.Data
 
             sb?.AppendLine($"Bitmap Count:\t{Bitmaps.Count}");
 
+            int dynamicOffset = 0;
+
             //for (int i = 0; i < numBitmaps; i++)
             for (int i = 0; i < Bitmaps.Count; i++)
             {
@@ -861,7 +863,8 @@ namespace LibDescent.Data
                 writer.WriteByte(bw, (byte)bitmap.Flags);
                 writer.WriteByte(bw, (byte)bitmap.AverageIndex);
 
-                HAMDataWriter.WriteInt32(bw, bitmap.Offset); // make this one correct later on
+                HAMDataWriter.WriteInt32(bw, dynamicOffset);
+                dynamicOffset += bitmap.GetSize();
             }
 
             sb?.AppendLine($"Post BMPS:\t{stream.Position}");
@@ -877,7 +880,9 @@ namespace LibDescent.Data
 
                 HAMDataWriter.WriteInt32(bw, sound.len);
                 HAMDataWriter.WriteInt32(bw, sound.len);
-                HAMDataWriter.WriteInt32(bw, sound.offset); // make this one correct later on
+
+                HAMDataWriter.WriteInt32(bw, dynamicOffset);
+                dynamicOffset += sound.len;
             }
 
             //int basePointer = (int)br.BaseStream.Position;
@@ -887,26 +892,12 @@ namespace LibDescent.Data
 
             for (int i = 0; i < Bitmaps.Count; i++)
             {
-                //br.BaseStream.Seek(basePointer + Bitmaps[i].Offset, SeekOrigin.Begin);
-
-                //if ((Bitmaps[i].Flags & PIGImage.BM_FLAG_RLE) != 0)
-                //{
-                //    int compressedSize = br.ReadInt32();
-                //    Bitmaps[i].Data = br.ReadBytes(compressedSize - 4);
-                //}
-                //else
-                //{
-                //    Bitmaps[i].Data = br.ReadBytes(Bitmaps[i].Width * Bitmaps[i].Height);
-                //}
-
                 Bitmaps[i].WriteImage(bw);
             }
             sb?.AppendLine($"Pre sounds:\t{stream.Position}");
 
             for (int i = 0; i < PIGSounds.Count; i++)
             {
-                //br.BaseStream.Seek(basePointer + PIGSounds[i].offset, SeekOrigin.Begin);
-
                 bw.Write(PIGSounds[i].data);
             }
 
