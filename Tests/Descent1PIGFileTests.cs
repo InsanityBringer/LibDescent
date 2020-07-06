@@ -12,7 +12,7 @@ namespace LibDescent.Tests
         const string PigFileLocation = @"D:\GOG Games\Descent\rDESCENT.PIG";
 
         [Test]
-        [Ignore("Requires real Descent 1 (1.5) pig file")]
+        //[Ignore("Requires real Descent 1 (1.5) pig file")]
         public void LoadD15PigFile()
         {
             Descent1PIGFile piggie = new Descent1PIGFile();
@@ -24,42 +24,30 @@ namespace LibDescent.Tests
         }
 
         [Test]
-        [Ignore("Requires real Descent 1 (1.5) pig file")]
+        //[Ignore("Requires real Descent 1 (1.5) pig file")]
         public void SaveD15PigFile()
         {
             Descent1PIGFile piggie = new Descent1PIGFile();
-            StringBuilder readLog = new StringBuilder();
-            StringBuilder writeLog = new StringBuilder();
 
             using (var file = File.OpenRead(PigFileLocation))
             {
-
-                piggie.Read(file, readLog);
+                piggie.Read(file);
             }
 
             byte[] newFileBytes = null;
-
 
             //using (var newFile = File.OpenWrite(@"D:\GOG Games\Descent\DESCENT.PIG")) {  piggie.Write(newFile); }
 
             using (MemoryStream ms = new MemoryStream())
             {
-                piggie.Write(ms, writeLog);
+                piggie.Write(ms);
 
                 // Now compare the bytes
                 ms.Position = 0;
                 newFileBytes = ms.ToArray();
             }
 
-            // compare read log and write log
-            string read = readLog.ToString();
-            string write = writeLog.ToString();
-
-            // they should be the same
-            Assert.AreEqual(read, write);
-
-
-            var realBytes = File.ReadAllBytes(@"D:\GOG Games\Descent\RDESCENT.PIG");
+            var realBytes = File.ReadAllBytes(PigFileLocation);
 
             Assert.AreEqual(realBytes.Length, newFileBytes.Length);
 
@@ -72,13 +60,11 @@ namespace LibDescent.Tests
         public void SwapModelsTest()
         {
             Descent1PIGFile piggie = new Descent1PIGFile();
-            StringBuilder readLog = new StringBuilder();
-            StringBuilder writeLog = new StringBuilder();
 
             using (var file = File.OpenRead(PigFileLocation))
             {
 
-                piggie.Read(file, readLog);
+                piggie.Read(file);
             }
 
             piggie.Models[5] = piggie.Models[2];

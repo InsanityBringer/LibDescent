@@ -201,7 +201,7 @@ namespace LibDescent.Data
             this.LoadData = loadData;
         }
 
-        public int Read(Stream stream, StringBuilder sb = null)
+        public int Read(Stream stream)
         {
             BinaryReader br = new BinaryReader(stream);
             HAMDataReader reader = new HAMDataReader();
@@ -216,22 +216,16 @@ namespace LibDescent.Data
                     return -1;
                 }
 
-                sb?.AppendLine($"Start {stream.Position}");
-
                 numTextures = br.ReadInt32();
                 for (int i = 0; i < 800; i++)
                 {
                     Textures[i] = br.ReadUInt16();
                 }
 
-                sb?.AppendLine($"Post Textures {stream.Position}");
-
                 for (int i = 0; i < 800; i++)
                 {
                     TMapInfo[i] = reader.ReadTMAPInfoDescent1(br);
                 }
-
-                sb?.AppendLine($"Post tmap {stream.Position}");
 
                 Sounds = br.ReadBytes(250);
                 AltSounds = br.ReadBytes(250);
@@ -241,29 +235,24 @@ namespace LibDescent.Data
                 {
                     VClips[i] = reader.ReadVClip(br);
                 }
-                sb?.AppendLine($"Post VClips:\t{stream.Position}");
 
                 numEClips = br.ReadInt32();
                 for (int i = 0; i < 60; i++)
                 {
                     EClips[i] = reader.ReadEClip(br);
                 }
-                sb?.AppendLine($"Post EClips:\t{stream.Position}");
 
                 numWClips = br.ReadInt32();
                 for (int i = 0; i < 30; i++)
                 {
                     WClips[i] = reader.ReadWClipDescent1(br);
                 }
-                sb?.AppendLine($"Post WClips:\t{stream.Position}");
 
                 numRobots = br.ReadInt32();
                 for (int i = 0; i < 30; i++) 
                 {
                     Robots[i] = reader.ReadRobotDescent1(br);
                 }
-
-                sb?.AppendLine($"Post robots:\t{stream.Position}");
 
                 numJoints = br.ReadInt32();
                 for (int i = 0; i < 600; i++)
@@ -276,15 +265,11 @@ namespace LibDescent.Data
                     Joints[i] = joint;
                 }
 
-                sb?.AppendLine($"Post joints:\t{stream.Position}");
-
                 numWeapons = br.ReadInt32();
                 for (int i = 0; i < 30; i++)
                 {
                     Weapons[i] = reader.ReadWeaponInfoDescent1(br);
                 }
-
-                sb?.AppendLine($"Post Weapons:\t{stream.Position}");
 
                 numPowerups = br.ReadInt32();
                 for (int i = 0; i < 29; i++)
@@ -296,8 +281,6 @@ namespace LibDescent.Data
                     powerup.Light = new Fix(br.ReadInt32());
                     Powerups[i] = powerup;
                 }
-
-                sb?.AppendLine($"Post powerups:\t{stream.Position}");
 
                 numModels = br.ReadInt32();
                 for (int i = 0; i < numModels; i++)
@@ -347,8 +330,6 @@ namespace LibDescent.Data
                     ObjBitmapPointers[i] = br.ReadUInt16();
                 }
 
-                sb?.AppendLine($"Pre ship:\t{stream.Position}");
-
                 PlayerShip = new Ship();
                 PlayerShip.ModelNum = br.ReadInt32();
                 PlayerShip.DeathVClipNum = br.ReadInt32();
@@ -368,8 +349,6 @@ namespace LibDescent.Data
                 {
                     Cockpits[i] = br.ReadUInt16();
                 }
-
-                sb?.AppendLine($"Post cockpits:\t{stream.Position}");
 
                 //heh
                 Sounds = br.ReadBytes(250);
@@ -400,8 +379,6 @@ namespace LibDescent.Data
                     reactor.GunDirs[y] = FixVector.FromRawValues(br.ReadInt32(), br.ReadInt32(), br.ReadInt32());
                 }
 
-                sb?.AppendLine($"Post reactor:\t{stream.Position}");
-
                 exitModelnum = br.ReadInt32();
                 destroyedExitModelnum = br.ReadInt32();
 
@@ -409,8 +386,6 @@ namespace LibDescent.Data
                 {
                     BitmapXLATData[i] = br.ReadUInt16();
                 }
-
-                sb?.AppendLine($"Post XLAT:\t{stream.Position}");
             }
 
 
@@ -434,10 +409,6 @@ namespace LibDescent.Data
 
             int numBitmaps = br.ReadInt32();
             int numSounds = br.ReadInt32();
-
-            sb?.AppendLine($"Post PIGSounds:\t{stream.Position}");
-
-            sb?.AppendLine($"Bitmap Count:\t{numBitmaps}");
 
             for (int i = 0; i < numBitmaps; i++)
             {
@@ -469,9 +440,6 @@ namespace LibDescent.Data
                 image.LocalName = localNameBytes;
                 Bitmaps.Add(image);
             }
-
-            sb?.AppendLine($"Post BMPS:\t{stream.Position}");
-
 
             for (int i = 0; i < numSounds; i++)
             {
@@ -506,8 +474,6 @@ namespace LibDescent.Data
             
             int basePointer = (int)br.BaseStream.Position;
 
-            sb?.AppendLine($"Pre bitmaps:\t{stream.Position}");
-
             for (int i = 1; i < Bitmaps.Count; i++)
             {
                 br.BaseStream.Seek(basePointer + Bitmaps[i].Offset, SeekOrigin.Begin);
@@ -522,9 +488,6 @@ namespace LibDescent.Data
                 }
             }
 
-            sb?.AppendLine($"Pre sounds:\t{stream.Position}");
-
-
             for (int i = 0; i < PIGSounds.Count; i++)
             {
                 br.BaseStream.Seek(basePointer + PIGSounds[i].offset, SeekOrigin.Begin);
@@ -536,300 +499,203 @@ namespace LibDescent.Data
                 ps.data = soundBytes;
             }
 
-            sb?.AppendLine($"End:\t{stream.Position}");
-
             br.Dispose();
 
             return 0;
         }
 
-        public int Write(Stream stream, StringBuilder sb = null)
+        public int Write(Stream stream)
         {
-            //BinaryReader br = new BinaryReader(stream);
-
             BinaryWriter bw = new BinaryWriter(stream);
-            //HAMDataReader reader = new HAMDataReader();
+
             HAMDataWriter writer = new HAMDataWriter();
 
             Int32 DataPointer = 0; // update this later on
 
+            bw.Write(DataPointer); // update this later on
+
+            bw.Write((Int32)numTextures);
+
+            for (int i = 0; i < 800; i++)
             {
-                bw.Write(DataPointer); // update this later on
-
-                sb?.AppendLine($"Start {stream.Position}");
-
-                bw.Write((Int32)numTextures);
-
-                for (int i = 0; i < 800; i++)
-                {
-                    //Textures[i] = br.ReadUInt16();
-                    bw.Write((UInt16)Textures[i]);
-                }
-
-                sb?.AppendLine($"Post Textures {stream.Position}");
-
-                for (int i = 0; i < 800; i++)
-                {
-                    // TMapInfo[i] = reader.ReadTMAPInfoDescent1(br);
-                    writer.WriteTMAPInfoDescent1(bw, TMapInfo[i]);
-                }
-
-                sb?.AppendLine($"Post tmap {stream.Position}");
-
-                //Sounds = bw.ReadBytes(250);
-                bw.Write(Sounds);
-
-                //AltSounds = br.ReadBytes(250);
-                bw.Write(AltSounds);
-
-                //numVClips = br.ReadInt32(); //this value is bogus. rip
-                bw.Write((Int32)numVClips); //this value is bogus. rip
-
-                for (int i = 0; i < 70; i++)
-                {
-                    //VClips[i] = reader.ReadVClip(br);
-                    writer.WriteVClip(VClips[i], bw);
-                }
-                sb?.AppendLine($"Post VClips:\t{stream.Position}");
-
-                //numEClips = br.ReadInt32();
-                bw.Write((Int32)numEClips);
-
-                for (int i = 0; i < 60; i++)
-                {
-                    //EClips[i] = reader.ReadEClip(br);
-                    writer.WriteEClip(EClips[i], bw);
-                }
-                sb?.AppendLine($"Post EClips:\t{stream.Position}");
-
-                //numWClips = br.ReadInt32();
-                bw.Write((Int32)numWClips);
-                for (int i = 0; i < 30; i++)
-                {
-                    //WClips[i] = reader.ReadWClipDescent1(br);
-                    writer.WriteWClipD1(WClips[i], bw);
-                }
-                sb?.AppendLine($"Post WClips:\t{stream.Position}");
-
-                //numRobots = br.ReadInt32();
-                bw.Write((Int32)numRobots);
-                for (int i = 0; i < 30; i++)
-                {
-                    //Robots[i] = reader.ReadRobotDescent1(br);
-                    writer.WriteRobotDescent1(Robots[i], bw);
-                }
-                sb?.AppendLine($"Post robots:\t{stream.Position}");
-
-                //numJoints = br.ReadInt32();
-                bw.Write((Int32)numJoints);
-                for (int i = 0; i < 600; i++)
-                {
-                    //JointPos joint = new JointPos();
-                    JointPos joint = Joints[i];
-
-                    //joint.jointnum = br.ReadInt16();
-                    bw.Write((Int16)joint.jointnum);
-                    //joint.angles.p = br.ReadInt16();
-                    bw.Write((Int16)joint.angles.p);
-                    //joint.angles.b = br.ReadInt16();
-                    bw.Write((Int16)joint.angles.b);
-                    //joint.angles.h = br.ReadInt16();
-                    bw.Write((Int16)joint.angles.h);
-                }
-
-                sb?.AppendLine($"Post joints:\t{stream.Position}");
-
-                //numWeapons = br.ReadInt32();
-                bw.Write((Int32)numWeapons);
-                for (int i = 0; i < 30; i++)
-                {
-                    //Weapons[i] = reader.ReadWeaponInfoDescent1(br);
-                    writer.WriteWeaponInfoDescent1(bw, Weapons[i]);
-                }
-
-                sb?.AppendLine($"Post Weapons:\t{stream.Position}");
-
-                //numPowerups = br.ReadInt32();
-                bw.Write((Int32)numPowerups);
-                for (int i = 0; i < 29; i++)
-                {
-                    //Powerup powerup = new Powerup();
-
-                    var powerup = this.Powerups[i];
-
-                    //powerup.VClipNum = br.ReadInt32();
-                    HAMDataWriter.WriteInt32(bw, powerup.VClipNum);
-                    //powerup.HitSound = br.ReadInt32();
-                    HAMDataWriter.WriteInt32(bw, powerup.HitSound);
-                    //powerup.Size = new Fix(br.ReadInt32());
-                    HAMDataWriter.WriteInt32(bw, powerup.Size.Value);
-                    //powerup.Light = new Fix(br.ReadInt32());
-                    HAMDataWriter.WriteInt32(bw, powerup.Light.Value);
-                }
-
-                sb?.AppendLine($"Post powerups:\t{stream.Position}");
-
-                //numModels = br.ReadInt32();
-                bw.Write((Int32)numModels);
-                for (int i = 0; i < numModels; i++)
-                {
-                    //Models[i] = reader.ReadPolymodelInfo(br);
-                    writer.WritePolymodel(Models[i], bw);
-                }
-
-                for (int i = 0; i < numModels; i++)
-                {
-                    //Models[i].InterpreterData = br.ReadBytes(Models[i].ModelIDTASize);
-                    bw.Write(Models[i].InterpreterData, 0, Models[i].ModelIDTASize);
-                }
-
-                for (int i = 0; i < Gauges.Length; i++)
-                {
-                    //Gauges[i] = br.ReadUInt16();
-                    writer.WriteUInt16(bw, Gauges[i]);
-                }
-
-                for (int i = 0; i < 85; i++)
-                {
-                    //int num = br.ReadInt32();
-                    //if (i < numModels)
-                    //    Models[i].DyingModelnum = num;
-
-                    if (Models[i] == null)
-                    {
-                        HAMDataWriter.WriteInt32(bw, -1);
-                    }
-                    else
-                    {
-                        HAMDataWriter.WriteInt32(bw, Models[i].DyingModelnum);
-                    }
-                }
-
-                for (int i = 0; i < 85; i++)
-                {
-
-                    //int num = br.ReadInt32();
-                    //if (i < numModels)
-                    //    Models[i].DeadModelnum = num;
-
-                    if (Models[i] == null)
-                    {
-                        HAMDataWriter.WriteInt32(bw, -1);
-                    }
-                    else
-                    {
-                        HAMDataWriter.WriteInt32(bw, Models[i].DeadModelnum);
-                    }
-                }
-
-                for (int i = 0; i < 210; i++)
-                {
-                    //ObjBitmaps[i] = br.ReadUInt16();
-                    writer.WriteUInt16(bw, ObjBitmaps[i]);
-                }
-
-                for (int i = 0; i < 210; i++)
-                {
-                    //ObjBitmapPointers[i] = br.ReadUInt16();
-                    writer.WriteUInt16(bw, ObjBitmapPointers[i]);
-                }
-
-                sb?.AppendLine($"Pre ship:\t{stream.Position}");
-
-                //PlayerShip = new Ship();
-                //PlayerShip.ModelNum = br.ReadInt32();
-                HAMDataWriter.WriteInt32(bw, PlayerShip.ModelNum);
-                //PlayerShip.DeathVClipNum = br.ReadInt32();
-                HAMDataWriter.WriteInt32(bw, PlayerShip.DeathVClipNum);
-                //PlayerShip.Mass = new Fix(br.ReadInt32());
-                HAMDataWriter.WriteInt32(bw, PlayerShip.Mass.Value);
-                //PlayerShip.Drag = new Fix(br.ReadInt32());
-                HAMDataWriter.WriteInt32(bw, PlayerShip.Drag.Value);
-                //PlayerShip.MaxThrust = new Fix(br.ReadInt32());
-                HAMDataWriter.WriteInt32(bw, PlayerShip.MaxThrust.Value);
-                //PlayerShip.ReverseThrust = new Fix(br.ReadInt32());
-                HAMDataWriter.WriteInt32(bw, PlayerShip.ReverseThrust.Value);
-                //PlayerShip.Brakes = new Fix(br.ReadInt32());
-                HAMDataWriter.WriteInt32(bw, PlayerShip.Brakes.Value);
-                //PlayerShip.Wiggle = new Fix(br.ReadInt32());
-                HAMDataWriter.WriteInt32(bw, PlayerShip.Wiggle.Value);
-                //PlayerShip.MaxRotationThrust = new Fix(br.ReadInt32());
-                HAMDataWriter.WriteInt32(bw, PlayerShip.MaxRotationThrust.Value);
-
-                for (int x = 0; x < 8; x++)
-                {
-                    //PlayerShip.GunPoints[x] = FixVector.FromRawValues(br.ReadInt32(), br.ReadInt32(), br.ReadInt32());
-                    HAMDataWriter.WriteFixVector(bw, PlayerShip.GunPoints[x]);
-                }
-
-                //numCockpits = br.ReadInt32();
-                bw.Write((Int32)numCockpits); // update the data pointer
-                for (int i = 0; i < 4; i++)
-                {
-                    //Cockpits[i] = br.ReadUInt16();
-                    bw.Write((Int16)Cockpits[i]);
-                }
-
-                sb?.AppendLine($"Post cockpits:\t{stream.Position}");
-
-                //heh
-                //Sounds = br.ReadBytes(250);
-                bw.Write(Sounds, 0, 250);
-                //AltSounds = br.ReadBytes(250);
-                bw.Write(AltSounds, 0, 250);
-
-                //numObjects = br.ReadInt32();
-                bw.Write((Int32)numObjects);
-                for (int i = 0; i < 100; i++)
-                {
-                    //ObjectTypes[i].type = (EditorObjectType)(br.ReadSByte());
-                    bw.Write((sbyte)ObjectTypes[i].type);
-                }
-                for (int i = 0; i < 100; i++)
-                {
-                    //ObjectTypes[i].id = br.ReadByte();
-                    bw.Write((byte)ObjectTypes[i].id);
-                }
-                for (int i = 0; i < 100; i++)
-                {
-                    //ObjectTypes[i].strength = new Fix(br.ReadInt32());
-                    bw.Write(ObjectTypes[i].strength.Value);
-                    //Console.WriteLine("type: {0}({3})\nid: {1}\nstr: {2}", ObjectTypes[i].type, ObjectTypes[i].id, ObjectTypes[i].strength, (int)ObjectTypes[i].type);
-                }
-
-                //FirstMultiBitmapNum = br.ReadInt32();
-                bw.Write((Int32)FirstMultiBitmapNum);
-                //reactor.NumGuns = br.ReadInt32();
-                bw.Write((Int32)reactor.NumGuns);
-
-                for (int y = 0; y < 4; y++)
-                {
-                    //reactor.GunPoints[y] = FixVector.FromRawValues(br.ReadInt32(), br.ReadInt32(), br.ReadInt32());
-                    HAMDataWriter.WriteFixVector(bw, reactor.GunPoints[y]);
-                }
-                for (int y = 0; y < 4; y++)
-                {
-                    //reactor.GunDirs[y] = FixVector.FromRawValues(br.ReadInt32(), br.ReadInt32(), br.ReadInt32());
-                    HAMDataWriter.WriteFixVector(bw, reactor.GunDirs[y]);
-                }
-
-                sb?.AppendLine($"Post reactor:\t{stream.Position}");
-
-                //exitModelnum = br.ReadInt32();
-                bw.Write((Int32)exitModelnum);
-                //destroyedExitModelnum = br.ReadInt32();
-                bw.Write((Int32)destroyedExitModelnum);
-
-                for (int i = 0; i < 1800; i++)
-                {
-                    //BitmapXLATData[i] = br.ReadUInt16();
-                    bw.Write((Int16)BitmapXLATData[i]);
-                }
-
-                sb?.AppendLine($"Post XLAT:\t{stream.Position}");
+                bw.Write((UInt16)Textures[i]);
             }
 
-            // Now update the DataPointer
+            for (int i = 0; i < 800; i++)
+            {
+                writer.WriteTMAPInfoDescent1(bw, TMapInfo[i]);
+            }
+
+            bw.Write(Sounds);
+
+            bw.Write(AltSounds);
+
+            bw.Write((Int32)numVClips); //this value is bogus. rip
+
+            for (int i = 0; i < 70; i++)
+            {
+                writer.WriteVClip(VClips[i], bw);
+            }
+
+            bw.Write((Int32)numEClips);
+
+            for (int i = 0; i < 60; i++)
+            {
+                writer.WriteEClip(EClips[i], bw);
+            }
+
+            bw.Write((Int32)numWClips);
+            for (int i = 0; i < 30; i++)
+            {
+                writer.WriteWClipDescent1(WClips[i], bw);
+            }
+
+            bw.Write((Int32)numRobots);
+            for (int i = 0; i < 30; i++)
+            {
+                writer.WriteRobotDescent1(Robots[i], bw);
+            }
+
+            bw.Write((Int32)numJoints);
+            for (int i = 0; i < 600; i++)
+            {
+                JointPos joint = Joints[i];
+
+                bw.Write((Int16)joint.jointnum);
+                bw.Write((Int16)joint.angles.p);
+                bw.Write((Int16)joint.angles.b);
+                bw.Write((Int16)joint.angles.h);
+            }
+
+            bw.Write((Int32)numWeapons);
+            for (int i = 0; i < 30; i++)
+            {
+                writer.WriteWeaponInfoDescent1(bw, Weapons[i]);
+            }
+
+            bw.Write((Int32)numPowerups);
+            for (int i = 0; i < 29; i++)
+            {
+                var powerup = this.Powerups[i];
+
+                HAMDataWriter.WriteInt32(bw, powerup.VClipNum);
+                HAMDataWriter.WriteInt32(bw, powerup.HitSound);
+                HAMDataWriter.WriteInt32(bw, powerup.Size.Value);
+                HAMDataWriter.WriteInt32(bw, powerup.Light.Value);
+            }
+
+            bw.Write((Int32)numModels);
+            for (int i = 0; i < numModels; i++)
+            {
+                writer.WritePolymodel(Models[i], bw);
+            }
+
+            for (int i = 0; i < numModels; i++)
+            {
+                bw.Write(Models[i].InterpreterData, 0, Models[i].ModelIDTASize);
+            }
+
+            for (int i = 0; i < Gauges.Length; i++)
+            {
+                writer.WriteUInt16(bw, Gauges[i]);
+            }
+
+            for (int i = 0; i < 85; i++)
+            {
+                if (Models[i] == null)
+                {
+                    HAMDataWriter.WriteInt32(bw, -1);
+                }
+                else
+                {
+                    HAMDataWriter.WriteInt32(bw, Models[i].DyingModelnum);
+                }
+            }
+
+            for (int i = 0; i < 85; i++)
+            {
+                if (Models[i] == null)
+                {
+                    HAMDataWriter.WriteInt32(bw, -1);
+                }
+                else
+                {
+                    HAMDataWriter.WriteInt32(bw, Models[i].DeadModelnum);
+                }
+            }
+
+            for (int i = 0; i < 210; i++)
+            {
+                writer.WriteUInt16(bw, ObjBitmaps[i]);
+            }
+
+            for (int i = 0; i < 210; i++)
+            {
+                writer.WriteUInt16(bw, ObjBitmapPointers[i]);
+            }
+
+            HAMDataWriter.WriteInt32(bw, PlayerShip.ModelNum);
+            HAMDataWriter.WriteInt32(bw, PlayerShip.DeathVClipNum);
+            HAMDataWriter.WriteInt32(bw, PlayerShip.Mass.Value);
+            HAMDataWriter.WriteInt32(bw, PlayerShip.Drag.Value);
+            HAMDataWriter.WriteInt32(bw, PlayerShip.MaxThrust.Value);
+            HAMDataWriter.WriteInt32(bw, PlayerShip.ReverseThrust.Value);
+            HAMDataWriter.WriteInt32(bw, PlayerShip.Brakes.Value);
+            HAMDataWriter.WriteInt32(bw, PlayerShip.Wiggle.Value);
+            HAMDataWriter.WriteInt32(bw, PlayerShip.MaxRotationThrust.Value);
+
+            for (int x = 0; x < 8; x++)
+            {
+                HAMDataWriter.WriteFixVector(bw, PlayerShip.GunPoints[x]);
+            }
+
+            bw.Write((Int32)numCockpits);
+            for (int i = 0; i < 4; i++)
+            {
+                bw.Write((Int16)Cockpits[i]);
+            }
+
+            //heh
+            bw.Write(Sounds, 0, 250);
+            bw.Write(AltSounds, 0, 250);
+
+            bw.Write((Int32)numObjects);
+            for (int i = 0; i < 100; i++)
+            {
+                bw.Write((sbyte)ObjectTypes[i].type);
+            }
+            for (int i = 0; i < 100; i++)
+            {
+                bw.Write((byte)ObjectTypes[i].id);
+            }
+            for (int i = 0; i < 100; i++)
+            {
+                bw.Write(ObjectTypes[i].strength.Value);
+            }
+
+            bw.Write((Int32)FirstMultiBitmapNum);
+            bw.Write((Int32)reactor.NumGuns);
+
+            for (int y = 0; y < 4; y++)
+            {
+                HAMDataWriter.WriteFixVector(bw, reactor.GunPoints[y]);
+            }
+            for (int y = 0; y < 4; y++)
+            {
+                HAMDataWriter.WriteFixVector(bw, reactor.GunDirs[y]);
+            }
+
+            bw.Write((Int32)exitModelnum);
+            bw.Write((Int32)destroyedExitModelnum);
+
+            for (int i = 0; i < 1800; i++)
+            {
+                bw.Write((Int16)BitmapXLATData[i]);
+            }
+
+            //
+            // Go back to the start and update the DataPointer
+            //
             DataPointer = (int)bw.BaseStream.Position;
 
             bw.BaseStream.Seek(0, SeekOrigin.Begin);
@@ -838,23 +704,16 @@ namespace LibDescent.Data
             // Return to where we were
             bw.BaseStream.Seek(DataPointer, SeekOrigin.Begin);
 
-            //int numBitmaps = br.ReadInt32();
-            bw.Write((Int32)Bitmaps.Count-1);
-            //int numSounds = br.ReadInt32();
+            bw.Write((Int32)Bitmaps.Count - 1); // Ignore the bogus one
             bw.Write((Int32)PIGSounds.Count);
-
-            sb?.AppendLine($"Post PIGSounds:\t{stream.Position}");
-
-            sb?.AppendLine($"Bitmap Count:\t{Bitmaps.Count-1}");
 
             int dynamicOffset = 0;
 
-            //for (int i = 0; i < numBitmaps; i++)
-            for (int i = 1; i < Bitmaps.Count; i++)
+            for (int i = 1; i < Bitmaps.Count; i++) // Skip the bogus one
             {
                 var bitmap = Bitmaps[i];
 
-                bw.Write(bitmap.LocalName,0 , 8);
+                bw.Write(bitmap.LocalName, 0, 8);
 
                 writer.WriteByte(bw, (byte)bitmap.DFlags);
                 writer.WriteByte(bw, (byte)bitmap.Width);
@@ -866,15 +725,11 @@ namespace LibDescent.Data
                 dynamicOffset += bitmap.GetSize();
             }
 
-            sb?.AppendLine($"Post BMPS:\t{stream.Position}");
-
-            //for (int i = 0; i < numSounds; i++)
             for (int i = 0; i < PIGSounds.Count; i++)
             {
                 var sound = PIGSounds[i];
 
                 //var nameBytes = NameHelper.GetNameBytes(sound.name, 8);
-                //bw.Write(nameBytes);
                 bw.Write(sound.localName, 0, 8);
 
                 HAMDataWriter.WriteInt32(bw, sound.len);
@@ -884,24 +739,15 @@ namespace LibDescent.Data
                 dynamicOffset += sound.len;
             }
 
-            //int basePointer = (int)br.BaseStream.Position;
-            int basePointer = (int)bw.BaseStream.Position;
-
-            sb?.AppendLine($"Pre bitmaps:\t{stream.Position}");
-
             for (int i = 1; i < Bitmaps.Count; i++)
             {
                 Bitmaps[i].WriteImage(bw);
             }
-            sb?.AppendLine($"Pre sounds:\t{stream.Position}");
 
             for (int i = 0; i < PIGSounds.Count; i++)
             {
                 bw.Write(PIGSounds[i].data);
             }
-
-            sb?.AppendLine($"End:\t{stream.Position}");
-
 
             return 0;
         }
