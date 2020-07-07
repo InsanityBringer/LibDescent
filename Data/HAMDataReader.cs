@@ -352,6 +352,7 @@ namespace LibDescent.Data
             {
                 robot.GunSubmodels[s] = br.ReadByte();
             }
+
             robot.HitVClipNum = br.ReadInt16();
             robot.HitSoundNum = br.ReadInt16();
 
@@ -677,7 +678,8 @@ namespace LibDescent.Data
             weapon.Matter = br.ReadByte() != 0 ? true : false;
             weapon.Bounce = (WeaponBounceType)br.ReadByte();
             weapon.HomingFlag = br.ReadByte() != 0 ? true : false;
-            br.ReadBytes(3);
+
+            weapon.Padding = br.ReadBytes(3);
 
             weapon.EnergyUsage = new Fix(br.ReadInt32());
             weapon.FireWait = new Fix(br.ReadInt32());
