@@ -41,9 +41,9 @@ namespace LibDescent.Data
         public List<(Segment segment, uint vertexNum)> ConnectedSegments { get; } = new List<(Segment, uint)>();
         public List<(Side side, uint vertexNum)> ConnectedSides { get; } = new List<(Side, uint)>();
         public FixVector Location { get => location; set => location = value; }
-        public double X { get => location.x; set => location.x = value; }
-        public double Y { get => location.y; set => location.y = value; }
-        public double Z { get => location.z; set => location.z = value; }
+        public double X { get => location.X; set => location.X = value; }
+        public double Y { get => location.Y; set => location.Y = value; }
+        public double Z { get => location.Z; set => location.Z = value; }
 
         public override string ToString()
         {

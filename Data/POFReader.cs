@@ -108,20 +108,20 @@ namespace LibDescent.Data
                     case 0x534E5547:
                         {
                             int numGuns = br.ReadInt32();
-                            model.numGuns = numGuns;
+                            model.NumGuns = numGuns;
                             for (int i = 0; i < numGuns; i++)
                             {
                                 short id = br.ReadInt16();
-                                model.gunSubmodels[id] = br.ReadInt16();
-                                model.gunPoints[id] = ReadVector(br);
-                                model.gunDirs[id] = ReadVector(br);
+                                model.GunSubmodels[id] = br.ReadInt16();
+                                model.GunPoints[id] = ReadVector(br);
+                                model.GunDirs[id] = ReadVector(br);
                             }
                         }
                         break;
                     //ANIM
                     case 1296649793:
                         {
-                            model.isAnimated = true;
+                            model.IsAnimated = true;
                             //br.ReadBytes(datasize);
                             int numFrames = br.ReadInt16();
                             for (int submodel = 0; submodel < model.NumSubmodels; submodel++)
@@ -130,9 +130,9 @@ namespace LibDescent.Data
                                 {
                                     if (i < 5) //bounds check to avoid issues with more frames than intended
                                     {
-                                        model.animationMatrix[submodel, i].p = br.ReadInt16();
-                                        model.animationMatrix[submodel, i].b = br.ReadInt16();
-                                        model.animationMatrix[submodel, i].h = br.ReadInt16();
+                                        model.AnimationMatrix[submodel, i].P = br.ReadInt16();
+                                        model.AnimationMatrix[submodel, i].B = br.ReadInt16();
+                                        model.AnimationMatrix[submodel, i].H = br.ReadInt16();
                                     }
                                 }
                             }
@@ -173,9 +173,9 @@ namespace LibDescent.Data
         {
             FixVector vec = new FixVector();
 
-            vec.x = new Fix(br.ReadInt32());
-            vec.y = new Fix(br.ReadInt32());
-            vec.z = new Fix(br.ReadInt32());
+            vec.X = new Fix(br.ReadInt32());
+            vec.Y = new Fix(br.ReadInt32());
+            vec.Z = new Fix(br.ReadInt32());
 
             return vec;
         }

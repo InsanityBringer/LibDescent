@@ -93,9 +93,9 @@ namespace LibDescent.Data
             bw.Write(robot.ModelNum);
             for (int x = 0; x < 8; x++)
             {
-                bw.Write(robot.GunPoints[x].x.value);
-                bw.Write(robot.GunPoints[x].y.value);
-                bw.Write(robot.GunPoints[x].z.value);
+                bw.Write(robot.GunPoints[x].X.value);
+                bw.Write(robot.GunPoints[x].Y.value);
+                bw.Write(robot.GunPoints[x].Z.value);
             }
             for (int x = 0; x < 8; x++)
             {
@@ -328,21 +328,21 @@ namespace LibDescent.Data
             }
             for (int s = 0; s < 10; s++)
             {
-                bw.Write(model.Submodels[s].Offset.x.value);
-                bw.Write(model.Submodels[s].Offset.y.value);
-                bw.Write(model.Submodels[s].Offset.z.value);
+                bw.Write(model.Submodels[s].Offset.X.value);
+                bw.Write(model.Submodels[s].Offset.Y.value);
+                bw.Write(model.Submodels[s].Offset.Z.value);
             }
             for (int s = 0; s < 10; s++)
             {
-                bw.Write(model.Submodels[s].Normal.x.value);
-                bw.Write(model.Submodels[s].Normal.y.value);
-                bw.Write(model.Submodels[s].Normal.z.value);
+                bw.Write(model.Submodels[s].Normal.X.value);
+                bw.Write(model.Submodels[s].Normal.Y.value);
+                bw.Write(model.Submodels[s].Normal.Z.value);
             }
             for (int s = 0; s < 10; s++)
             {
-                bw.Write(model.Submodels[s].Point.x.value);
-                bw.Write(model.Submodels[s].Point.y.value);
-                bw.Write(model.Submodels[s].Point.z.value);
+                bw.Write(model.Submodels[s].Point.X.value);
+                bw.Write(model.Submodels[s].Point.Y.value);
+                bw.Write(model.Submodels[s].Point.Z.value);
             }
             for (int s = 0; s < 10; s++)
             {
@@ -354,22 +354,22 @@ namespace LibDescent.Data
             }
             for (int s = 0; s < 10; s++)
             {
-                bw.Write(model.Submodels[s].Mins.x.value);
-                bw.Write(model.Submodels[s].Mins.y.value);
-                bw.Write(model.Submodels[s].Mins.z.value);
+                bw.Write(model.Submodels[s].Mins.X.value);
+                bw.Write(model.Submodels[s].Mins.Y.value);
+                bw.Write(model.Submodels[s].Mins.Z.value);
             }
             for (int s = 0; s < 10; s++)
             {
-                bw.Write(model.Submodels[s].Maxs.x.value);
-                bw.Write(model.Submodels[s].Maxs.y.value);
-                bw.Write(model.Submodels[s].Maxs.z.value);
+                bw.Write(model.Submodels[s].Maxs.X.value);
+                bw.Write(model.Submodels[s].Maxs.Y.value);
+                bw.Write(model.Submodels[s].Maxs.Z.value);
             }
-            bw.Write(model.Mins.x.value);
-            bw.Write(model.Mins.y.value);
-            bw.Write(model.Mins.z.value);
-            bw.Write(model.Maxs.x.value);
-            bw.Write(model.Maxs.y.value);
-            bw.Write(model.Maxs.z.value);
+            bw.Write(model.Mins.X.value);
+            bw.Write(model.Mins.Y.value);
+            bw.Write(model.Mins.Z.value);
+            bw.Write(model.Maxs.X.value);
+            bw.Write(model.Maxs.Y.value);
+            bw.Write(model.Maxs.Z.value);
             bw.Write(model.Radius.value);
             bw.Write(model.NumTextures);
             bw.Write(model.FirstTexture);
@@ -389,9 +389,9 @@ namespace LibDescent.Data
             bw.Write(ship.MaxRotationThrust.value);
             for (int x = 0; x < 8; x++)
             {
-                bw.Write(ship.GunPoints[x].x.value);
-                bw.Write(ship.GunPoints[x].y.value);
-                bw.Write(ship.GunPoints[x].z.value);
+                bw.Write(ship.GunPoints[x].X.value);
+                bw.Write(ship.GunPoints[x].Y.value);
+                bw.Write(ship.GunPoints[x].Z.value);
             }
         }
     }

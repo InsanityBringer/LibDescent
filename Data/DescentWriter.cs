@@ -43,9 +43,9 @@ namespace LibDescent.Data
 
         public void WriteFixVector(FixVector a)
         {
-            this.WriteFix(a.x);
-            this.WriteFix(a.y);
-            this.WriteFix(a.z);
+            this.WriteFix(a.X);
+            this.WriteFix(a.Y);
+            this.WriteFix(a.Z);
         }
 
         public void WriteMany<T>(int count, T[] items, Action<DescentWriter, T> writeAction)

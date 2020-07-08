@@ -28,22 +28,22 @@ namespace LibDescent.Data
 {
     public class SoundData
     {
-        public string name;
-        public int len;
-        public int offset;
+        public string Name;
+        public int Length;
+        public int Offset;
 
-        public byte[] data;
-        public byte[] localName;
+        public byte[] Data;
+        public byte[] LocalName;
     }
     public class SNDFile
     {
         //public List<string> sounds = new List<string>();
-        public List<SoundData> sounds = new List<SoundData>();
-        public Dictionary<string, int> soundids = new Dictionary<string, int>();
-        public long startptr = 0L;
+        public List<SoundData> Sounds = new List<SoundData>();
+        public Dictionary<string, int> SoundIDs = new Dictionary<string, int>();
+        private long startptr = 0L;
         private BinaryReader stream;
-        long soundptr = 0;
-        public string filename; 
+        private long soundptr = 0;
+        public string FileName; 
 
         public void LoadDataFile(string name)
         {
@@ -104,26 +104,26 @@ namespace LibDescent.Data
                 int num2 = br.ReadInt32();
                 int offset = br.ReadInt32();
 
-                SoundData sound = new SoundData { data = null };
-                sound.name = soundname;
-                sound.offset = offset;
-                sound.len = num1;
-                sounds.Add(sound);
+                SoundData sound = new SoundData { Data = null };
+                sound.Name = soundname;
+                sound.Offset = offset;
+                sound.Length = num1;
+                Sounds.Add(sound);
 
                 //sounds.Add(soundname);
-                soundids.Add(soundname, x);
+                SoundIDs.Add(soundname, x);
             }
             startptr = br.BaseStream.Position;
 
             stream = br;
             //br.Close();
-            filename = name;
+            FileName = name;
         }
 
         public byte[] LoadSound(int id)
         {
-            int offset = sounds[id].offset;
-            int len = sounds[id].len;
+            int offset = Sounds[id].Offset;
+            int len = Sounds[id].Length;
 
             byte[] data = new byte[len];
             long loc = stream.BaseStream.Position;

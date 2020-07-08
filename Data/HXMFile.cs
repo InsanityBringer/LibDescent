@@ -31,16 +31,16 @@ namespace LibDescent.Data
     /// </summary>
     public struct ReplacedBitmapElement
     {
-        public int replacementID;
-        public ushort data; 
+        public int ReplacementID;
+        public ushort Data; 
     }
     public class HXMFile : IDataFile
     {
-        public List<Robot> replacedRobots { get; private set; }
-        public List<JointPos> replacedJoints { get; private set; }
-        public List<Polymodel> replacedModels { get; private set; }
-        public List<ReplacedBitmapElement> replacedObjBitmaps { get; private set; }
-        public List<ReplacedBitmapElement> replacedObjBitmapPtrs { get; private set; }
+        public List<Robot> ReplacedRobots { get; private set; }
+        public List<JointPos> ReplacedJoints { get; private set; }
+        public List<Polymodel> ReplacedModels { get; private set; }
+        public List<ReplacedBitmapElement> ReplacedObjBitmaps { get; private set; }
+        public List<ReplacedBitmapElement> ReplacedObjBitmapPtrs { get; private set; }
 
         /// <summary>
         /// Creates a new HXM File with a parent HAM file.
@@ -48,11 +48,11 @@ namespace LibDescent.Data
         /// <param name="baseFile">The HAM file this HXM file will replace elements of.</param>
         public HXMFile()
         {
-            replacedRobots = new List<Robot>();
-            replacedJoints = new List<JointPos>();
-            replacedModels = new List<Polymodel>();
-            replacedObjBitmaps = new List<ReplacedBitmapElement>();
-            replacedObjBitmapPtrs = new List<ReplacedBitmapElement>();
+            ReplacedRobots = new List<Robot>();
+            ReplacedJoints = new List<JointPos>();
+            ReplacedModels = new List<Polymodel>();
+            ReplacedObjBitmaps = new List<ReplacedBitmapElement>();
+            ReplacedObjBitmapPtrs = new List<ReplacedBitmapElement>();
         }
 
         /// <summary>
@@ -86,28 +86,28 @@ namespace LibDescent.Data
                 int replacementID = br.ReadInt32();
                 Robot robot = data.ReadRobot(br);
                 robot.replacementID = replacementID;
-                replacedRobots.Add(robot);
+                ReplacedRobots.Add(robot);
             }
             int replacedJointCount = br.ReadInt32();
             for (int x = 0; x < replacedJointCount; x++)
             {
                 int replacementID = br.ReadInt32();
                 JointPos joint = new JointPos();
-                joint.jointnum = br.ReadInt16();
-                joint.angles.p = br.ReadInt16();
-                joint.angles.b = br.ReadInt16();
-                joint.angles.h = br.ReadInt16();
-                joint.replacementID = replacementID;
-                replacedJoints.Add(joint);
+                joint.JointNum = br.ReadInt16();
+                joint.Angles.P = br.ReadInt16();
+                joint.Angles.B = br.ReadInt16();
+                joint.Angles.H = br.ReadInt16();
+                joint.ReplacementID = replacementID;
+                ReplacedJoints.Add(joint);
             }
             int modelsToReplace = br.ReadInt32();
             for (int x = 0; x < modelsToReplace; x++)
             {
                 int replacementID = br.ReadInt32();
                 Polymodel model = data.ReadPolymodelInfo(br);
-                model.replacementID = replacementID;
+                model.ReplacementID = replacementID;
                 model.InterpreterData = br.ReadBytes(model.ModelIDTASize);
-                replacedModels.Add(model);
+                ReplacedModels.Add(model);
                 model.DyingModelnum = br.ReadInt32();
                 model.DeadModelnum = br.ReadInt32();
             }
@@ -115,18 +115,18 @@ namespace LibDescent.Data
             for (int x = 0; x < objBitmapsToReplace; x++)
             {
                 ReplacedBitmapElement objBitmap = new ReplacedBitmapElement();
-                objBitmap.replacementID = br.ReadInt32();
-                objBitmap.data = br.ReadUInt16();
-                replacedObjBitmaps.Add(objBitmap);
+                objBitmap.ReplacementID = br.ReadInt32();
+                objBitmap.Data = br.ReadUInt16();
+                ReplacedObjBitmaps.Add(objBitmap);
                 //Console.WriteLine("Loading replacement obj bitmap, replacing slot {0} with {1} ({2})", objBitmap.replacementID, objBitmap.data, baseFile.piggyFile.images[objBitmap.data].name);
             }
             int objBitmapPtrsToReplace = br.ReadInt32();
             for (int x = 0; x < objBitmapPtrsToReplace; x++)
             {
                 ReplacedBitmapElement objBitmap = new ReplacedBitmapElement();
-                objBitmap.replacementID = br.ReadInt32();
-                objBitmap.data = br.ReadUInt16();
-                replacedObjBitmapPtrs.Add(objBitmap);
+                objBitmap.ReplacementID = br.ReadInt32();
+                objBitmap.Data = br.ReadUInt16();
+                ReplacedObjBitmapPtrs.Add(objBitmap);
             }
         }
 
@@ -142,41 +142,41 @@ namespace LibDescent.Data
             bw.Write(559435080);
             bw.Write(1);
 
-            bw.Write(replacedRobots.Count);
-            for (int x = 0; x < replacedRobots.Count; x++)
+            bw.Write(ReplacedRobots.Count);
+            for (int x = 0; x < ReplacedRobots.Count; x++)
             {
-                bw.Write(replacedRobots[x].replacementID);
-                datawriter.WriteRobot(replacedRobots[x], bw);
+                bw.Write(ReplacedRobots[x].replacementID);
+                datawriter.WriteRobot(ReplacedRobots[x], bw);
             }
-            bw.Write(replacedJoints.Count);
-            for (int x = 0; x < replacedJoints.Count; x++)
+            bw.Write(ReplacedJoints.Count);
+            for (int x = 0; x < ReplacedJoints.Count; x++)
             {
-                bw.Write(replacedJoints[x].replacementID);
-                bw.Write(replacedJoints[x].jointnum);
-                bw.Write(replacedJoints[x].angles.p);
-                bw.Write(replacedJoints[x].angles.b);
-                bw.Write(replacedJoints[x].angles.h);
+                bw.Write(ReplacedJoints[x].ReplacementID);
+                bw.Write(ReplacedJoints[x].JointNum);
+                bw.Write(ReplacedJoints[x].Angles.P);
+                bw.Write(ReplacedJoints[x].Angles.B);
+                bw.Write(ReplacedJoints[x].Angles.H);
             }
-            bw.Write(replacedModels.Count);
-            for (int x = 0; x < replacedModels.Count; x++)
+            bw.Write(ReplacedModels.Count);
+            for (int x = 0; x < ReplacedModels.Count; x++)
             {
-                bw.Write(replacedModels[x].replacementID);
-                datawriter.WritePolymodel(replacedModels[x], bw);
-                bw.Write(replacedModels[x].InterpreterData);
-                bw.Write(replacedModels[x].DyingModelnum);
-                bw.Write(replacedModels[x].DeadModelnum);
+                bw.Write(ReplacedModels[x].ReplacementID);
+                datawriter.WritePolymodel(ReplacedModels[x], bw);
+                bw.Write(ReplacedModels[x].InterpreterData);
+                bw.Write(ReplacedModels[x].DyingModelnum);
+                bw.Write(ReplacedModels[x].DeadModelnum);
             }
-            bw.Write(replacedObjBitmaps.Count);
-            for (int x = 0; x < replacedObjBitmaps.Count; x++)
+            bw.Write(ReplacedObjBitmaps.Count);
+            for (int x = 0; x < ReplacedObjBitmaps.Count; x++)
             {
-                bw.Write(replacedObjBitmaps[x].replacementID);
-                bw.Write(replacedObjBitmaps[x].data);
+                bw.Write(ReplacedObjBitmaps[x].ReplacementID);
+                bw.Write(ReplacedObjBitmaps[x].Data);
             }
-            bw.Write(replacedObjBitmapPtrs.Count);
-            for (int x = 0; x < replacedObjBitmapPtrs.Count; x++)
+            bw.Write(ReplacedObjBitmapPtrs.Count);
+            for (int x = 0; x < ReplacedObjBitmapPtrs.Count; x++)
             {
-                bw.Write(replacedObjBitmapPtrs[x].replacementID);
-                bw.Write(replacedObjBitmapPtrs[x].data);
+                bw.Write(ReplacedObjBitmapPtrs[x].ReplacementID);
+                bw.Write(ReplacedObjBitmapPtrs[x].Data);
             }
 
             bw.Dispose();

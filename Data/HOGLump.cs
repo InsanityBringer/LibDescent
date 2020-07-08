@@ -51,26 +51,41 @@ namespace LibDescent.Data
 
     public class HOGLump
     {
-        public string name;
-        public int size;
-        public int offset;
-        public byte[] data; //Needed for imported items
-        public LumpType type;
+        /// <summary>
+        /// The file name associated with this lump.
+        /// </summary>
+        public string Name;
+        /// <summary>
+        /// The size of the data of this lump.
+        /// </summary>
+        public int Size;
+        /// <summary>
+        /// The offset of this lump within the .HOG that it is contained in.
+        /// </summary>
+        public int Offset;
+        /// <summary>
+        /// The raw data contained within this lump.
+        /// </summary>
+        public byte[] Data; //Needed for imported items
+        /// <summary>
+        /// The type of this lump, as detected from the data.
+        /// </summary>
+        public LumpType Type;
 
         public HOGLump(string name, int size, int offset)
         {
-            this.name = name;
-            this.size = size;
-            this.offset = offset;
+            this.Name = name;
+            this.Size = size;
+            this.Offset = offset;
         }
 
         public HOGLump(string name, byte[] data)
         {
-            this.name = name;
-            size = data.Length;
-            offset = -1;
-            this.data = data;
-            type = IdentifyLump(name, data);
+            this.Name = name;
+            Size = data.Length;
+            Offset = -1;
+            this.Data = data;
+            Type = IdentifyLump(name, data);
         }
 
         public static LumpType IdentifyLump(string name, byte[] data)

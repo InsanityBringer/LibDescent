@@ -35,9 +35,9 @@ namespace LibDescent.Data
             SerializeObject(bw, model, version);
             for (int i = 0; i < model.NumSubmodels; i++)
                 SerializeSubobject(bw, i, model.Submodels[i], version);
-            if (model.numGuns > 0)
+            if (model.NumGuns > 0)
                 SerializeGuns(bw, model, version);
-            if (model.isAnimated)
+            if (model.IsAnimated)
                 SerializeAnim(bw, model, version);
             SerializeIDTA(bw, model, version);
         }
@@ -86,12 +86,12 @@ namespace LibDescent.Data
             bw.Write(size);
             bw.Write(model.NumSubmodels);
             bw.Write(model.Radius.value);
-            bw.Write(model.Mins.x.value);
-            bw.Write(model.Mins.y.value);
-            bw.Write(model.Mins.z.value);
-            bw.Write(model.Maxs.x.value);
-            bw.Write(model.Maxs.y.value);
-            bw.Write(model.Maxs.z.value);
+            bw.Write(model.Mins.X.value);
+            bw.Write(model.Mins.Y.value);
+            bw.Write(model.Mins.Z.value);
+            bw.Write(model.Maxs.X.value);
+            bw.Write(model.Maxs.Y.value);
+            bw.Write(model.Maxs.Z.value);
             for (int i = 0; i < padBytes; i++)
                 bw.Write((byte)0);
         }
@@ -105,15 +105,15 @@ namespace LibDescent.Data
                 bw.Write((short)-1);
             else
                 bw.Write((short)model.Parent);
-            bw.Write(model.Normal.x.value);
-            bw.Write(model.Normal.y.value);
-            bw.Write(model.Normal.z.value);
-            bw.Write(model.Point.x.value);
-            bw.Write(model.Point.y.value);
-            bw.Write(model.Point.z.value);
-            bw.Write(model.Offset.x.value);
-            bw.Write(model.Offset.y.value);
-            bw.Write(model.Offset.z.value);
+            bw.Write(model.Normal.X.value);
+            bw.Write(model.Normal.Y.value);
+            bw.Write(model.Normal.Z.value);
+            bw.Write(model.Point.X.value);
+            bw.Write(model.Point.Y.value);
+            bw.Write(model.Point.Z.value);
+            bw.Write(model.Offset.X.value);
+            bw.Write(model.Offset.Y.value);
+            bw.Write(model.Offset.Z.value);
             bw.Write(model.Radius.value);
             bw.Write(model.Pointer);
         }
@@ -122,24 +122,24 @@ namespace LibDescent.Data
         {
             int size;
             if (version >= 7)
-                size = (model.numGuns * 28) + 4;
+                size = (model.NumGuns * 28) + 4;
             else
-                size = (model.numGuns * 16) + 4;
+                size = (model.NumGuns * 16) + 4;
             bw.Write(0x534E5547);
             bw.Write(size);
-            bw.Write(model.numGuns);
-            for (int i = 0; i < model.numGuns; i++)
+            bw.Write(model.NumGuns);
+            for (int i = 0; i < model.NumGuns; i++)
             {
                 bw.Write((short)i);
-                bw.Write((short)model.gunSubmodels[i]);
-                bw.Write(model.gunPoints[i].x.value);
-                bw.Write(model.gunPoints[i].y.value);
-                bw.Write(model.gunPoints[i].z.value);
+                bw.Write((short)model.GunSubmodels[i]);
+                bw.Write(model.GunPoints[i].X.value);
+                bw.Write(model.GunPoints[i].Y.value);
+                bw.Write(model.GunPoints[i].Z.value);
                 if (version >= 7)
                 {
-                    bw.Write(model.gunDirs[i].x.value);
-                    bw.Write(model.gunDirs[i].y.value);
-                    bw.Write(model.gunDirs[i].z.value);
+                    bw.Write(model.GunDirs[i].X.value);
+                    bw.Write(model.GunDirs[i].Y.value);
+                    bw.Write(model.GunDirs[i].Z.value);
                 }
             }
         }
@@ -161,9 +161,9 @@ namespace LibDescent.Data
             {
                 for (int f = 0; f < Robot.NumAnimationStates; f++)
                 {
-                    bw.Write(model.animationMatrix[i, f].p);
-                    bw.Write(model.animationMatrix[i, f].b);
-                    bw.Write(model.animationMatrix[i, f].h);
+                    bw.Write(model.AnimationMatrix[i, f].P);
+                    bw.Write(model.AnimationMatrix[i, f].B);
+                    bw.Write(model.AnimationMatrix[i, f].H);
                 }
             }
 

@@ -1999,23 +1999,23 @@ namespace LibDescent.Data
 
         protected static void WriteFixVector(BinaryWriter writer, FixVector vector)
         {
-            writer.Write(vector.x.value);
-            writer.Write(vector.y.value);
-            writer.Write(vector.z.value);
+            writer.Write(vector.X.value);
+            writer.Write(vector.Y.value);
+            writer.Write(vector.Z.value);
         }
 
         protected static void WriteFixAngles(BinaryWriter writer, FixAngles angles)
         {
-            writer.Write(angles.p);
-            writer.Write(angles.b);
-            writer.Write(angles.h);
+            writer.Write(angles.P);
+            writer.Write(angles.B);
+            writer.Write(angles.H);
         }
 
         protected static void WriteFixMatrix(BinaryWriter writer, FixMatrix matrix)
         {
-            WriteFixVector(writer, matrix.right);
-            WriteFixVector(writer, matrix.up);
-            WriteFixVector(writer, matrix.forward);
+            WriteFixVector(writer, matrix.Right);
+            WriteFixVector(writer, matrix.Up);
+            WriteFixVector(writer, matrix.Forward);
         }
 
         protected abstract void WriteVersionSpecificLevelInfo(BinaryWriter writer);
@@ -2136,9 +2136,9 @@ namespace LibDescent.Data
             }
 
             writer.Write(Level.Segments.IndexOf(_level.SecretReturnSegment));
-            WriteFixVector(writer, _level.SecretReturnOrientation.right);
-            WriteFixVector(writer, _level.SecretReturnOrientation.forward);
-            WriteFixVector(writer, _level.SecretReturnOrientation.up);
+            WriteFixVector(writer, _level.SecretReturnOrientation.Right);
+            WriteFixVector(writer, _level.SecretReturnOrientation.Forward);
+            WriteFixVector(writer, _level.SecretReturnOrientation.Up);
         }
 
         protected override void WriteTrigger(BinaryWriter writer, ITrigger trigger)

@@ -27,13 +27,13 @@ namespace LibDescent.Data
 {
     public struct FixAngles
     {
-        public short p, b, h;
+        public short P, B, H;
 
         public FixAngles(short p, short b, short h)
         {
-            this.p = p;
-            this.b = b;
-            this.h = h;
+            this.P = p;
+            this.B = b;
+            this.H = h;
         }
 
         public static FixAngles FromRawValues(short p, short b, short h)
@@ -44,13 +44,13 @@ namespace LibDescent.Data
 
     public struct FixVector
     {
-        public Fix x;
-        public Fix y;
-        public Fix z;
+        public Fix X;
+        public Fix Y;
+        public Fix Z;
 
         public FixVector(Fix x, Fix y, Fix z)
         {
-            this.x = x; this.y = y; this.z = z;
+            this.X = x; this.Y = y; this.Z = z;
         }
 
         public static FixVector FromRawValues(int x, int y, int z)
@@ -59,13 +59,13 @@ namespace LibDescent.Data
         }
 
         public static explicit operator Vector3(FixVector v)
-            => new Vector3(v.x, v.y, v.z);
+            => new Vector3(v.X, v.Y, v.Z);
         public static implicit operator FixVector(Vector3 v)
             => new FixVector(v.X, v.Y, v.Z);
 
         public override string ToString()
         {
-            return string.Format("{0}, {1}, {2}", x, y, z);
+            return string.Format("{0}, {1}, {2}", X, Y, Z);
         }
 
         public static FixVector operator +(FixVector a)
@@ -87,40 +87,40 @@ namespace LibDescent.Data
 
         public FixVector Add(FixVector other)
         {
-            return new FixVector(this.x + other.x, this.y + other.y, this.z + other.z);
+            return new FixVector(this.X + other.X, this.Y + other.Y, this.Z + other.Z);
         }
 
         public FixVector Sub(FixVector other)
         {
-            return new FixVector(this.x - other.x, this.y - other.y, this.z - other.z);
+            return new FixVector(this.X - other.X, this.Y - other.Y, this.Z - other.Z);
         }
 
         public FixVector Scale(double scale)
         {
-            return new FixVector(this.x * scale, this.y * scale, this.z * scale);
+            return new FixVector(this.X * scale, this.Y * scale, this.Z * scale);
         }
 
         public double Dot(FixVector other)
         {
             // optimized to avoid intermediate fix conversions
             // must divide by 2^16 at the end since we were dealing with fixes
-            return ((((long)this.x.value * other.x.value) >> 16)
-                  + (((long)this.y.value * other.y.value) >> 16)
-                  + (((long)this.z.value * other.z.value) >> 16)) * (1.0 / (1 << 16));
+            return ((((long)this.X.value * other.X.value) >> 16)
+                  + (((long)this.Y.value * other.Y.value) >> 16)
+                  + (((long)this.Z.value * other.Z.value) >> 16)) * (1.0 / (1 << 16));
         }
 
         public FixVector Cross(FixVector other)
         {
             return new FixVector(
-                this.y * other.z - this.z * other.y,
-                this.z * other.x - this.x * other.z,
-                this.x * other.y - this.y * other.x
+                this.Y * other.Z - this.Z * other.Y,
+                this.Z * other.X - this.X * other.Z,
+                this.X * other.Y - this.Y * other.X
             );
         }
 
         public double Mag()
         {
-            return Math.Sqrt((double)this.x * (double)this.x + (double)this.y * (double)this.y + (double)this.z * (double)this.z);
+            return Math.Sqrt((double)this.X * (double)this.X + (double)this.Y * (double)this.Y + (double)this.Z * (double)this.Z);
         }
 
         public FixVector Normalize()
@@ -131,15 +131,15 @@ namespace LibDescent.Data
         public override bool Equals(object obj)
         {
             return obj is FixVector vector &&
-                (x == vector.x) && (y == vector.y) && (z == vector.z);
+                (X == vector.X) && (Y == vector.Y) && (Z == vector.Z);
         }
 
         public override int GetHashCode()
         {
             var hashCode = 373119288;
-            hashCode = hashCode * -1521134295 + x.GetHashCode();
-            hashCode = hashCode * -1521134295 + y.GetHashCode();
-            hashCode = hashCode * -1521134295 + z.GetHashCode();
+            hashCode = hashCode * -1521134295 + X.GetHashCode();
+            hashCode = hashCode * -1521134295 + Y.GetHashCode();
+            hashCode = hashCode * -1521134295 + Z.GetHashCode();
             return hashCode;
         }
     }
@@ -148,41 +148,41 @@ namespace LibDescent.Data
     {
         // Field order matches Descent structure (and read/write) order
 
-        public FixVector right;
-        public FixVector up;
-        public FixVector forward;
+        public FixVector Right;
+        public FixVector Up;
+        public FixVector Forward;
 
         public FixMatrix(FixVector right, FixVector up, FixVector forward)
         {
-            this.right = right; this.up = up; this.forward = forward;
+            this.Right = right; this.Up = up; this.Forward = forward;
         }
 
         public FixMatrix(FixAngles angs)
         {
-            Fix sinp = Math.Sin((angs.p / 16384.0) * (Math.PI * 2));
-            Fix cosp = Math.Cos((angs.p / 16384.0) * (Math.PI * 2));
-            Fix sinb = Math.Sin((angs.b / 16384.0) * (Math.PI * 2));
-            Fix cosb = Math.Cos((angs.b / 16384.0) * (Math.PI * 2));
-            Fix sinh = Math.Sin((angs.h / 16384.0) * (Math.PI * 2));
-            Fix cosh = Math.Cos((angs.h / 16384.0) * (Math.PI * 2));
+            Fix sinp = Math.Sin((angs.P / 16384.0) * (Math.PI * 2));
+            Fix cosp = Math.Cos((angs.P / 16384.0) * (Math.PI * 2));
+            Fix sinb = Math.Sin((angs.B / 16384.0) * (Math.PI * 2));
+            Fix cosb = Math.Cos((angs.B / 16384.0) * (Math.PI * 2));
+            Fix sinh = Math.Sin((angs.H / 16384.0) * (Math.PI * 2));
+            Fix cosh = Math.Cos((angs.H / 16384.0) * (Math.PI * 2));
 
             Fix sbsh = sinb * sinh;
             Fix cbch = cosb * cosh;
             Fix cbsh = cosb * sinh;
             Fix sbch = sinb * cosh;
 
-            right.x = cbch + (sinp * sbsh);
-            up.z = sbsh + (sinp * cbch);
+            Right.X = cbch + (sinp * sbsh);
+            Up.Z = sbsh + (sinp * cbch);
 
-            up.x = (sinp * cbsh) - sbch;
-            right.z = (sinp * sbch) - cbsh;
+            Up.X = (sinp * cbsh) - sbch;
+            Right.Z = (sinp * sbch) - cbsh;
 
-            forward.x = sinh * cosp;
-            right.y = sinb * cosp;
-            up.y = cosb * cosp;
-            forward.z = cosh * cosp;
+            Forward.X = sinh * cosp;
+            Right.Y = sinb * cosp;
+            Up.Y = cosb * cosp;
+            Forward.Z = cosh * cosp;
 
-            forward.y = -sinp;
+            Forward.Y = -sinp;
         }
 
         public static FixMatrix operator +(FixMatrix a)
@@ -206,69 +206,69 @@ namespace LibDescent.Data
 
         public FixMatrix Add(FixMatrix other)
         {
-            return new FixMatrix(this.right + other.right, this.up + other.up, this.forward + other.forward);
+            return new FixMatrix(this.Right + other.Right, this.Up + other.Up, this.Forward + other.Forward);
         }
         public FixMatrix Sub(FixMatrix other)
         {
-            return new FixMatrix(this.right - other.right, this.up - other.up, this.forward - other.forward);
+            return new FixMatrix(this.Right - other.Right, this.Up - other.Up, this.Forward - other.Forward);
         }
         public FixMatrix Scale(double scale)
         {
-            return new FixMatrix(this.right * scale, this.up * scale, this.forward * scale);
+            return new FixMatrix(this.Right * scale, this.Up * scale, this.Forward * scale);
         }
         public FixMatrix Mul(FixMatrix other)
         {
             return new FixMatrix(
                 right: new FixVector(
-                    this.forward.z * other.forward.x + this.up.z * other.forward.y + this.right.z * other.forward.z,
-                    this.forward.z * other.up.x + this.up.z * other.up.y + this.right.z * other.up.z,
-                    this.forward.z * other.right.x + this.up.z * other.right.y + this.right.z * other.right.z),
+                    this.Forward.Z * other.Forward.X + this.Up.Z * other.Forward.Y + this.Right.Z * other.Forward.Z,
+                    this.Forward.Z * other.Up.X + this.Up.Z * other.Up.Y + this.Right.Z * other.Up.Z,
+                    this.Forward.Z * other.Right.X + this.Up.Z * other.Right.Y + this.Right.Z * other.Right.Z),
                 up: new FixVector(
-                    this.forward.y * other.forward.x + this.up.y * other.forward.y + this.right.y * other.forward.z,
-                    this.forward.y * other.up.x + this.up.y * other.up.y + this.right.y * other.up.z,
-                    this.forward.y * other.right.x + this.up.y * other.right.y + this.right.y * other.right.z),
+                    this.Forward.Y * other.Forward.X + this.Up.Y * other.Forward.Y + this.Right.Y * other.Forward.Z,
+                    this.Forward.Y * other.Up.X + this.Up.Y * other.Up.Y + this.Right.Y * other.Up.Z,
+                    this.Forward.Y * other.Right.X + this.Up.Y * other.Right.Y + this.Right.Y * other.Right.Z),
                 forward: new FixVector(
-                    this.forward.x * other.forward.x + this.up.x * other.forward.y + this.right.x * other.forward.z,
-                    this.forward.x * other.up.x + this.up.x * other.up.y + this.right.x * other.up.z,
-                    this.forward.x * other.right.x + this.up.x * other.right.y + this.right.x * other.right.z)
+                    this.Forward.X * other.Forward.X + this.Up.X * other.Forward.Y + this.Right.X * other.Forward.Z,
+                    this.Forward.X * other.Up.X + this.Up.X * other.Up.Y + this.Right.X * other.Up.Z,
+                    this.Forward.X * other.Right.X + this.Up.X * other.Right.Y + this.Right.X * other.Right.Z)
             );
         }
         public FixMatrix Transpose()
         {
             return new FixMatrix(
                 right: new FixVector(
-                    this.right.x,
-                    this.up.x,
-                    this.forward.x),
+                    this.Right.X,
+                    this.Up.X,
+                    this.Forward.X),
                 up: new FixVector(
-                    this.right.y,
-                    this.up.y,
-                    this.forward.y),
+                    this.Right.Y,
+                    this.Up.Y,
+                    this.Forward.Y),
                 forward: new FixVector(
-                    this.right.z,
-                    this.up.z,
-                    this.forward.z)
+                    this.Right.Z,
+                    this.Up.Z,
+                    this.Forward.Z)
                 );
 
         }
 
         public override string ToString()
         {
-            return string.Format("r:({0}), u:({1}), f:({2})", right, up, forward);
+            return string.Format("r:({0}), u:({1}), f:({2})", Right, Up, Forward);
         }
 
         public override bool Equals(object obj)
         {
             return obj is FixMatrix matrix &&
-                 (right == matrix.right) && (up == matrix.up) && (forward == matrix.forward);
+                 (Right == matrix.Right) && (Up == matrix.Up) && (Forward == matrix.Forward);
         }
 
         public override int GetHashCode()
         {
             var hashCode = 1938967743;
-            hashCode = hashCode * -1521134295 + right.GetHashCode();
-            hashCode = hashCode * -1521134295 + up.GetHashCode();
-            hashCode = hashCode * -1521134295 + forward.GetHashCode();
+            hashCode = hashCode * -1521134295 + Right.GetHashCode();
+            hashCode = hashCode * -1521134295 + Up.GetHashCode();
+            hashCode = hashCode * -1521134295 + Forward.GetHashCode();
             return hashCode;
         }
     }

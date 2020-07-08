@@ -185,7 +185,8 @@ namespace LibDescent.Data
             for (int y = 0; y < height; y++)
             {
                 scanlines[y] = new byte[width];
-                Array.Copy(buffer, y * width, scanlines[y], 0, width); //TODO: slow. Unsafe would be much faster for all of this, but is it worth? Or am I missing something obvious?
+                //Array.Copy(buffer, y * width, scanlines[y], 0, width); //TODO: slow. Unsafe would be much faster for all of this, but is it worth? Or am I missing something obvious?
+                Buffer.BlockCopy(buffer, y * width, scanlines[y], 0, width);
 
                 linesizes[y] = (short)MeasureScanline(scanlines[y]);
                 if (linesizes[y] > 255) big = true;

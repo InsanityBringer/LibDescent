@@ -24,7 +24,17 @@ namespace LibDescent.Data
 {
     public class Util
     {
-        public static int Clamp(int x, int min, int max, ref bool changed)
+        /// <summary>
+        /// Clamps a given value between the minimum and maximum; that is, the returned
+        /// value is always between the minimum and the maximum, and will be either of
+        /// the extrema if the value is beyond either of them.
+        /// </summary>
+        /// <param name="x">The value to clamp.</param>
+        /// <param name="min">The minimum.</param>
+        /// <param name="max">The maximum.</param>
+        /// <param name="changed">Whether the value was outside the range.</param>
+        /// <returns>The value clamped between the minimum and maximum.</returns>
+        public static int Clamp(int x, int min, int max, out bool changed)
         {
             if (x < min)
             {
@@ -36,7 +46,22 @@ namespace LibDescent.Data
                 changed = true;
                 return max;
             }
+            changed = false;
             return x;
+        }
+
+        /// <summary>
+        /// Clamps a given value between the minimum and maximum; that is, the returned
+        /// value is always between the minimum and the maximum, and will be either of
+        /// the extrema if the value is beyond either of them.
+        /// </summary>
+        /// <param name="x">The value to clamp.</param>
+        /// <param name="min">The minimum.</param>
+        /// <param name="max">The maximum.</param>
+        /// <returns>The value clamped between the minimum and maximum.</returns>
+        public static int Clamp(int x, int min, int max)
+        {
+            return Clamp(x, min, max, out bool _);
         }
     }
 }
