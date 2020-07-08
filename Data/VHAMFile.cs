@@ -94,10 +94,10 @@ namespace LibDescent.Data
             for (int i = 0; i < numJoints; i++)
             {
                 JointPos joint = new JointPos();
-                joint.jointnum = br.ReadInt16();
-                joint.angles.p = br.ReadInt16();
-                joint.angles.b = br.ReadInt16();
-                joint.angles.h = br.ReadInt16();
+                joint.JointNum = br.ReadInt16();
+                joint.Angles.P = br.ReadInt16();
+                joint.Angles.B = br.ReadInt16();
+                joint.Angles.H = br.ReadInt16();
                 Joints.Add(joint);
             }
             int numModels = br.ReadInt32();

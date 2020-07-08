@@ -536,12 +536,12 @@ namespace LibDescent.Edit
         private void BuildModelGunsFromShip(Ship ship)
         {
             Polymodel model = Models[ship.ModelNum];
-            model.numGuns = 8;
+            model.NumGuns = 8;
             for (int i = 0; i < 8; i++)
             {
-                model.gunPoints[i] = ship.GunPoints[i];
-                model.gunDirs[i] = FixVector.FromRawValues(65536, 0, 0);
-                model.gunSubmodels[i] = 0;
+                model.GunPoints[i] = ship.GunPoints[i];
+                model.GunDirs[i] = FixVector.FromRawValues(65536, 0, 0);
+                model.GunSubmodels[i] = 0;
             }
         }
 
@@ -553,12 +553,12 @@ namespace LibDescent.Edit
         {
             if (reactor.ModelNum == -1) return;
             Polymodel model = Models[reactor.ModelNum];
-            model.numGuns = reactor.NumGuns;
+            model.NumGuns = reactor.NumGuns;
             for (int i = 0; i < 8; i++)
             {
-                model.gunPoints[i] = reactor.GunPoints[i];
-                model.gunDirs[i] = reactor.GunDirs[i];
-                model.gunSubmodels[i] = 0;
+                model.GunPoints[i] = reactor.GunPoints[i];
+                model.GunDirs[i] = reactor.GunDirs[i];
+                model.GunSubmodels[i] = 0;
             }
         }
 
@@ -571,12 +571,12 @@ namespace LibDescent.Edit
             if (robot.ModelNum == -1) return;
             Polymodel model = Models[robot.ModelNum];
             List<FixAngles> jointlist = new List<FixAngles>();
-            model.numGuns = robot.NumGuns;
+            model.NumGuns = robot.NumGuns;
             for (int i = 0; i < Polymodel.MaxGuns; i++)
             {
-                model.gunPoints[i] = robot.GunPoints[i];
-                model.gunDirs[i] = FixVector.FromRawValues(65536, 0, 0);
-                model.gunSubmodels[i] = robot.GunSubmodels[i];
+                model.GunPoints[i] = robot.GunPoints[i];
+                model.GunDirs[i] = FixVector.FromRawValues(65536, 0, 0);
+                model.GunSubmodels[i] = robot.GunSubmodels[i];
             }
             int[,] jointmapping = new int[10, 5];
             for (int m = 0; m < Polymodel.MaxSubmodels; m++)
@@ -596,8 +596,8 @@ namespace LibDescent.Edit
                     for (int j = 0; j < robotjointlist.NumJoints; j++)
                     {
                         JointPos joint = Joints[basejoint];
-                        jointmapping[joint.jointnum, f] = basejoint;
-                        model.isAnimated = true;
+                        jointmapping[joint.JointNum, f] = basejoint;
+                        model.IsAnimated = true;
                         basejoint++;
                     }
                 }
@@ -611,9 +611,9 @@ namespace LibDescent.Edit
                     if (jointnum != -1)
                     {
                         JointPos joint = Joints[jointnum];
-                        model.animationMatrix[m, f].p = joint.angles.p;
-                        model.animationMatrix[m, f].b = joint.angles.b;
-                        model.animationMatrix[m, f].h = joint.angles.h;
+                        model.AnimationMatrix[m, f].P = joint.Angles.P;
+                        model.AnimationMatrix[m, f].B = joint.Angles.B;
+                        model.AnimationMatrix[m, f].H = joint.Angles.H;
                     }
                 }
             }
@@ -758,27 +758,27 @@ namespace LibDescent.Edit
                 {
                     orphanedID = br.ReadInt32();
                     model = Models[orphanedID];
-                    model.numGuns = br.ReadInt32();
-                    for (int j = 0; j < model.numGuns; j++)
+                    model.NumGuns = br.ReadInt32();
+                    for (int j = 0; j < model.NumGuns; j++)
                     {
-                        model.gunSubmodels[j] = br.ReadInt32();
-                        model.gunPoints[j].x = new Fix(br.ReadInt32());
-                        model.gunPoints[j].y = new Fix(br.ReadInt32());
-                        model.gunPoints[j].z = new Fix(br.ReadInt32());
-                        model.gunDirs[j].x = new Fix(br.ReadInt32());
-                        model.gunDirs[j].y = new Fix(br.ReadInt32());
-                        model.gunDirs[j].z = new Fix(br.ReadInt32());
+                        model.GunSubmodels[j] = br.ReadInt32();
+                        model.GunPoints[j].X = new Fix(br.ReadInt32());
+                        model.GunPoints[j].Y = new Fix(br.ReadInt32());
+                        model.GunPoints[j].Z = new Fix(br.ReadInt32());
+                        model.GunDirs[j].X = new Fix(br.ReadInt32());
+                        model.GunDirs[j].Y = new Fix(br.ReadInt32());
+                        model.GunDirs[j].Z = new Fix(br.ReadInt32());
                     }
-                    model.isAnimated = br.ReadBoolean();
-                    if (model.isAnimated)
+                    model.IsAnimated = br.ReadBoolean();
+                    if (model.IsAnimated)
                     {
                         for (int j = 0; j < 10; j++)
                         {
                             for (int k = 0; k < 5; k++)
                             {
-                                model.animationMatrix[j, k].p = br.ReadInt16();
-                                model.animationMatrix[j, k].b = br.ReadInt16();
-                                model.animationMatrix[j, k].h = br.ReadInt16();
+                                model.AnimationMatrix[j, k].P = br.ReadInt16();
+                                model.AnimationMatrix[j, k].B = br.ReadInt16();
+                                model.AnimationMatrix[j, k].H = br.ReadInt16();
                             }
                         }
                     }
@@ -804,7 +804,7 @@ namespace LibDescent.Edit
                 WeaponNames.Add(ElementLists.GetWeaponName(i));
             for (int i = 0; i < BaseFile.Sounds.Count; i++)
                 SoundNames.Add(ElementLists.GetSoundName(i));
-            if (BaseFile.version >= 3)
+            if (BaseFile.Version >= 3)
             {
                 for (int i = 0; i < BaseFile.Models.Count; i++)
                     ModelNames.Add(ElementLists.GetModelName(i));
@@ -923,11 +923,11 @@ namespace LibDescent.Edit
         private void LoadReactorGuns(Reactor reactor)
         {
             Polymodel model = Models[reactor.ModelNum];
-            reactor.NumGuns = (byte)model.numGuns;
+            reactor.NumGuns = (byte)model.NumGuns;
             for (int i = 0; i < reactor.NumGuns; i++)
             {
-                reactor.GunPoints[i] = model.gunPoints[i];
-                reactor.GunDirs[i] = model.gunDirs[i];
+                reactor.GunPoints[i] = model.GunPoints[i];
+                reactor.GunDirs[i] = model.GunDirs[i];
             }
         }
 
@@ -936,18 +936,18 @@ namespace LibDescent.Edit
             Polymodel models = Models[ship.ModelNum];
             for (int i = 0; i < 8; i++)
             {
-                ship.GunPoints[i] = models.gunPoints[i];
+                ship.GunPoints[i] = models.GunPoints[i];
             }
         }
 
         //I actually hate this game's animation system sometimes
         private void LoadAnimations(Robot robot, Polymodel model)
         {
-            robot.NumGuns = (sbyte)model.numGuns;
+            robot.NumGuns = (sbyte)model.NumGuns;
             for (int i = 0; i < 8; i++)
             {
-                robot.GunPoints[i] = model.gunPoints[i];
-                robot.GunSubmodels[i] = (byte)model.gunSubmodels[i];
+                robot.GunPoints[i] = model.GunPoints[i];
+                robot.GunSubmodels[i] = (byte)model.GunSubmodels[i];
             }
             for (int m = 0; m < 9; m++)
             {
@@ -957,7 +957,7 @@ namespace LibDescent.Edit
                     robot.AnimStates[m, f].Offset = 0;
                 }
             }
-            if (!model.isAnimated) return;
+            if (!model.IsAnimated) return;
             int[] gunNums = new int[10];
 
             for (int i = 1; i < model.NumSubmodels; i++)
@@ -989,8 +989,8 @@ namespace LibDescent.Edit
                         if (gunNums[m] == g)
                         {
                             JointPos joint = new JointPos();
-                            joint.jointnum = (short)m;
-                            joint.angles = model.animationMatrix[m, state];
+                            joint.JointNum = (short)m;
+                            joint.Angles = model.AnimationMatrix[m, state];
                             Joints.Add(joint);
                             robot.AnimStates[g, state].NumJoints++;
                             NumRobotJoints++;
@@ -1150,27 +1150,27 @@ namespace LibDescent.Edit
             {
                 model = Models[i];
                 bw.Write(i);
-                bw.Write(model.numGuns);
-                for (int j = 0; j < model.numGuns; j++)
+                bw.Write(model.NumGuns);
+                for (int j = 0; j < model.NumGuns; j++)
                 {
-                    bw.Write(model.gunSubmodels[j]);
-                    bw.Write(model.gunPoints[j].x.Value);
-                    bw.Write(model.gunPoints[j].y.Value);
-                    bw.Write(model.gunPoints[j].z.Value);
-                    bw.Write(model.gunDirs[j].x.Value);
-                    bw.Write(model.gunDirs[j].y.Value);
-                    bw.Write(model.gunDirs[j].z.Value);
+                    bw.Write(model.GunSubmodels[j]);
+                    bw.Write(model.GunPoints[j].X.Value);
+                    bw.Write(model.GunPoints[j].Y.Value);
+                    bw.Write(model.GunPoints[j].Z.Value);
+                    bw.Write(model.GunDirs[j].X.Value);
+                    bw.Write(model.GunDirs[j].Y.Value);
+                    bw.Write(model.GunDirs[j].Z.Value);
                 }
-                bw.Write(model.isAnimated);
-                if (model.isAnimated)
+                bw.Write(model.IsAnimated);
+                if (model.IsAnimated)
                 {
                     for (int j = 0; j < 10; j++)
                     {
                         for (int k = 0; k < 5; k++)
                         {
-                            bw.Write(model.animationMatrix[j, k].p);
-                            bw.Write(model.animationMatrix[j, k].b);
-                            bw.Write(model.animationMatrix[j, k].h);
+                            bw.Write(model.AnimationMatrix[j, k].P);
+                            bw.Write(model.AnimationMatrix[j, k].B);
+                            bw.Write(model.AnimationMatrix[j, k].H);
                         }
                     }
                 }

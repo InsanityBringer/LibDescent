@@ -527,7 +527,7 @@ namespace LibDescent.Edit
                 else if (datafile.AltSounds[id] == 255)
                     altID = -1;
                 else altID = datafile.AltSounds[id];
-                stringBuilder.AppendFormat("$SOUND\t{0}\t{1}\t{2}.raw\t;{3}\n", id, altID, sndFile.sounds[datafile.Sounds[id]].name, ElementLists.GetSoundName(id));
+                stringBuilder.AppendFormat("$SOUND\t{0}\t{1}\t{2}.raw\t;{3}\n", id, altID, sndFile.Sounds[datafile.Sounds[id]].Name, ElementLists.GetSoundName(id));
             }
         }
 

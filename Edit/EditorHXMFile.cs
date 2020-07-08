@@ -11,13 +11,13 @@ namespace LibDescent.Edit
         public HXMFile BaseFile { get; private set; }
         public EditorHAMFile BaseHAM { get; private set; }
 
-        public EditorVHAMFile augmentFile;
+        public EditorVHAMFile AugmentFile;
 
-        public List<Robot> replacedRobots { get; private set; }
-        public List<JointPos> replacedJoints { get; private set; }
-        public List<Polymodel> replacedModels { get; private set; }
-        public List<ReplacedBitmapElement> replacedObjBitmaps { get; private set; }
-        public List<ReplacedBitmapElement> replacedObjBitmapPtrs { get; private set; }
+        public List<Robot> ReplacedRobots { get; private set; }
+        public List<JointPos> ReplacedJoints { get; private set; }
+        public List<Polymodel> ReplacedModels { get; private set; }
+        public List<ReplacedBitmapElement> ReplacedObjBitmaps { get; private set; }
+        public List<ReplacedBitmapElement> ReplacedObjBitmapPtrs { get; private set; }
 
         public List<string> RobotNames { get; private set; }
         public List<string> ModelNames { get; private set; }
@@ -26,11 +26,11 @@ namespace LibDescent.Edit
         {
             this.BaseFile = baseFile;
             this.BaseHAM = baseHAM;
-            replacedRobots = new List<Robot>();
-            replacedJoints = new List<JointPos>();
-            replacedModels = new List<Polymodel>();
-            replacedObjBitmaps = new List<ReplacedBitmapElement>();
-            replacedObjBitmapPtrs = new List<ReplacedBitmapElement>();
+            ReplacedRobots = new List<Robot>();
+            ReplacedJoints = new List<JointPos>();
+            ReplacedModels = new List<Polymodel>();
+            ReplacedObjBitmaps = new List<ReplacedBitmapElement>();
+            ReplacedObjBitmapPtrs = new List<ReplacedBitmapElement>();
 
             RobotNames = new List<string>();
             ModelNames = new List<string>();
@@ -51,7 +51,7 @@ namespace LibDescent.Edit
             CreateLocalLists();
             GenerateNameTable();
             BuildModelTextureTables(); //fuck hxm files
-            foreach (Robot robot in replacedRobots)
+            foreach (Robot robot in ReplacedRobots)
             {
                 BuildModelAnimation(robot);
             }
@@ -59,16 +59,16 @@ namespace LibDescent.Edit
 
         private void CreateLocalLists()
         {
-            foreach (Robot robot in BaseFile.replacedRobots)
-                replacedRobots.Add(robot);
-            foreach (JointPos joint in BaseFile.replacedJoints)
-                replacedJoints.Add(joint);
-            foreach (Polymodel model in BaseFile.replacedModels)
-                replacedModels.Add(model);
-            foreach (ReplacedBitmapElement bm in BaseFile.replacedObjBitmaps)
-                replacedObjBitmaps.Add(bm);
-            foreach (ReplacedBitmapElement bm in BaseFile.replacedObjBitmapPtrs)
-                replacedObjBitmapPtrs.Add(bm);
+            foreach (Robot robot in BaseFile.ReplacedRobots)
+                ReplacedRobots.Add(robot);
+            foreach (JointPos joint in BaseFile.ReplacedJoints)
+                ReplacedJoints.Add(joint);
+            foreach (Polymodel model in BaseFile.ReplacedModels)
+                ReplacedModels.Add(model);
+            foreach (ReplacedBitmapElement bm in BaseFile.ReplacedObjBitmaps)
+                ReplacedObjBitmaps.Add(bm);
+            foreach (ReplacedBitmapElement bm in BaseFile.ReplacedObjBitmapPtrs)
+                ReplacedObjBitmapPtrs.Add(bm);
         }
 
         //I dunno why i'm being as masochistic as I am with this but okay. 
@@ -102,7 +102,7 @@ namespace LibDescent.Edit
                     TextureNames.Add(i, name);
                 }
             }
-            foreach (Polymodel model in replacedModels)
+            foreach (Polymodel model in ReplacedModels)
             {
                 model.UseTextureList = true;
                 int textureID, pointer;
@@ -142,14 +142,14 @@ namespace LibDescent.Edit
             int lowestJoint = int.MaxValue;
             if (robot.ModelNum == -1) return;
             Polymodel model = GetModel(robot.ModelNum);
-            if (model.replacementID == -1) return;
+            if (model.ReplacementID == -1) return;
             List<FixAngles> jointlist = new List<FixAngles>();
-            model.numGuns = robot.NumGuns;
+            model.NumGuns = robot.NumGuns;
             for (int i = 0; i < Polymodel.MaxGuns; i++)
             {
-                model.gunPoints[i] = robot.GunPoints[i];
-                model.gunDirs[i] = FixVector.FromRawValues(65536, 0, 0);
-                model.gunSubmodels[i] = robot.GunSubmodels[i];
+                model.GunPoints[i] = robot.GunPoints[i];
+                model.GunDirs[i] = FixVector.FromRawValues(65536, 0, 0);
+                model.GunSubmodels[i] = robot.GunSubmodels[i];
             }
             int[,] jointmapping = new int[10, 5];
             for (int m = 0; m < Polymodel.MaxSubmodels; m++)
@@ -171,8 +171,8 @@ namespace LibDescent.Edit
                     for (int j = 0; j < robotjointlist.NumJoints; j++)
                     {
                         JointPos joint = GetJoint(basejoint);
-                        jointmapping[joint.jointnum, f] = basejoint;
-                        model.isAnimated = true;
+                        jointmapping[joint.JointNum, f] = basejoint;
+                        model.IsAnimated = true;
                         basejoint++;
                     }
                 }
@@ -186,9 +186,9 @@ namespace LibDescent.Edit
                     if (jointnum != -1)
                     {
                         JointPos joint = GetJoint(jointnum);
-                        model.animationMatrix[m, f].p = joint.angles.p;
-                        model.animationMatrix[m, f].b = joint.angles.b;
-                        model.animationMatrix[m, f].h = joint.angles.h;
+                        model.AnimationMatrix[m, f].P = joint.Angles.P;
+                        model.AnimationMatrix[m, f].B = joint.Angles.B;
+                        model.AnimationMatrix[m, f].H = joint.Angles.H;
                     }
                 }
             }
@@ -202,11 +202,11 @@ namespace LibDescent.Edit
         /// </summary>
         public void GenerateNameTable()
         {
-            for (int i = 0; i < replacedRobots.Count; i++)
+            for (int i = 0; i < ReplacedRobots.Count; i++)
             {
                 RobotNames.Add(string.Format("Replaced Robot {0}", i));
             }
-            for (int i = 0; i < replacedModels.Count; i++)
+            for (int i = 0; i < ReplacedModels.Count; i++)
             {
                 ModelNames.Add(string.Format("Replaced Model {0}", i));
             }
@@ -218,17 +218,17 @@ namespace LibDescent.Edit
 
         public int AddRobot()
         {
-            replacedRobots.Add(new Robot());
+            ReplacedRobots.Add(new Robot());
             RobotNames.Add("New Robot");
-            return replacedRobots.Count - 1;
+            return ReplacedRobots.Count - 1;
         }
 
         public int AddModel()
         {
             Polymodel newModel = new Polymodel();
-            replacedModels.Add(newModel);
+            ReplacedModels.Add(newModel);
             ModelNames.Add("New Model");
-            return replacedModels.Count - 1;
+            return ReplacedModels.Count - 1;
         }
 
         /// <summary>
@@ -281,8 +281,8 @@ namespace LibDescent.Edit
         /// <param name="stream">The stream to write to.</param>
         public void Write(Stream stream)
         {
-            replacedJoints.Clear();
-            foreach (Robot robot in replacedRobots)
+            ReplacedJoints.Clear();
+            foreach (Robot robot in ReplacedRobots)
             {
                 LoadAnimations(robot, GetModel(robot.ModelNum));
             }
@@ -293,21 +293,21 @@ namespace LibDescent.Edit
 
         private void CreateDataLists()
         {
-            BaseFile.replacedRobots.Clear();
-            BaseFile.replacedJoints.Clear();
-            BaseFile.replacedModels.Clear();
-            BaseFile.replacedObjBitmaps.Clear();
-            BaseFile.replacedObjBitmapPtrs.Clear();
-            foreach (Robot robot in replacedRobots)
-                BaseFile.replacedRobots.Add(robot);
-            foreach (JointPos joint in replacedJoints)
-                BaseFile.replacedJoints.Add(joint);
-            foreach (Polymodel model in replacedModels)
-                BaseFile.replacedModels.Add(model);
-            foreach (ReplacedBitmapElement bm in replacedObjBitmaps)
-                BaseFile.replacedObjBitmaps.Add(bm);
-            foreach (ReplacedBitmapElement bm in replacedObjBitmapPtrs)
-                BaseFile.replacedObjBitmapPtrs.Add(bm);
+            BaseFile.ReplacedRobots.Clear();
+            BaseFile.ReplacedJoints.Clear();
+            BaseFile.ReplacedModels.Clear();
+            BaseFile.ReplacedObjBitmaps.Clear();
+            BaseFile.ReplacedObjBitmapPtrs.Clear();
+            foreach (Robot robot in ReplacedRobots)
+                BaseFile.ReplacedRobots.Add(robot);
+            foreach (JointPos joint in ReplacedJoints)
+                BaseFile.ReplacedJoints.Add(joint);
+            foreach (Polymodel model in ReplacedModels)
+                BaseFile.ReplacedModels.Add(model);
+            foreach (ReplacedBitmapElement bm in ReplacedObjBitmaps)
+                BaseFile.ReplacedObjBitmaps.Add(bm);
+            foreach (ReplacedBitmapElement bm in ReplacedObjBitmapPtrs)
+                BaseFile.ReplacedObjBitmapPtrs.Add(bm);
         }
 
         /// <summary>
@@ -334,28 +334,28 @@ namespace LibDescent.Edit
                     textureMapping.Add(BaseHAM.EClipNames[i], clip.ChangingObjectTexture);
             }
             //If augment file, add augment obj bitmaps
-            if (augmentFile != null)
+            if (AugmentFile != null)
             {
-                for (int i = 0; i < augmentFile.ObjBitmaps.Count; i++)
+                for (int i = 0; i < AugmentFile.ObjBitmaps.Count; i++)
                 {
-                    img = BaseHAM.piggyFile.GetImage(augmentFile.ObjBitmaps[i]);
+                    img = BaseHAM.piggyFile.GetImage(AugmentFile.ObjBitmaps[i]);
                     if (!textureMapping.ContainsKey(img.Name))
                         textureMapping.Add(img.Name, i + VHAMFile.N_D2_OBJBITMAPS);
                 }
             }
 
             //Nuke the old replaced ObjBitmaps and ObjBitmapPointers because they aren't needed anymore
-            replacedObjBitmaps.Clear();
-            replacedObjBitmapPtrs.Clear();
+            ReplacedObjBitmaps.Clear();
+            ReplacedObjBitmapPtrs.Clear();
 
             //Generate the new elements
             Polymodel model;
             int replacedNum;
             List<int> newTextures = new List<int>();
             string texName;
-            for (int i = 0; i < replacedModels.Count; i++)
+            for (int i = 0; i < ReplacedModels.Count; i++)
             {
-                model = replacedModels[i];
+                model = ReplacedModels[i];
                 replacedNum = model.BaseTexture;
 
                 //Find the unique textures in this model
@@ -369,9 +369,9 @@ namespace LibDescent.Edit
                 foreach (int newID in newTextures)
                 {
                     ReplacedBitmapElement elem;
-                    elem.data = (ushort)newID;
-                    elem.replacementID = replacedNum;
-                    replacedObjBitmaps.Add(elem);
+                    elem.Data = (ushort)newID;
+                    elem.ReplacementID = replacedNum;
+                    ReplacedObjBitmaps.Add(elem);
                     replacedNum++;
                 }
 
@@ -379,29 +379,29 @@ namespace LibDescent.Edit
             }
 
             //Finally augment things with our own images
-            for (int i = 0; i < replacedObjBitmaps.Count; i++)
+            for (int i = 0; i < ReplacedObjBitmaps.Count; i++)
             {
-                bm = replacedObjBitmaps[i];
-                img = BaseHAM.piggyFile.GetImage(bm.data);
+                bm = ReplacedObjBitmaps[i];
+                img = BaseHAM.piggyFile.GetImage(bm.Data);
                 if (!textureMapping.ContainsKey(img.Name))
-                    textureMapping.Add(img.Name, bm.replacementID);
+                    textureMapping.Add(img.Name, bm.ReplacementID);
             }
 
             //Final stage: generate new ObjBitmapPointers
-            for (int i = 0; i < replacedModels.Count; i++)
+            for (int i = 0; i < ReplacedModels.Count; i++)
             {
-                model = replacedModels[i];
+                model = ReplacedModels[i];
                 replacedNum = model.FirstTexture;
 
                 foreach (string texture in model.TextureList)
                 {
                     ReplacedBitmapElement elem;
                     if (textureMapping.ContainsKey(texture))
-                        elem.data = (ushort)textureMapping[texture];
+                        elem.Data = (ushort)textureMapping[texture];
                     else
-                        elem.data = 0;
-                    elem.replacementID = replacedNum;
-                    replacedObjBitmapPtrs.Add(elem);
+                        elem.Data = 0;
+                    elem.ReplacementID = replacedNum;
+                    ReplacedObjBitmapPtrs.Add(elem);
                     replacedNum++;
                 }
             }
@@ -415,11 +415,11 @@ namespace LibDescent.Edit
         private void LoadAnimations(Robot robot, Polymodel model)
         {
             int NumRobotJoints = robot.baseJoint;
-            robot.NumGuns = (sbyte)model.numGuns;
+            robot.NumGuns = (sbyte)model.NumGuns;
             for (int i = 0; i < 8; i++)
             {
-                robot.GunPoints[i] = model.gunPoints[i];
-                robot.GunSubmodels[i] = (byte)model.gunSubmodels[i];
+                robot.GunPoints[i] = model.GunPoints[i];
+                robot.GunSubmodels[i] = (byte)model.GunSubmodels[i];
             }
             for (int m = 0; m < 9; m++)
             {
@@ -429,7 +429,7 @@ namespace LibDescent.Edit
                     robot.AnimStates[m, f].Offset = 0;
                 }
             }
-            if (!model.isAnimated) return;
+            if (!model.IsAnimated) return;
             int[] gunNums = new int[10];
 
             for (int i = 1; i < model.NumSubmodels; i++)
@@ -461,10 +461,10 @@ namespace LibDescent.Edit
                         if (gunNums[m] == g)
                         {
                             JointPos joint = new JointPos();
-                            joint.jointnum = (short)m;
-                            joint.angles = model.animationMatrix[m, state];
-                            joint.replacementID = NumRobotJoints;
-                            replacedJoints.Add(joint);
+                            joint.JointNum = (short)m;
+                            joint.Angles = model.AnimationMatrix[m, state];
+                            joint.ReplacementID = NumRobotJoints;
+                            ReplacedJoints.Add(joint);
                             robot.AnimStates[g, state].NumJoints++;
                             NumRobotJoints++;
                         }
@@ -524,8 +524,8 @@ namespace LibDescent.Edit
         public int GetNumRobots()
         {
             int numRobots = BaseHAM.Robots.Count;
-            if (augmentFile != null)
-                numRobots += augmentFile.Robots.Count;
+            if (AugmentFile != null)
+                numRobots += AugmentFile.Robots.Count;
             return numRobots;
         }
 
@@ -540,16 +540,16 @@ namespace LibDescent.Edit
             //This is a horrible hack
             if (!baseOnly)
             {
-                for (int i = 0; i < replacedRobots.Count; i++)
+                for (int i = 0; i < ReplacedRobots.Count; i++)
                 {
-                    if (replacedRobots[i].replacementID == id) return RobotNames[i];
+                    if (ReplacedRobots[i].replacementID == id) return RobotNames[i];
                 }
             }
-            if (augmentFile != null && id >= VHAMFile.N_D2_ROBOT_TYPES)
+            if (AugmentFile != null && id >= VHAMFile.N_D2_ROBOT_TYPES)
             {
-                if (id - VHAMFile.N_D2_ROBOT_TYPES >= augmentFile.RobotNames.Count)
+                if (id - VHAMFile.N_D2_ROBOT_TYPES >= AugmentFile.RobotNames.Count)
                     return string.Format("Unallocated #{0}", id);
-                return augmentFile.RobotNames[id - VHAMFile.N_D2_ROBOT_TYPES];
+                return AugmentFile.RobotNames[id - VHAMFile.N_D2_ROBOT_TYPES];
             }
             if (id >= BaseHAM.RobotNames.Count)
                 return string.Format("Unallocated #{0}", id);
@@ -563,42 +563,42 @@ namespace LibDescent.Edit
         /// <returns>The robot.</returns>
         public Robot GetRobot(int id)
         {
-            foreach (Robot robot in replacedRobots)
+            foreach (Robot robot in ReplacedRobots)
             {
                 if (robot.replacementID == id) return robot;
             }
-            if (augmentFile != null)
-                return augmentFile.GetRobot(id); //passes through
+            if (AugmentFile != null)
+                return AugmentFile.GetRobot(id); //passes through
             return BaseHAM.GetRobot(id);
         }
 
         public int GetNumWeapons()
         {
             int numWeapons = BaseHAM.Weapons.Count;
-            if (augmentFile != null)
-                numWeapons += augmentFile.Weapons.Count;
+            if (AugmentFile != null)
+                numWeapons += AugmentFile.Weapons.Count;
             return numWeapons;
         }
 
         public string GetWeaponName(int id)
         {
-            if (augmentFile != null && id >= VHAMFile.N_D2_WEAPON_TYPES)
-                return augmentFile.WeaponNames[id - VHAMFile.N_D2_WEAPON_TYPES];
+            if (AugmentFile != null && id >= VHAMFile.N_D2_WEAPON_TYPES)
+                return AugmentFile.WeaponNames[id - VHAMFile.N_D2_WEAPON_TYPES];
             return BaseHAM.WeaponNames[id];
         }
 
         public Weapon GetWeapon(int id)
         {
-            if (augmentFile != null)
-                return augmentFile.GetWeapon(id); //passes through
+            if (AugmentFile != null)
+                return AugmentFile.GetWeapon(id); //passes through
             return BaseHAM.GetWeapon(id);
         }
 
         public int GetNumModels()
         {
             int numWeapons = BaseHAM.Models.Count;
-            if (augmentFile != null)
-                numWeapons += augmentFile.Models.Count;
+            if (AugmentFile != null)
+                numWeapons += AugmentFile.Models.Count;
             return numWeapons;
         }
 
@@ -607,16 +607,16 @@ namespace LibDescent.Edit
             //This is a horrible hack
             if (!baseOnly)
             {
-                for (int i = 0; i < replacedModels.Count; i++)
+                for (int i = 0; i < ReplacedModels.Count; i++)
                 {
-                    if (replacedModels[i].replacementID == id) return ModelNames[i];
+                    if (ReplacedModels[i].ReplacementID == id) return ModelNames[i];
                 }
             }
-            if (augmentFile != null && id >= VHAMFile.N_D2_POLYGON_MODELS)
+            if (AugmentFile != null && id >= VHAMFile.N_D2_POLYGON_MODELS)
             {
-                if (id - VHAMFile.N_D2_POLYGON_MODELS >= augmentFile.ModelNames.Count)
+                if (id - VHAMFile.N_D2_POLYGON_MODELS >= AugmentFile.ModelNames.Count)
                     return string.Format("Unallocated #{0}", id);
-                return augmentFile.ModelNames[id - VHAMFile.N_D2_POLYGON_MODELS];
+                return AugmentFile.ModelNames[id - VHAMFile.N_D2_POLYGON_MODELS];
             }
             if (id >= BaseHAM.ModelNames.Count)
                 return string.Format("Unallocated #{0}", id);
@@ -625,12 +625,12 @@ namespace LibDescent.Edit
 
         public Polymodel GetModel(int id)
         {
-            foreach (Polymodel model in replacedModels)
+            foreach (Polymodel model in ReplacedModels)
             {
-                if (model.replacementID == id) return model;
+                if (model.ReplacementID == id) return model;
             }
-            if (augmentFile != null)
-                return augmentFile.GetModel(id);
+            if (AugmentFile != null)
+                return AugmentFile.GetModel(id);
             return BaseHAM.GetModel(id);
         }
 
@@ -646,30 +646,30 @@ namespace LibDescent.Edit
 
         public JointPos GetJoint(int id)
         {
-            foreach (JointPos joint in replacedJoints)
+            foreach (JointPos joint in ReplacedJoints)
             {
-                if (joint.replacementID == id) return joint;
+                if (joint.ReplacementID == id) return joint;
             }
-            if (augmentFile != null)
-                return augmentFile.GetJoint(id);
+            if (AugmentFile != null)
+                return AugmentFile.GetJoint(id);
             return BaseHAM.Joints[id];
         }
 
         public ushort GetObjBitmap(int id)
         {
-            foreach (ReplacedBitmapElement bitmap in replacedObjBitmaps)
-                if (bitmap.replacementID == id) return bitmap.data;
-            if (augmentFile != null)
-                return augmentFile.GetObjBitmap(id);
+            foreach (ReplacedBitmapElement bitmap in ReplacedObjBitmaps)
+                if (bitmap.ReplacementID == id) return bitmap.Data;
+            if (AugmentFile != null)
+                return AugmentFile.GetObjBitmap(id);
             return BaseHAM.BaseFile.ObjBitmaps[id];
         }
 
         public ushort GetObjBitmapPointer(int id)
         {
-            foreach (ReplacedBitmapElement bitmap in replacedObjBitmapPtrs)
-                if (bitmap.replacementID == id) return bitmap.data;
-            if (augmentFile != null)
-                return augmentFile.GetObjBitmapPointer(id);
+            foreach (ReplacedBitmapElement bitmap in ReplacedObjBitmapPtrs)
+                if (bitmap.ReplacementID == id) return bitmap.Data;
+            if (AugmentFile != null)
+                return AugmentFile.GetObjBitmapPointer(id);
             return BaseHAM.BaseFile.ObjBitmapPointers[id];
         }
     }

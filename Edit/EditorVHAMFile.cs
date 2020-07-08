@@ -94,12 +94,12 @@ namespace LibDescent.Edit
             if (robot.ModelNum < VHAMFile.N_D2_POLYGON_MODELS) return;
             Polymodel model = Models[robot.ModelNum - VHAMFile.N_D2_POLYGON_MODELS];
             List<FixAngles> jointlist = new List<FixAngles>();
-            model.numGuns = robot.NumGuns;
+            model.NumGuns = robot.NumGuns;
             for (int i = 0; i < Polymodel.MaxGuns; i++)
             {
-                model.gunPoints[i] = robot.GunPoints[i];
-                model.gunDirs[i] = FixVector.FromRawValues(65536, 0, 0);
-                model.gunSubmodels[i] = robot.GunSubmodels[i];
+                model.GunPoints[i] = robot.GunPoints[i];
+                model.GunDirs[i] = FixVector.FromRawValues(65536, 0, 0);
+                model.GunSubmodels[i] = robot.GunSubmodels[i];
             }
             int[,] jointmapping = new int[10, 5];
             for (int m = 0; m < Polymodel.MaxSubmodels; m++)
@@ -119,8 +119,8 @@ namespace LibDescent.Edit
                     for (int j = 0; j < robotjointlist.NumJoints; j++)
                     {
                         JointPos joint = GetJoint(basejoint);
-                        jointmapping[joint.jointnum, f] = basejoint;
-                        model.isAnimated = true;
+                        jointmapping[joint.JointNum, f] = basejoint;
+                        model.IsAnimated = true;
                         basejoint++;
                     }
                 }
@@ -134,9 +134,9 @@ namespace LibDescent.Edit
                     if (jointnum != -1)
                     {
                         JointPos joint = GetJoint(jointnum);
-                        model.animationMatrix[m, f].p = joint.angles.p;
-                        model.animationMatrix[m, f].b = joint.angles.b;
-                        model.animationMatrix[m, f].h = joint.angles.h;
+                        model.AnimationMatrix[m, f].P = joint.Angles.P;
+                        model.AnimationMatrix[m, f].B = joint.Angles.B;
+                        model.AnimationMatrix[m, f].H = joint.Angles.H;
                     }
                 }
             }

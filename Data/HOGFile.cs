@@ -173,20 +173,20 @@ namespace LibDescent.Data
                 for (int i = 0; i < NumLumps; i++)
                 {
                     data = GetLumpData(i);
-                    lumps[i].type = HOGLump.IdentifyLump(lumps[i].name, data);
+                    lumps[i].Type = HOGLump.IdentifyLump(lumps[i].Name, data);
                 }
             }
         }
 
         private void RebuildLumpNameMap()
         {
-            lumpNameMap = new Dictionary<string, int>();
+            lumpNameMap = new Dictionary<string, int>(StringComparer.InvariantCultureIgnoreCase);
             for (int i = 0; i < NumLumps; i++)
             {
                 // In case of duplicates, first entry takes precedence
-                if (!lumpNameMap.ContainsKey(lumps[i].name))
+                if (!lumpNameMap.ContainsKey(lumps[i].Name))
                 {
-                    lumpNameMap[lumps[i].name] = i;
+                    lumpNameMap[lumps[i].Name] = i;
                 }
             }
         }
@@ -258,32 +258,32 @@ namespace LibDescent.Data
                 lump = lumps[i];
                 for (int c = 0; c < 13; c++)
                 {
-                    if (c < lump.name.Length)
-                        bw.Write((byte)lump.name[c]);
+                    if (c < lump.Name.Length)
+                        bw.Write((byte)lump.Name[c]);
                     else
                         bw.Write((byte)0);
                 }
-                if (Format == HOGFormat.Standard || lump.name.Length <= 13)
+                if (Format == HOGFormat.Standard || lump.Name.Length <= 13)
                 {
-                    bw.Write(lump.size);
+                    bw.Write(lump.Size);
                 }
                 else // D2X-XL with long filename
                 {
-                    bw.Write(-lump.size);
+                    bw.Write(-lump.Size);
                     var longFilenameBuffer = new byte[256]; // automatically zero-initialized
                     // Cut off the last character if needed to ensure null-termination
-                    Encoding.ASCII.GetBytes(lump.name.Substring(0, Math.Min(lump.name.Length, 255)))
+                    Encoding.ASCII.GetBytes(lump.Name.Substring(0, Math.Min(lump.Name.Length, 255)))
                         .CopyTo(longFilenameBuffer, 0);
                     bw.Write(longFilenameBuffer);
                 }
-                if (lump.offset == -1) //This lump has cached data
-                    bw.Write(lump.data);
+                if (lump.Offset == -1) //This lump has cached data
+                    bw.Write(lump.Data);
                 else //This lump doesn't have cached data, and instead needs to be read from the old stream
                 {
                     byte[] data = GetLumpData(i);
                     bw.Write(data);
                 }
-                lump.offset = (int)bw.BaseStream.Position - lump.size; //Update the offset for the new file
+                lump.Offset = (int)bw.BaseStream.Position - lump.Size; //Update the offset for the new file
             }
             bw.Flush();
         }
@@ -299,7 +299,7 @@ namespace LibDescent.Data
             {
                 RebuildLumpNameMap();
             }
-            if (!lumpNameMap.TryGetValue(filename.ToLower(), out int index))
+            if (!lumpNameMap.TryGetValue(filename, out int index))
             {
                 return -1;
             }
@@ -335,11 +335,11 @@ namespace LibDescent.Data
         public byte[] GetLumpData(int id)
         {
             if (id < 0 || id >= lumps.Count) return null;
-            if (lumps[id].data != null)
-                return lumps[id].data;
+            if (lumps[id].Data != null)
+                return lumps[id].Data;
 
-            fileStream.BaseStream.Seek(lumps[id].offset, SeekOrigin.Begin);
-            return fileStream.ReadBytes(lumps[id].size);
+            fileStream.BaseStream.Seek(lumps[id].Offset, SeekOrigin.Begin);
+            return fileStream.ReadBytes(lumps[id].Size);
         }
 
         /// <summary>
@@ -381,10 +381,24 @@ namespace LibDescent.Data
         public void AddLump(HOGLump lump)
         {
             lumps.Add(lump);
-            if (lumpNameMap != null && !lumpNameMap.ContainsKey(lump.name))
+            if (lumpNameMap != null && !lumpNameMap.ContainsKey(lump.Name))
             {
-                lumpNameMap[lump.name] = lumps.Count - 1;
+                lumpNameMap[lump.Name] = lumps.Count - 1;
             }
+        }
+
+        /// <summary>
+        /// Replaces the lump in a HOG file. The replacement applies
+        /// if another lump with the same file name is already present,
+        /// and otherwise the lump is simply added.
+        /// </summary>
+        /// <param name="lump">The lump to add.</param>
+        public void ReplaceLump(HOGLump lump)
+        {
+            int lumpNum = GetLumpNum(lump.Name);
+            if (lumpNum >= 0)
+                lumps.RemoveAt(lumpNum);
+            AddLump(lump);
         }
 
         /// <summary>
@@ -437,13 +451,33 @@ namespace LibDescent.Data
         }
 
         /// <summary>
+        /// Returns whether the given file name is used in the .HOG.
+        /// </summary>
+        /// <param name="name">The file name to look for.</param>
+        /// <returns>Whether the file exists.</returns>
+        public bool ContainsFile(string name)
+        {
+            return GetLumpNum(name) >= 0;
+        }
+
+        /// <summary>
+        /// Gets the contents of the given file name within the .HOG.
+        /// </summary>
+        /// <param name="name">The file name.</param>
+        /// <returns>Data as a byte array, or null if the file is not found.</returns>
+        public byte[] GetFileData(string name)
+        {
+            return GetLumpData(GetLumpNum(name));
+        }
+
+        /// <summary>
         /// Finds all lumps that match the specified type.
         /// </summary>
         /// <param name="type">The lump type to search for.</param>
         /// <returns>All lumps in the HOG file that match the type requested.</returns>
         public List<HOGLump> GetLumpsByType(LumpType type)
         {
-            return lumps.Where(lump => lump.type == type).ToList();
+            return lumps.Where(lump => lump.Type == type).ToList();
         }
     }
 

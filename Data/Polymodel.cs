@@ -183,34 +183,34 @@ namespace LibDescent.Data
         /// <summary>
         /// Number of guns assigned to this object.
         /// </summary>
-        public int numGuns;
+        public int NumGuns;
         /// <summary>
         /// Positions of each of the object's guns.
         /// </summary>
-        public FixVector[] gunPoints = new FixVector[MaxGuns];
+        public FixVector[] GunPoints = new FixVector[MaxGuns];
         /// <summary>
         /// Facing of each of the object's guns.
         /// </summary>
-        public FixVector[] gunDirs = new FixVector[MaxGuns];
+        public FixVector[] GunDirs = new FixVector[MaxGuns];
         /// <summary>
         /// IDs of the submodels that each gun is attached to.
         /// </summary>
-        public int[] gunSubmodels = new int[MaxGuns];
+        public int[] GunSubmodels = new int[MaxGuns];
 
         //A model can have subobjects, but not actually be animated. Avoid creating extra joints if this is the case. 
         /// <summary>
         /// Whether or not the object has animation data attached to it.
         /// </summary>
-        public bool isAnimated = false;
+        public bool IsAnimated = false;
         /// <summary>
         /// Matrix of the object's animation frames. Only supports five frames.
         /// </summary>
-        public FixAngles[,] animationMatrix = new FixAngles[MaxSubmodels, Robot.NumAnimationStates];
+        public FixAngles[,] AnimationMatrix = new FixAngles[MaxSubmodels, Robot.NumAnimationStates];
 
         /// <summary>
         /// Object ID that this object overrides when in a HXM file.
         /// </summary>
-        public int replacementID;
+        public int ReplacementID;
         /// <summary>
         /// For HXM saving, a base offset for the object's new Object Bitmaps.
         /// </summary>
@@ -252,23 +252,23 @@ namespace LibDescent.Data
             DyingModelnum = other.DyingModelnum;
             DeadModelnum = other.DeadModelnum;
 
-            numGuns = other.numGuns;
-            Array.Copy(other.gunPoints, gunPoints, MaxGuns);
-            Array.Copy(other.gunDirs, gunDirs, MaxGuns);
-            Array.Copy(other.gunSubmodels, gunSubmodels, MaxGuns);
+            NumGuns = other.NumGuns;
+            Array.Copy(other.GunPoints, GunPoints, MaxGuns);
+            Array.Copy(other.GunDirs, GunDirs, MaxGuns);
+            Array.Copy(other.GunSubmodels, GunSubmodels, MaxGuns);
 
-            isAnimated = other.isAnimated;
+            IsAnimated = other.IsAnimated;
 
             //TODO: Can I Array.Copy a multidimensional array?
             for (int x = 0; x < MaxSubmodels; x++)
             {
                 for (int y = 0; y < Robot.NumAnimationStates; y++)
                 {
-                    animationMatrix[x, y] = other.animationMatrix[x, y];
+                    AnimationMatrix[x, y] = other.AnimationMatrix[x, y];
                 }
             }
 
-            replacementID = other.replacementID;
+            ReplacementID = other.ReplacementID;
 
             BaseTexture = other.BaseTexture;
             ID = other.ID;
@@ -283,10 +283,10 @@ namespace LibDescent.Data
             {
                 Submodels.Add(new Submodel());
             }
-            for (int x = numGuns; x < MaxGuns; x++)
+            for (int x = NumGuns; x < MaxGuns; x++)
             {
-                gunPoints[x] = new FixVector();
-                gunDirs[x] = new FixVector(1, 0, 0);
+                GunPoints[x] = new FixVector();
+                GunDirs[x] = new FixVector(1, 0, 0);
             }
         }
 
@@ -307,16 +307,16 @@ namespace LibDescent.Data
                         for (int x = 0; x < pointc; x++)
                         {
                             FixVector point = new FixVector();
-                            point.x = new Fix(br.ReadInt32());
-                            point.y = new Fix(br.ReadInt32());
-                            point.z = new Fix(br.ReadInt32());
+                            point.X = new Fix(br.ReadInt32());
+                            point.Y = new Fix(br.ReadInt32());
+                            point.Z = new Fix(br.ReadInt32());
 
-                            mins.x = Math.Min(mins.x, point.x);
-                            mins.y = Math.Min(mins.y, point.y);
-                            mins.z = Math.Min(mins.z, point.z);
-                            maxs.x = Math.Max(maxs.x, point.x);
-                            maxs.y = Math.Max(maxs.y, point.y);
-                            maxs.z = Math.Max(maxs.z, point.z);
+                            mins.X = Math.Min(mins.X, point.X);
+                            mins.Y = Math.Min(mins.Y, point.Y);
+                            mins.Z = Math.Min(mins.Z, point.Z);
+                            maxs.X = Math.Max(maxs.X, point.X);
+                            maxs.Y = Math.Max(maxs.Y, point.Y);
+                            maxs.Z = Math.Max(maxs.Z, point.Z);
                         }
                     }
                     break;
@@ -327,16 +327,16 @@ namespace LibDescent.Data
                         for (int x = 0; x < pointc; x++)
                         {
                             FixVector point = new FixVector();
-                            point.x = new Fix(br.ReadInt32());
-                            point.y = new Fix(br.ReadInt32());
-                            point.z = new Fix(br.ReadInt32());
+                            point.X = new Fix(br.ReadInt32());
+                            point.Y = new Fix(br.ReadInt32());
+                            point.Z = new Fix(br.ReadInt32());
 
-                            mins.x = Math.Min(mins.x, point.x);
-                            mins.y = Math.Min(mins.y, point.y);
-                            mins.z = Math.Min(mins.z, point.z);
-                            maxs.x = Math.Max(maxs.x, point.x);
-                            maxs.y = Math.Max(maxs.y, point.y);
-                            maxs.z = Math.Max(maxs.z, point.z);
+                            mins.X = Math.Min(mins.X, point.X);
+                            mins.Y = Math.Min(mins.Y, point.Y);
+                            mins.Z = Math.Min(mins.Z, point.Z);
+                            maxs.X = Math.Max(maxs.X, point.X);
+                            maxs.Y = Math.Max(maxs.Y, point.Y);
+                            maxs.Z = Math.Max(maxs.Z, point.Z);
                         }
                     }
                     break;
@@ -373,19 +373,19 @@ namespace LibDescent.Data
                 Submodels.Add(new Submodel(submodel));
             }
 
-            numGuns = other.numGuns;
-            Array.Copy(other.gunPoints, gunPoints, MaxGuns);
-            Array.Copy(other.gunDirs, gunDirs, MaxGuns);
-            Array.Copy(other.gunSubmodels, gunSubmodels, MaxGuns);
+            NumGuns = other.NumGuns;
+            Array.Copy(other.GunPoints, GunPoints, MaxGuns);
+            Array.Copy(other.GunDirs, GunDirs, MaxGuns);
+            Array.Copy(other.GunSubmodels, GunSubmodels, MaxGuns);
 
-            isAnimated = other.isAnimated;
+            IsAnimated = other.IsAnimated;
 
             //TODO: Can I Array.Copy a multidimensional array?
             for (int x = 0; x < MaxSubmodels; x++)
             {
                 for (int y = 0; y < Robot.NumAnimationStates; y++)
                 {
-                    animationMatrix[x, y] = other.animationMatrix[x, y];
+                    AnimationMatrix[x, y] = other.AnimationMatrix[x, y];
                 }
             }
 
@@ -401,14 +401,14 @@ namespace LibDescent.Data
         /// <summary>
         /// ID of the submodel that this JointPos is orienting.
         /// </summary>
-        public short jointnum;
+        public short JointNum;
         /// <summary>
         /// Orientation of the submodel.
         /// </summary>
-        public FixAngles angles;
+        public FixAngles Angles;
         /// <summary>
         /// Joint ID that this joint overrides when in a HXM file.
         /// </summary>
-        public int replacementID;
+        public int ReplacementID;
     }
 }

@@ -28,5 +28,13 @@ namespace LibDescent.Data
         public int R { get; set; }
         public int G { get; set; }
         public int B { get; set; }
+
+        public Color(int a, int r, int g, int b)
+        {
+            A = a;
+            R = r;
+            G = g;
+            B = b;
+        }
     }
 }

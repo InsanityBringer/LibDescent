@@ -34,26 +34,26 @@ namespace LibDescent.Tests
             // First lump - .hxm
             var lumpHeader = hogFile.GetLumpHeader(0);
             Assert.NotNull(lumpHeader);
-            Assert.AreEqual("test.hxm", lumpHeader.name);
-            Assert.AreEqual(0x14, lumpHeader.offset);
-            Assert.AreEqual(32530, lumpHeader.size);
-            Assert.AreEqual(LumpType.HXMFile, lumpHeader.type);
+            Assert.AreEqual("test.hxm", lumpHeader.Name);
+            Assert.AreEqual(0x14, lumpHeader.Offset);
+            Assert.AreEqual(32530, lumpHeader.Size);
+            Assert.AreEqual(LumpType.HXMFile, lumpHeader.Type);
 
             // Second lump - .pog
             lumpHeader = hogFile.GetLumpHeader(1);
             Assert.NotNull(lumpHeader);
-            Assert.AreEqual("test.pog", lumpHeader.name);
-            Assert.AreEqual(32567, lumpHeader.offset);
-            Assert.AreEqual(4128, lumpHeader.size);
-            Assert.AreEqual(LumpType.Unknown, lumpHeader.type);
+            Assert.AreEqual("test.pog", lumpHeader.Name);
+            Assert.AreEqual(32567, lumpHeader.Offset);
+            Assert.AreEqual(4128, lumpHeader.Size);
+            Assert.AreEqual(LumpType.Unknown, lumpHeader.Type);
 
             // Third lump - .rl2
             lumpHeader = hogFile.GetLumpHeader(2);
             Assert.NotNull(lumpHeader);
-            Assert.AreEqual("test.rl2", lumpHeader.name);
-            Assert.AreEqual(36712, lumpHeader.offset);
-            Assert.AreEqual(7010, lumpHeader.size);
-            Assert.AreEqual(LumpType.Level, lumpHeader.type);
+            Assert.AreEqual("test.rl2", lumpHeader.Name);
+            Assert.AreEqual(36712, lumpHeader.Offset);
+            Assert.AreEqual(7010, lumpHeader.Size);
+            Assert.AreEqual(LumpType.Level, lumpHeader.Type);
         }
 
         [Test]
@@ -64,11 +64,11 @@ namespace LibDescent.Tests
 
             var lumpData = hogFile.GetLumpData(2);
             Assert.NotNull(lumpData);
-            Assert.AreEqual(lumpHeader.size, lumpData.Length);
+            Assert.AreEqual(lumpHeader.Size, lumpData.Length);
 
             var lumpStream = hogFile.GetLumpAsStream(2);
             Assert.NotNull(lumpStream);
-            Assert.AreEqual(lumpHeader.size, lumpStream.Length);
+            Assert.AreEqual(lumpHeader.Size, lumpStream.Length);
 
             // One last thing... try reading the stream
             var level = LevelFactory.CreateFromStream(lumpStream);
@@ -83,6 +83,7 @@ namespace LibDescent.Tests
 
             var lumpNum = hogFile.GetLumpNum("test.pog");
             Assert.AreEqual(1, lumpNum);
+            Assert.AreEqual(lumpNum, hogFile.GetLumpNum("TEST.POG"));
 
             var lumpHeader = hogFile.GetLumpHeader("test.pog");
             Assert.NotNull(lumpHeader);
@@ -90,11 +91,11 @@ namespace LibDescent.Tests
 
             var lumpData = hogFile.GetLumpData("test.pog");
             Assert.NotNull(lumpData);
-            Assert.AreEqual(lumpHeader.size, lumpData.Length);
+            Assert.AreEqual(lumpHeader.Size, lumpData.Length);
 
             var lumpStream = hogFile.GetLumpAsStream("test.pog");
             Assert.NotNull(lumpStream);
-            Assert.AreEqual(lumpHeader.size, lumpStream.Length);
+            Assert.AreEqual(lumpHeader.Size, lumpStream.Length);
         }
 
         [Test]
@@ -108,7 +109,7 @@ namespace LibDescent.Tests
 
             foreach (var lump in lumps)
             {
-                Assert.AreEqual(LumpType.Level, lump.type);
+                Assert.AreEqual(LumpType.Level, lump.Type);
             }
         }
 
@@ -121,7 +122,7 @@ namespace LibDescent.Tests
             var file1Data = TestUtils.GetArrayFromResourceStream("test.rdl");
             var hogLump = new HOGLump("test.rdl", file1Data.Length, 0)
             {
-                data = file1Data
+                Data = file1Data
             };
             hogFile.AddLump(hogLump);
             Assert.AreEqual(4, hogFile.NumLumps);
@@ -145,6 +146,25 @@ namespace LibDescent.Tests
             Assert.That(hogFile.GetLumpData(3), Is.EqualTo(file1Data));
             Assert.AreEqual(4, hogFile.GetLumpNum("test2.rl2"));
             Assert.That(hogFile.GetLumpData(4), Is.EqualTo(file2Data));
+        }
+
+        [Test]
+        public void TestReplaceLump()
+        {
+            var hogFile = new HOGFile(TestUtils.GetResourceStream("standard.hog"));
+
+            // Method 1 - set up lump manually
+            var file1Data = TestUtils.GetArrayFromResourceStream("test.rdl");
+            var hogLump = new HOGLump("test.rdl", file1Data.Length, 0)
+            {
+                Data = file1Data
+            };
+            hogFile.AddLump(hogLump);
+            //Assert.AreEqual(4, hogFile.NumLumps);
+
+            int numLumps = hogFile.NumLumps;
+            hogFile.ReplaceLump(hogLump);
+            Assert.AreEqual(numLumps, hogFile.NumLumps);
         }
 
         [Test]
@@ -173,9 +193,9 @@ namespace LibDescent.Tests
 
             // Other files should have been reassigned
             Assert.IsNotNull(hogFile.GetLumpHeader(0));
-            Assert.AreEqual("test.hxm", hogFile.GetLumpHeader(0).name);
+            Assert.AreEqual("test.hxm", hogFile.GetLumpHeader(0).Name);
             Assert.IsNotNull(hogFile.GetLumpHeader(1));
-            Assert.AreEqual("test.rl2", hogFile.GetLumpHeader(1).name);
+            Assert.AreEqual("test.rl2", hogFile.GetLumpHeader(1).Name);
             Assert.IsNull(hogFile.GetLumpHeader(2));
             Assert.AreEqual(-1, hogFile.GetLumpNum("test.pog"));
 
@@ -186,7 +206,7 @@ namespace LibDescent.Tests
 
             hogFile.Read(memoryStream);
             Assert.AreEqual(2, hogFile.NumLumps);
-            Assert.AreEqual("test.rl2", hogFile.GetLumpHeader(1).name);
+            Assert.AreEqual("test.rl2", hogFile.GetLumpHeader(1).Name);
             Assert.AreEqual(-1, hogFile.GetLumpNum("test.pog"));
         }
 
@@ -227,87 +247,87 @@ namespace LibDescent.Tests
 
             var lumpHeader = hogFile.GetLumpHeader(0);
             Assert.NotNull(lumpHeader);
-            Assert.AreEqual("level1.msg", lumpHeader.name);
-            Assert.AreEqual(0x14, lumpHeader.offset);
-            Assert.AreEqual(246, lumpHeader.size);
-            Assert.AreEqual(LumpType.Text, lumpHeader.type);
+            Assert.AreEqual("level1.msg", lumpHeader.Name);
+            Assert.AreEqual(0x14, lumpHeader.Offset);
+            Assert.AreEqual(246, lumpHeader.Size);
+            Assert.AreEqual(LumpType.Text, lumpHeader.Type);
 
             lumpHeader = hogFile.GetLumpHeader(1);
             Assert.NotNull(lumpHeader);
-            Assert.AreEqual("level2.msg", lumpHeader.name);
-            Assert.AreEqual(283, lumpHeader.offset);
-            Assert.AreEqual(246, lumpHeader.size);
-            Assert.AreEqual(LumpType.Text, lumpHeader.type);
+            Assert.AreEqual("level2.msg", lumpHeader.Name);
+            Assert.AreEqual(283, lumpHeader.Offset);
+            Assert.AreEqual(246, lumpHeader.Size);
+            Assert.AreEqual(LumpType.Text, lumpHeader.Type);
 
             lumpHeader = hogFile.GetLumpHeader(2);
             Assert.NotNull(lumpHeader);
-            Assert.AreEqual("level3.msg", lumpHeader.name);
-            Assert.AreEqual(546, lumpHeader.offset);
-            Assert.AreEqual(246, lumpHeader.size);
-            Assert.AreEqual(LumpType.Text, lumpHeader.type);
+            Assert.AreEqual("level3.msg", lumpHeader.Name);
+            Assert.AreEqual(546, lumpHeader.Offset);
+            Assert.AreEqual(246, lumpHeader.Size);
+            Assert.AreEqual(LumpType.Text, lumpHeader.Type);
 
             lumpHeader = hogFile.GetLumpHeader(3);
             Assert.NotNull(lumpHeader);
-            Assert.AreEqual("level1.rl2", lumpHeader.name);
-            Assert.AreEqual(1065, lumpHeader.offset);
-            Assert.AreEqual(75266, lumpHeader.size);
-            Assert.AreEqual(LumpType.Level, lumpHeader.type);
+            Assert.AreEqual("level1.rl2", lumpHeader.Name);
+            Assert.AreEqual(1065, lumpHeader.Offset);
+            Assert.AreEqual(75266, lumpHeader.Size);
+            Assert.AreEqual(LumpType.Level, lumpHeader.Type);
 
             lumpHeader = hogFile.GetLumpHeader(4);
             Assert.NotNull(lumpHeader);
-            Assert.AreEqual("level1.lgt", lumpHeader.name);
-            Assert.AreEqual(76604, lumpHeader.offset);
-            Assert.AreEqual(3640, lumpHeader.size);
-            Assert.AreEqual(LumpType.Unknown, lumpHeader.type);
+            Assert.AreEqual("level1.lgt", lumpHeader.Name);
+            Assert.AreEqual(76604, lumpHeader.Offset);
+            Assert.AreEqual(3640, lumpHeader.Size);
+            Assert.AreEqual(LumpType.Unknown, lumpHeader.Type);
 
             lumpHeader = hogFile.GetLumpHeader(5);
             Assert.NotNull(lumpHeader);
-            Assert.AreEqual("level1.clr", lumpHeader.name);
-            Assert.AreEqual(80517, lumpHeader.offset);
-            Assert.AreEqual(11830, lumpHeader.size);
-            Assert.AreEqual(LumpType.Unknown, lumpHeader.type);
+            Assert.AreEqual("level1.clr", lumpHeader.Name);
+            Assert.AreEqual(80517, lumpHeader.Offset);
+            Assert.AreEqual(11830, lumpHeader.Size);
+            Assert.AreEqual(LumpType.Unknown, lumpHeader.Type);
 
             lumpHeader = hogFile.GetLumpHeader(6);
             Assert.NotNull(lumpHeader);
-            Assert.AreEqual("level3.rl2", lumpHeader.name);
-            Assert.AreEqual(92620, lumpHeader.offset);
-            Assert.AreEqual(57744, lumpHeader.size);
-            Assert.AreEqual(LumpType.Level, lumpHeader.type);
+            Assert.AreEqual("level3.rl2", lumpHeader.Name);
+            Assert.AreEqual(92620, lumpHeader.Offset);
+            Assert.AreEqual(57744, lumpHeader.Size);
+            Assert.AreEqual(LumpType.Level, lumpHeader.Type);
 
             lumpHeader = hogFile.GetLumpHeader(7);
             Assert.NotNull(lumpHeader);
-            Assert.AreEqual("level3.lgt", lumpHeader.name);
-            Assert.AreEqual(150637, lumpHeader.offset);
-            Assert.AreEqual(3640, lumpHeader.size);
-            Assert.AreEqual(LumpType.Unknown, lumpHeader.type);
+            Assert.AreEqual("level3.lgt", lumpHeader.Name);
+            Assert.AreEqual(150637, lumpHeader.Offset);
+            Assert.AreEqual(3640, lumpHeader.Size);
+            Assert.AreEqual(LumpType.Unknown, lumpHeader.Type);
 
             lumpHeader = hogFile.GetLumpHeader(8);
             Assert.NotNull(lumpHeader);
-            Assert.AreEqual("level3.clr", lumpHeader.name);
-            Assert.AreEqual(154550, lumpHeader.offset);
-            Assert.AreEqual(11830, lumpHeader.size);
-            Assert.AreEqual(LumpType.Unknown, lumpHeader.type);
+            Assert.AreEqual("level3.clr", lumpHeader.Name);
+            Assert.AreEqual(154550, lumpHeader.Offset);
+            Assert.AreEqual(11830, lumpHeader.Size);
+            Assert.AreEqual(LumpType.Unknown, lumpHeader.Type);
 
             lumpHeader = hogFile.GetLumpHeader(9);
             Assert.NotNull(lumpHeader);
-            Assert.AreEqual("level2.rl2", lumpHeader.name);
-            Assert.AreEqual(166653, lumpHeader.offset);
-            Assert.AreEqual(109608, lumpHeader.size);
-            Assert.AreEqual(LumpType.Level, lumpHeader.type);
+            Assert.AreEqual("level2.rl2", lumpHeader.Name);
+            Assert.AreEqual(166653, lumpHeader.Offset);
+            Assert.AreEqual(109608, lumpHeader.Size);
+            Assert.AreEqual(LumpType.Level, lumpHeader.Type);
 
             lumpHeader = hogFile.GetLumpHeader(10);
             Assert.NotNull(lumpHeader);
-            Assert.AreEqual("level2.lgt", lumpHeader.name);
-            Assert.AreEqual(276534, lumpHeader.offset);
-            Assert.AreEqual(3640, lumpHeader.size);
-            Assert.AreEqual(LumpType.Unknown, lumpHeader.type);
+            Assert.AreEqual("level2.lgt", lumpHeader.Name);
+            Assert.AreEqual(276534, lumpHeader.Offset);
+            Assert.AreEqual(3640, lumpHeader.Size);
+            Assert.AreEqual(LumpType.Unknown, lumpHeader.Type);
 
             lumpHeader = hogFile.GetLumpHeader(11);
             Assert.NotNull(lumpHeader);
-            Assert.AreEqual("level2.clr", lumpHeader.name);
-            Assert.AreEqual(280447, lumpHeader.offset);
-            Assert.AreEqual(11830, lumpHeader.size);
-            Assert.AreEqual(LumpType.Unknown, lumpHeader.type);
+            Assert.AreEqual("level2.clr", lumpHeader.Name);
+            Assert.AreEqual(280447, lumpHeader.Offset);
+            Assert.AreEqual(11830, lumpHeader.Size);
+            Assert.AreEqual(LumpType.Unknown, lumpHeader.Type);
         }
 
         [Test]
@@ -324,18 +344,18 @@ namespace LibDescent.Tests
 
             var lumpHeader = hogFile.GetLumpHeader(0);
             Assert.NotNull(lumpHeader);
-            Assert.AreEqual("level1.msg", lumpHeader.name);
-            Assert.AreEqual(0x14, lumpHeader.offset);
-            Assert.AreEqual(246, lumpHeader.size);
-            Assert.AreEqual(LumpType.Text, lumpHeader.type);
+            Assert.AreEqual("level1.msg", lumpHeader.Name);
+            Assert.AreEqual(0x14, lumpHeader.Offset);
+            Assert.AreEqual(246, lumpHeader.Size);
+            Assert.AreEqual(LumpType.Text, lumpHeader.Type);
 
             lumpHeader = hogFile.GetLumpHeader("level1.rl2");
             Assert.NotNull(lumpHeader);
-            Assert.AreEqual("level1.rl2", lumpHeader.name);
+            Assert.AreEqual("level1.rl2", lumpHeader.Name);
             // Moves because the new header is standard - not using long filename
-            Assert.AreEqual(809, lumpHeader.offset);
-            Assert.AreEqual(75266, lumpHeader.size);
-            Assert.AreEqual(LumpType.Level, lumpHeader.type);
+            Assert.AreEqual(809, lumpHeader.Offset);
+            Assert.AreEqual(75266, lumpHeader.Size);
+            Assert.AreEqual(LumpType.Level, lumpHeader.Type);
         }
 
         [Test]
@@ -359,8 +379,8 @@ namespace LibDescent.Tests
             var lumpNum = hogFile.NumLumps - 1;
             var lumpHeader = hogFile.GetLumpHeader(lumpNum);
             Assert.NotNull(lumpHeader);
-            Assert.AreEqual(filename, lumpHeader.name);
-            Assert.AreEqual(data.Length, lumpHeader.size);
+            Assert.AreEqual(filename, lumpHeader.Name);
+            Assert.AreEqual(data.Length, lumpHeader.Size);
             Assert.That(hogFile.GetLumpData(lumpNum), Is.EqualTo(data));
         }
     }

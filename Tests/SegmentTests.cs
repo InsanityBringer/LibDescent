@@ -188,39 +188,39 @@ namespace LibDescent.Tests
             Assert.AreEqual(new FixVector(0d, 0d, 1d), segment.GetSide(SegSide.Front).Normal);
             Assert.AreEqual(new FixVector(0d, 0d, -1d), segment.GetSide(SegSide.Back).Normal);
             var expectedNormal = new FixVector(0.7071d, 0d, -0.7071d);
-            Assert.AreEqual(expectedNormal.x, segment.GetSide(SegSide.Left).Normal.x, 0.01);
-            Assert.AreEqual(expectedNormal.y, segment.GetSide(SegSide.Left).Normal.y, 0.01);
-            Assert.AreEqual(expectedNormal.z, segment.GetSide(SegSide.Left).Normal.z, 0.01);
+            Assert.AreEqual(expectedNormal.X, segment.GetSide(SegSide.Left).Normal.X, 0.01);
+            Assert.AreEqual(expectedNormal.Y, segment.GetSide(SegSide.Left).Normal.Y, 0.01);
+            Assert.AreEqual(expectedNormal.Z, segment.GetSide(SegSide.Left).Normal.Z, 0.01);
 
             // Non-planar sides
             segment.Vertices[6].X = -30d;
 
             Assert.AreEqual(TriangulationType.Tri013_123, segment.GetSide(SegSide.Left).Triangulation);
             expectedNormal = new FixVector(0.5774, -0.5774, -0.5774);
-            Assert.AreEqual(expectedNormal.x, segment.GetSide(SegSide.Left).Normals.Item1.x, 0.01);
-            Assert.AreEqual(expectedNormal.y, segment.GetSide(SegSide.Left).Normals.Item1.y, 0.01);
-            Assert.AreEqual(expectedNormal.z, segment.GetSide(SegSide.Left).Normals.Item1.z, 0.01);
+            Assert.AreEqual(expectedNormal.X, segment.GetSide(SegSide.Left).Normals.Item1.X, 0.01);
+            Assert.AreEqual(expectedNormal.Y, segment.GetSide(SegSide.Left).Normals.Item1.Y, 0.01);
+            Assert.AreEqual(expectedNormal.Z, segment.GetSide(SegSide.Left).Normals.Item1.Z, 0.01);
             Assert.AreEqual(new FixVector(1, 0, 0), segment.GetSide(SegSide.Left).Normals.Item2);
             expectedNormal = new FixVector(0.8881d, -0.3251d, -0.3251d);
-            Assert.AreEqual(expectedNormal.x, segment.GetSide(SegSide.Left).Normal.x, 0.01);
-            Assert.AreEqual(expectedNormal.y, segment.GetSide(SegSide.Left).Normal.y, 0.01);
-            Assert.AreEqual(expectedNormal.z, segment.GetSide(SegSide.Left).Normal.z, 0.01);
+            Assert.AreEqual(expectedNormal.X, segment.GetSide(SegSide.Left).Normal.X, 0.01);
+            Assert.AreEqual(expectedNormal.Y, segment.GetSide(SegSide.Left).Normal.Y, 0.01);
+            Assert.AreEqual(expectedNormal.Z, segment.GetSide(SegSide.Left).Normal.Z, 0.01);
 
             segment.Vertices[0].X = 30d;
 
             Assert.AreEqual(TriangulationType.Tri012_230, segment.GetSide(SegSide.Right).Triangulation);
             expectedNormal = new FixVector(-0.7071d, 0.7071d, 0d);
-            Assert.AreEqual(expectedNormal.x, segment.GetSide(SegSide.Right).Normals.Item1.x, 0.01);
-            Assert.AreEqual(expectedNormal.y, segment.GetSide(SegSide.Right).Normals.Item1.y, 0.01);
-            Assert.AreEqual(expectedNormal.z, segment.GetSide(SegSide.Right).Normals.Item1.z, 0.01);
+            Assert.AreEqual(expectedNormal.X, segment.GetSide(SegSide.Right).Normals.Item1.X, 0.01);
+            Assert.AreEqual(expectedNormal.Y, segment.GetSide(SegSide.Right).Normals.Item1.Y, 0.01);
+            Assert.AreEqual(expectedNormal.Z, segment.GetSide(SegSide.Right).Normals.Item1.Z, 0.01);
             expectedNormal = new FixVector(-0.7071d, 0d, -0.7071d);
-            Assert.AreEqual(expectedNormal.x, segment.GetSide(SegSide.Right).Normals.Item2.x, 0.01);
-            Assert.AreEqual(expectedNormal.y, segment.GetSide(SegSide.Right).Normals.Item2.y, 0.01);
-            Assert.AreEqual(expectedNormal.z, segment.GetSide(SegSide.Right).Normals.Item2.z, 0.01);
+            Assert.AreEqual(expectedNormal.X, segment.GetSide(SegSide.Right).Normals.Item2.X, 0.01);
+            Assert.AreEqual(expectedNormal.Y, segment.GetSide(SegSide.Right).Normals.Item2.Y, 0.01);
+            Assert.AreEqual(expectedNormal.Z, segment.GetSide(SegSide.Right).Normals.Item2.Z, 0.01);
             expectedNormal = new FixVector(-0.8165d, 0.4082d, -0.4082d);
-            Assert.AreEqual(expectedNormal.x, segment.GetSide(SegSide.Right).Normal.x, 0.01);
-            Assert.AreEqual(expectedNormal.y, segment.GetSide(SegSide.Right).Normal.y, 0.01);
-            Assert.AreEqual(expectedNormal.z, segment.GetSide(SegSide.Right).Normal.z, 0.01);
+            Assert.AreEqual(expectedNormal.X, segment.GetSide(SegSide.Right).Normal.X, 0.01);
+            Assert.AreEqual(expectedNormal.Y, segment.GetSide(SegSide.Right).Normal.Y, 0.01);
+            Assert.AreEqual(expectedNormal.Z, segment.GetSide(SegSide.Right).Normal.Z, 0.01);
         }
 
         [Test]

@@ -788,21 +788,21 @@ namespace LibDescent.Data
             }
             for (int s = 0; s < Polymodel.MaxSubmodels; s++)
             {
-                model.Submodels[s].Offset.x = new Fix(br.ReadInt32());
-                model.Submodels[s].Offset.y = new Fix(br.ReadInt32());
-                model.Submodels[s].Offset.z = new Fix(br.ReadInt32());
+                model.Submodels[s].Offset.X = new Fix(br.ReadInt32());
+                model.Submodels[s].Offset.Y = new Fix(br.ReadInt32());
+                model.Submodels[s].Offset.Z = new Fix(br.ReadInt32());
             }
             for (int s = 0; s < Polymodel.MaxSubmodels; s++)
             {
-                model.Submodels[s].Normal.x = new Fix(br.ReadInt32());
-                model.Submodels[s].Normal.y = new Fix(br.ReadInt32());
-                model.Submodels[s].Normal.z = new Fix(br.ReadInt32());
+                model.Submodels[s].Normal.X = new Fix(br.ReadInt32());
+                model.Submodels[s].Normal.Y = new Fix(br.ReadInt32());
+                model.Submodels[s].Normal.Z = new Fix(br.ReadInt32());
             }
             for (int s = 0; s < Polymodel.MaxSubmodels; s++)
             {
-                model.Submodels[s].Point.x = new Fix(br.ReadInt32());
-                model.Submodels[s].Point.y = new Fix(br.ReadInt32());
-                model.Submodels[s].Point.z = new Fix(br.ReadInt32());
+                model.Submodels[s].Point.X = new Fix(br.ReadInt32());
+                model.Submodels[s].Point.Y = new Fix(br.ReadInt32());
+                model.Submodels[s].Point.Z = new Fix(br.ReadInt32());
             }
             for (int s = 0; s < Polymodel.MaxSubmodels; s++)
             {
@@ -817,15 +817,15 @@ namespace LibDescent.Data
             }
             for (int s = 0; s < Polymodel.MaxSubmodels; s++)
             {
-                model.Submodels[s].Mins.x = new Fix(br.ReadInt32());
-                model.Submodels[s].Mins.y = new Fix(br.ReadInt32());
-                model.Submodels[s].Mins.z = new Fix(br.ReadInt32());
+                model.Submodels[s].Mins.X = new Fix(br.ReadInt32());
+                model.Submodels[s].Mins.Y = new Fix(br.ReadInt32());
+                model.Submodels[s].Mins.Z = new Fix(br.ReadInt32());
             }
             for (int s = 0; s < Polymodel.MaxSubmodels; s++)
             {
-                model.Submodels[s].Maxs.x = new Fix(br.ReadInt32());
-                model.Submodels[s].Maxs.y = new Fix(br.ReadInt32());
-                model.Submodels[s].Maxs.z = new Fix(br.ReadInt32());
+                model.Submodels[s].Maxs.X = new Fix(br.ReadInt32());
+                model.Submodels[s].Maxs.Y = new Fix(br.ReadInt32());
+                model.Submodels[s].Maxs.Z = new Fix(br.ReadInt32());
             }
             model.Mins = new FixVector(new Fix(br.ReadInt32()), new Fix(br.ReadInt32()), new Fix(br.ReadInt32()));
             model.Maxs = new FixVector(new Fix(br.ReadInt32()), new Fix(br.ReadInt32()), new Fix(br.ReadInt32()));
@@ -849,21 +849,21 @@ namespace LibDescent.Data
             }
             for (int s = 0; s < Polymodel.MaxSubmodels; s++)
             {
-                model.Submodels[s].Offset.x = new Fix(br.ReadInt32());
-                model.Submodels[s].Offset.y = new Fix(br.ReadInt32());
-                model.Submodels[s].Offset.z = new Fix(br.ReadInt32());
+                model.Submodels[s].Offset.X = new Fix(br.ReadInt32());
+                model.Submodels[s].Offset.Y = new Fix(br.ReadInt32());
+                model.Submodels[s].Offset.Z = new Fix(br.ReadInt32());
             }
             for (int s = 0; s < Polymodel.MaxSubmodels; s++)
             {
-                model.Submodels[s].Normal.x = new Fix(br.ReadInt32());
-                model.Submodels[s].Normal.y = new Fix(br.ReadInt32());
-                model.Submodels[s].Normal.z = new Fix(br.ReadInt32());
+                model.Submodels[s].Normal.X = new Fix(br.ReadInt32());
+                model.Submodels[s].Normal.Y = new Fix(br.ReadInt32());
+                model.Submodels[s].Normal.Z = new Fix(br.ReadInt32());
             }
             for (int s = 0; s < Polymodel.MaxSubmodels; s++)
             {
-                model.Submodels[s].Point.x = new Fix(br.ReadInt32());
-                model.Submodels[s].Point.y = new Fix(br.ReadInt32());
-                model.Submodels[s].Point.z = new Fix(br.ReadInt32());
+                model.Submodels[s].Point.X = new Fix(br.ReadInt32());
+                model.Submodels[s].Point.Y = new Fix(br.ReadInt32());
+                model.Submodels[s].Point.Z = new Fix(br.ReadInt32());
             }
             for (int s = 0; s < Polymodel.MaxSubmodels; s++)
             {
@@ -879,15 +879,15 @@ namespace LibDescent.Data
             short unk1 = br.ReadInt16();
             for (int s = 0; s < Polymodel.MaxSubmodels; s++)
             {
-                model.Submodels[s].Mins.x = new Fix(br.ReadInt32());
-                model.Submodels[s].Mins.y = new Fix(br.ReadInt32());
-                model.Submodels[s].Mins.z = new Fix(br.ReadInt32());
+                model.Submodels[s].Mins.X = new Fix(br.ReadInt32());
+                model.Submodels[s].Mins.Y = new Fix(br.ReadInt32());
+                model.Submodels[s].Mins.Z = new Fix(br.ReadInt32());
             }
             for (int s = 0; s < Polymodel.MaxSubmodels; s++)
             {
-                model.Submodels[s].Maxs.x = new Fix(br.ReadInt32());
-                model.Submodels[s].Maxs.y = new Fix(br.ReadInt32());
-                model.Submodels[s].Maxs.z = new Fix(br.ReadInt32());
+                model.Submodels[s].Maxs.X = new Fix(br.ReadInt32());
+                model.Submodels[s].Maxs.Y = new Fix(br.ReadInt32());
+                model.Submodels[s].Maxs.Z = new Fix(br.ReadInt32());
             }
             model.Mins = new FixVector(new Fix(br.ReadInt32()), new Fix(br.ReadInt32()), new Fix(br.ReadInt32()));
             model.Maxs = new FixVector(new Fix(br.ReadInt32()), new Fix(br.ReadInt32()), new Fix(br.ReadInt32()));

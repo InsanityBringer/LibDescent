@@ -24,15 +24,15 @@ namespace LibDescent.Data
 {
     public struct Uvl
     {
-        public Fix u;
-        public Fix v;
-        public Fix l;
+        public Fix U;
+        public Fix V;
+        public Fix L;
 
         public Uvl(Fix u, Fix v, Fix l)
         {
-            this.u = u;
-            this.v = v;
-            this.l = l;
+            this.U = u;
+            this.V = v;
+            this.L = l;
         }
 
         public static Uvl FromRawValues(short u, short v, ushort l)
@@ -44,17 +44,17 @@ namespace LibDescent.Data
 
         public (short u, short v, ushort l) ToRawValues()
         {
-            return ((short)(u.value >> 5), (short)(v.value >> 5), (ushort)(l.value >> 1));
+            return ((short)(U.value >> 5), (short)(V.value >> 5), (ushort)(L.value >> 1));
         }
 
         public (double u, double v, double l) ToDoubles()
         {
-            return (u, v, l);
+            return (U, V, L);
         }
 
         public override string ToString()
         {
-            return string.Format("{0}, {1}, {2}", u, v, l);
+            return string.Format("{0}, {1}, {2}", U, V, L);
         }
     }
 }

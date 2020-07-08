@@ -32,14 +32,14 @@ namespace LibDescent.Data
         /// <summary>
         /// Version of the archive, needed for writing back. Version 2 has sound information, version 3 is latest supported, used by the release game.
         /// </summary>
-        public int version = 0;
+        public int Version = 0;
 
         private int NumRobotJoints = 0; //needed to track the amount of robot joints constructed.
 
         /// <summary>
         /// Validity check, I guess. Probably needed but should be done better.
         /// </summary>
-        public bool hasRead = false;
+        private bool hasRead = false;
 
         //HAM data tables. Now properly encaspulated!
         /// <summary>
@@ -168,14 +168,14 @@ namespace LibDescent.Data
                 br.Dispose();
                 throw new InvalidDataException("HAMFile::Read: HAM file has bad header.");
             }
-            version = br.ReadInt32();
-            if (version < 2 || version > 3)
+            Version = br.ReadInt32();
+            if (Version < 2 || Version > 3)
             {
                 br.Dispose();
-                throw new InvalidDataException(string.Format("HAMFile::Read: HAM file has bad version. Got {0}, but expected \"2\" or \"3\"", version));
+                throw new InvalidDataException(string.Format("HAMFile::Read: HAM file has bad version. Got {0}, but expected \"2\" or \"3\"", Version));
             }
             int sndptr = 0;
-            if (version == 2)
+            if (Version == 2)
             {
                 sndptr = br.ReadInt32();
             }
@@ -232,17 +232,17 @@ namespace LibDescent.Data
             for (int x = 0; x < NumLoadJoints; x++)
             {
                 JointPos joint = new JointPos();
-                joint.jointnum = br.ReadInt16();
-                joint.angles.p = br.ReadInt16();
-                joint.angles.b = br.ReadInt16();
-                joint.angles.h = br.ReadInt16();
+                joint.JointNum = br.ReadInt16();
+                joint.Angles.P = br.ReadInt16();
+                joint.Angles.B = br.ReadInt16();
+                joint.Angles.H = br.ReadInt16();
                 Joints.Add(joint);
             }
 
             int NumWeaponTypes = br.ReadInt32();
             for (int x = 0; x < NumWeaponTypes; x++)
             {
-                if (version >= 3)
+                if (Version >= 3)
                 {
                     Weapons.Add(bm.ReadWeapon(br));
                 }
@@ -350,7 +350,7 @@ namespace LibDescent.Data
             }
             PlayerShip.MarkerModel = br.ReadInt32();
             //2620
-            if (version < 3)
+            if (Version < 3)
             {
                 ExitModelnum = br.ReadInt32();
                 DestroyedExitModelnum = br.ReadInt32();
@@ -360,7 +360,7 @@ namespace LibDescent.Data
                 BitmapXLATData[x] = br.ReadUInt16();
             }
 
-            if (version < 3)
+            if (Version < 3)
             {
                 br.BaseStream.Seek(sndptr, SeekOrigin.Begin);
                 int dataToRead = (int)(br.BaseStream.Length - br.BaseStream.Position);
@@ -376,9 +376,9 @@ namespace LibDescent.Data
             HAMDataWriter writer = new HAMDataWriter();
             BinaryWriter bw = new BinaryWriter(stream);
             bw.Write(558711112);
-            bw.Write(version);
+            bw.Write(Version);
             int returnPoint = (int)bw.BaseStream.Position;
-            if (version < 3)
+            if (Version < 3)
             {
                 bw.Write(0);
             }
@@ -429,13 +429,13 @@ namespace LibDescent.Data
             for (int x = 0; x < Joints.Count; x++)
             {
                 JointPos joint = Joints[x];
-                bw.Write(joint.jointnum);
-                bw.Write(joint.angles.p);
-                bw.Write(joint.angles.b);
-                bw.Write(joint.angles.h);
+                bw.Write(joint.JointNum);
+                bw.Write(joint.Angles.P);
+                bw.Write(joint.Angles.B);
+                bw.Write(joint.Angles.H);
             }
             bw.Write(Weapons.Count);
-            if (version < 3)
+            if (Version < 3)
             {
                 for (int x = 0; x < Weapons.Count; x++)
                 {
@@ -529,19 +529,19 @@ namespace LibDescent.Data
                 bw.Write(reactor.NumGuns);
                 for (int y = 0; y < 8; y++)
                 {
-                    bw.Write(reactor.GunPoints[y].x.value);
-                    bw.Write(reactor.GunPoints[y].y.value);
-                    bw.Write(reactor.GunPoints[y].z.value);
+                    bw.Write(reactor.GunPoints[y].X.value);
+                    bw.Write(reactor.GunPoints[y].Y.value);
+                    bw.Write(reactor.GunPoints[y].Z.value);
                 }
                 for (int y = 0; y < 8; y++)
                 {
-                    bw.Write(reactor.GunDirs[y].x.value);
-                    bw.Write(reactor.GunDirs[y].y.value);
-                    bw.Write(reactor.GunDirs[y].z.value);
+                    bw.Write(reactor.GunDirs[y].X.value);
+                    bw.Write(reactor.GunDirs[y].Y.value);
+                    bw.Write(reactor.GunDirs[y].Z.value);
                 }
             }
             bw.Write(PlayerShip.MarkerModel);
-            if (version < 3)
+            if (Version < 3)
             {
                 bw.Write(ExitModelnum);
                 bw.Write(DestroyedExitModelnum);
@@ -551,7 +551,7 @@ namespace LibDescent.Data
                 bw.Write(BitmapXLATData[x]);
             }
             int ptr = (int)bw.BaseStream.Position;
-            if (version < 3)
+            if (Version < 3)
             {
                 bw.BaseStream.Seek(returnPoint, SeekOrigin.Begin);
                 bw.Write(ptr);

@@ -201,7 +201,7 @@ namespace LibDescent.Data
             this.LoadData = loadData;
         }
 
-        public int Read(Stream stream)
+        public void Read(Stream stream)
         {
             BinaryReader br = new BinaryReader(stream);
             HAMDataReader reader = new HAMDataReader();
@@ -212,8 +212,7 @@ namespace LibDescent.Data
                 //So there's no sig, so we're going to take a guess based on the pointer. If it's greater than max bitmaps, we'll assume it's a descent 1 1.4+ piggy file
                 if (DataPointer <= 1800)
                 {
-                    br.Dispose();
-                    return -1;
+                    throw new ArgumentException("Cannot read this .PIG file");
                 }
 
                 numTextures = br.ReadInt32();
@@ -258,10 +257,10 @@ namespace LibDescent.Data
                 for (int i = 0; i < 600; i++)
                 {
                     JointPos joint = new JointPos();
-                    joint.jointnum = br.ReadInt16();
-                    joint.angles.p = br.ReadInt16();
-                    joint.angles.b = br.ReadInt16();
-                    joint.angles.h = br.ReadInt16();
+                    joint.JointNum = br.ReadInt16();
+                    joint.Angles.P = br.ReadInt16();
+                    joint.Angles.B = br.ReadInt16();
+                    joint.Angles.H = br.ReadInt16();
                     Joints[i] = joint;
                 }
 
@@ -464,11 +463,11 @@ namespace LibDescent.Data
                 int num2 = br.ReadInt32();
                 int offset = br.ReadInt32();
 
-                SoundData sound = new SoundData { data = null };
-                sound.name = soundname;
-                sound.localName = localNameBytes;
-                sound.offset = offset;
-                sound.len = num1;
+                SoundData sound = new SoundData { Data = null };
+                sound.Name = soundname;
+                sound.LocalName = localNameBytes;
+                sound.Offset = offset;
+                sound.Length = num1;
                 PIGSounds.Add(sound);
             }
             
@@ -490,18 +489,16 @@ namespace LibDescent.Data
 
             for (int i = 0; i < PIGSounds.Count; i++)
             {
-                br.BaseStream.Seek(basePointer + PIGSounds[i].offset, SeekOrigin.Begin);
+                br.BaseStream.Seek(basePointer + PIGSounds[i].Offset, SeekOrigin.Begin);
 
-                var soundBytes = br.ReadBytes(PIGSounds[i].len);
+                var soundBytes = br.ReadBytes(PIGSounds[i].Length);
 
                 var ps = PIGSounds[i];
 
-                ps.data = soundBytes;
+                ps.Data = soundBytes;
             }
 
             br.Dispose();
-
-            return 0;
         }
 
         public int Write(Stream stream)
@@ -560,10 +557,10 @@ namespace LibDescent.Data
             {
                 JointPos joint = Joints[i];
 
-                descentWriter.WriteInt16(joint.jointnum);
-                descentWriter.WriteInt16(joint.angles.p);
-                descentWriter.WriteInt16(joint.angles.b);
-                descentWriter.WriteInt16(joint.angles.h);
+                descentWriter.WriteInt16(joint.JointNum);
+                descentWriter.WriteInt16(joint.Angles.P);
+                descentWriter.WriteInt16(joint.Angles.B);
+                descentWriter.WriteInt16(joint.Angles.H);
             }
 
             descentWriter.WriteInt32(numWeapons);
@@ -729,13 +726,13 @@ namespace LibDescent.Data
                 var sound = PIGSounds[i];
 
                 //var nameBytes = NameHelper.GetNameBytes(sound.name, 8);
-                descentWriter.Write(sound.localName, 0, 8);
+                descentWriter.Write(sound.LocalName, 0, 8);
 
-                descentWriter.WriteInt32(sound.len);
-                descentWriter.WriteInt32(sound.len);
+                descentWriter.WriteInt32(sound.Length);
+                descentWriter.WriteInt32(sound.Length);
 
                 descentWriter.WriteInt32(dynamicOffset);
-                dynamicOffset += sound.len;
+                dynamicOffset += sound.Length;
             }
 
             for (int i = 1; i < Bitmaps.Count; i++)
@@ -745,7 +742,7 @@ namespace LibDescent.Data
 
             for (int i = 0; i < PIGSounds.Count; i++)
             {
-                descentWriter.Write(PIGSounds[i].data);
+                descentWriter.Write(PIGSounds[i].Data);
             }
 
             return 0;
