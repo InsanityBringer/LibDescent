@@ -7,14 +7,41 @@ namespace LibDescent.Data
 {
     public class BBMImage
     {
+        /// <summary>
+        /// The width of the image in pixels.
+        /// </summary>
         public short Width { get; private set; }
+        /// <summary>
+        /// The height of the image in pixels.
+        /// </summary>
         public short Height { get; private set; }
+        /// <summary>
+        /// The type of this BBM image.
+        /// </summary>
         public BBMType Type { get; private set; }
+        /// <summary>
+        /// Number of bitplanes. Always 8 for Descent images.
+        /// </summary>
         public byte NumPlanes { get; private set; }
+        /// <summary>
+        /// Mask information. 0 for no mask, 1 for mask plane or 2 for transparent color (mask color):
+        /// </summary>
         public byte Mask { get; set; }
+        /// <summary>
+        /// The compression used. 0 for no compression and 1 for RLE.
+        /// </summary>
         public byte Compression { get; private set; }
+        /// <summary>
+        /// The transparent color. Applies only if Mask = 2.
+        /// </summary>
         public short TransparentColor { get; set; }
+        /// <summary>
+        /// The palette used in ths image.
+        /// </summary>
         public Color[] Palette { get; }
+        /// <summary>
+        /// The decoded pixel data in this image, with one byte per pixel.
+        /// </summary>
         public byte[] Data { get; private set; }
 
         public BBMImage() : this(0, 0) { }
@@ -51,12 +78,12 @@ namespace LibDescent.Data
             if (NumPlanes != 8)
                 throw new ArgumentException("only supported NumPlanes value is 8");
             if (Mask != 0 && Mask != 2)
-                throw new ArgumentException("only supported Mask value is 0 or 2");
+                throw new ArgumentException("only supported Mask values are 0 and 2");
             if (Compression != 0 && Compression != 1)
-                throw new ArgumentException("only supported Compression value is 0 or 1");
+                throw new ArgumentException("only supported Compression valus are 0 and 1");
 
             for (int i = 0; i < Palette.Length; ++i)
-                Palette[i] = new Color(Mask != 0 && i == TransparentColor ? 0 : 255, Palette[i].R, Palette[i].G, Palette[i].B);
+                Palette[i] = new Color(Mask == 2 && i == TransparentColor ? 0 : 255, Palette[i].R, Palette[i].G, Palette[i].B);
         }
 
         private void ReadCMAP(BinaryReaderBE br, uint length)
@@ -153,38 +180,36 @@ namespace LibDescent.Data
                                         || ((Mask & 1) == 0 && plane == depth))
                                     plane = 0;
                             }
+
                             n = rawData[i++];
-                            if (n < 128)
+                            if (n < 128)        // N+1 (1-128) uncompressed bytes
                             {
                                 nn = n + 1;
                                 wid_cnt -= nn;
                                 if (wid_cnt < 0)
                                     --nn;
 
-                                if (plane != depth)
-                                {
+                                if (plane == depth)
+                                    i += nn;
+                                else
                                     for (int k = 0; k < nn; ++k)
                                         Data[j++] = rawData[i++];
-                                }
-                                else
-                                    j += nn;
 
                                 if (wid_cnt < 0)
                                     ++i; // pad
                             }
-                            else
+                            else                // 257-N (2-129) repeating bytes (run)
                             {
-                                tmp = rawData[i++];
                                 nn = 257 - n;
                                 wid_cnt -= nn;
                                 if (wid_cnt < 0)
                                     --nn;
 
+                                tmp = rawData[i++];
+
                                 if (plane != depth)
-                                {
                                     for (int k = 0; k < nn; ++k)
                                         Data[j++] = tmp;
-                                }
                             }
                         }
                     }
@@ -196,7 +221,7 @@ namespace LibDescent.Data
         }
 
         /// <summary>
-        /// Loads a PCX image from a stream.
+        /// Loads a BBM image from a stream.
         /// </summary>
         /// <param name="fs">The stream to load from.</param>
         /// <returns></returns>
@@ -260,7 +285,7 @@ namespace LibDescent.Data
         }
 
         /// <summary>
-        /// Loads a PCX image from a file.
+        /// Loads a BBM image from a file.
         /// </summary>
         /// <param name="filePath">The path to the file.</param>
         /// <param name="palette">The palette of the decoded image. Defined only if return value is zero.</param>
@@ -290,6 +315,13 @@ namespace LibDescent.Data
 
     public enum BBMType
     {
-        PBM, ILBM
+        /// <summary>
+        /// Planar Bitmap. Pixels are stored in sequential bitplanes.
+        /// </summary>
+        PBM,
+        /// <summary>
+        /// Interleaved Bitmap. Pixels are stored in interleaved bitplanes.
+        /// </summary>
+        ILBM
     }
 }
