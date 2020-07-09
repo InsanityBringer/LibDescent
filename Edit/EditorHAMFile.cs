@@ -703,7 +703,7 @@ namespace LibDescent.Edit
             try
             {
                 int ver = br.ReadInt32();
-                if (/*sig != 0x4E4D4148 ||*/ver != 1)
+                if (/*sig != 0x4E4D4148 ||*/ver < 1 || ver > 2)
                 {
                     return -1;
                 }
@@ -714,8 +714,12 @@ namespace LibDescent.Edit
                 int SoundsCount = br.ReadInt32();
                 int PolymodelCount = br.ReadInt32();
                 int PowerupsCount = br.ReadInt32();
+                int ReactorsCount = Reactors.Count;
+                if (ver == 2)
+                    ReactorsCount = br.ReadInt32();
+
                 if (VClipsCount != VClips.Count || EClipsCount != EClips.Count || RobotsCount != Robots.Count || WeaponsCount != Weapons.Count ||
-                    SoundsCount != Sounds.Count || PolymodelCount != Models.Count || PowerupsCount != Powerups.Count)
+                    SoundsCount != Sounds.Count || PolymodelCount != Models.Count || PowerupsCount != Powerups.Count || ReactorsCount != Reactors.Count)
                 {
                     return -1; //okay something went really wrong
                 }
@@ -733,6 +737,12 @@ namespace LibDescent.Edit
                     ModelNames.Add(br.ReadString());
                 for (int i = 0; i < Powerups.Count; i++)
                     PowerupNames.Add(br.ReadString());
+                if (ver >= 2)
+                    for (int i = 0; i < Reactors.Count; i++)
+                        ReactorNames.Add(br.ReadString());
+                else
+                    for (int i = 0; i < Reactors.Count; i++)
+                        ReactorNames.Add(ElementLists.GetReactorName(i));
             }
             catch (Exception) //godawful error handling
             {
@@ -816,6 +826,8 @@ namespace LibDescent.Edit
             }
             for (int i = 0; i < BaseFile.Powerups.Count; i++)
                 PowerupNames.Add(ElementLists.GetPowerupName(i));
+            for (int i = 0; i < BaseFile.Reactors.Count; i++)
+                ReactorNames.Add(ElementLists.GetReactorName(i));
         }
 
         //---------------------------------------------------------------------
@@ -1111,7 +1123,7 @@ namespace LibDescent.Edit
         {
             //48 41 4D 4E
             bw.Write(0x4E4D4148); //HAMN
-            bw.Write(1); //version. in case i fuck something up
+            bw.Write(2); //version. in case i fuck something up
             //Write out the counts for safety. 
             bw.Write(VClips.Count);
             bw.Write(EClips.Count);
@@ -1120,6 +1132,7 @@ namespace LibDescent.Edit
             bw.Write(Sounds.Count);
             bw.Write(Models.Count);
             bw.Write(Powerups.Count);
+            bw.Write(Reactors.Count);
             foreach (string name in VClipNames)
                 bw.Write(name);
             foreach (string name in EClipNames)
@@ -1133,6 +1146,8 @@ namespace LibDescent.Edit
             foreach (string name in ModelNames)
                 bw.Write(name);
             foreach (string name in PowerupNames)
+                bw.Write(name);
+            foreach (string name in ReactorNames)
                 bw.Write(name);
 
             return 0;
