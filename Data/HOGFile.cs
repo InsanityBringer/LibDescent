@@ -211,7 +211,7 @@ namespace LibDescent.Data
         public void Write(string filename)
         {
             string tempFilename = Path.ChangeExtension(filename, ".newtmp");
-            using (var stream = File.Open(tempFilename, FileMode.Create))
+            using (var stream = File.Open(tempFilename, FileMode.Create, FileAccess.ReadWrite, FileShare.None))
             {
                 Write(stream);
             }

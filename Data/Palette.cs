@@ -20,68 +20,107 @@
     SOFTWARE.
 */
 
+using System;
+
 namespace LibDescent.Data
 {
+    /// <summary>
+    /// A 256-color palette.
+    /// </summary>
     public class Palette
     {
-        private byte[] palette = new byte[768];
+        private Color[] colors = new Color[256];
 
         public Palette()
         {
             for (int c = 0; c < 255; c++)
-            {
-                for (int x = 0; x < 3; x++)
-                {
-                    palette[c * 3] = (byte)c;
-                    palette[c * 3 + 1] = (byte)c;
-                    palette[c * 3 + 2] = (byte)c;
-                }
-            }
+                colors[c] = new Color(c != 255 ? 255 : 0, c, c, c);
         }
 
         public Palette(byte[] data, bool rescale = true)
         {
-            for (int c = 0; c < 768; c++)
+            if (data.Length <= 768)
+                throw new ArgumentException("palette must be at least 768 bytes long");
+
+            byte r, g, b;
+            for (int c = 0; c < 768; c += 3)
             {
+                r = data[c];
+                g = data[c + 1];
+                b = data[c + 2];
+
                 if (rescale)
-                    palette[c] = (byte)(data[c] * 255 / 63);
-                else
-                    palette[c] = data[c];
+                {
+                    r = (byte)(r * 255 / 63);
+                    g = (byte)(g * 255 / 63);
+                    b = (byte)(b * 255 / 63);
+                }
+
+                colors[c] = new Color(c != 255 ? 255 : 0, r, g, b);
             }
         }
 
-        public byte this[int index, int channel]
+        public Palette(Color[] colors)
+        {
+            if (colors.Length != 256)
+                throw new ArgumentException("colors must have exactly 256 colors");
+
+            for (int c = 0; c < 256; ++c)
+                this.colors[c] = colors[c];
+        }
+
+        public Color this[int index]
         {
             get
             {
-                if (channel < 0 || channel >= 3) channel = 0; //simple validation
-                if (index < 0 || index >= 768) index = 0;
-                return palette[index * 3 + channel];
+                if (index < 0 || index >= 256)
+                    throw new IndexOutOfRangeException();
+                return colors[index];
             }
         }
 
-        public byte this[int index]
+        public byte GetByte(int index, int channel)
         {
-            get
+            if (index < 0 || index >= 768 || channel < 0 || channel >= 3)
+                throw new ArgumentOutOfRangeException();
+            /*
+            if (channel < 0 || channel >= 3) channel = 0; //simple validation
+            if (index < 0 || index >= 768) index = 0; */
+            Color color = colors[index];
+            switch (channel)
             {
-                return palette[index];
+                case 0:
+                    return (byte)color.R;
+                case 1:
+                    return (byte)color.G;
+                case 2:
+                    return (byte)color.B;
             }
+            return default;
         }
 
-        public byte[] GetLinear() //basically a copy function tbh
+        public byte GetByte(int index)
+        {
+            if (index < 0 || index >= 768)
+                throw new ArgumentOutOfRangeException();
+
+            return GetByte(index / 3, index % 3);
+        }
+
+        public byte[] GetLinear()
         {
             byte[] linearPal = new byte[768];
 
             int offset = 0;
             for (int x = 0; x < 768; x++)
             {
-                linearPal[offset++] = palette[x];
+                linearPal[offset++] = GetByte(x);
             }
 
             return linearPal;
         }
 
-        public int GetNearestColor(int r, int g, int b)
+        public int GetNearestColorIndex(Color c)
         {
             int bestcolor = 0;
             int bestdist = int.MaxValue;
@@ -89,9 +128,12 @@ namespace LibDescent.Data
 
             for (int i = 0; i < 255; i++)
             {
-                dist = (r - palette[i * 3]) * (r - palette[i * 3]) + (g - palette[i * 3 + 1]) * (g - palette[i * 3 + 1]) + (b - palette[i * 3 + 2]) * (b - palette[i * 3 + 2]);
-                if (dist == 0) return i;
-                if (dist < bestdist)
+                Color q = this[i];
+                if (c == q) return i;
+                dist = (c.R - q.R) * (c.R - q.R) + (c.G - q.G) * (c.G - q.G) + (c.B - q.B) * (c.B - q.B);
+                if (dist == 0) // this one ignores alpha. c == q does not
+                    return i;
+                else if (dist < bestdist)
                 {
                     bestcolor = i;
                     bestdist = dist;
@@ -100,10 +142,25 @@ namespace LibDescent.Data
             return bestcolor;
         }
 
+        public int GetNearestColorIndex(int r, int g, int b)
+        {
+            return GetNearestColorIndex(new Color(255, r, g, b));
+        }
+
+        public Color GetNearestColor(Color c)
+        {
+            return this[GetNearestColorIndex(c)];
+        }
+
+        public Color GetNearestColor(int r, int g, int b)
+        {
+            return this[GetNearestColorIndex(r, g, b)];
+        }
+
         public int GetRGBAValue(int id)
         {
             int a = id == 255 ? 0 : 255;
-            return ((a << 24) + (palette[id * 3] << 16) + (palette[id * 3 + 1] << 8) + (palette[id * 3 + 2]));
+            return ((a << 24) + (colors[id].R << 16) + (colors[id].G << 8) + colors[id].B);
         }
 
         public static Palette defaultPalette = new Palette();

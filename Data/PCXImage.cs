@@ -3,6 +3,9 @@ using System.IO;
 
 namespace LibDescent.Data
 {
+    /// <summary>
+    /// Represents a PCX image.
+    /// </summary>
     public class PCXImage
     {
         /// <summary>
@@ -50,11 +53,15 @@ namespace LibDescent.Data
         /// </summary>
         public Color[] ColorMap;
         /// <summary>
+        /// The 256-color palette.
+        /// </summary>
+        public Color[] Palette;
+        /// <summary>
         /// Number of bit-planes. Only 1 supported.
         /// </summary>
         public byte NPlanes;
         /// <summary>
-        /// The original image data.
+        /// The original image data, compressed with RLE.
         /// </summary>
         public byte[] RawData;
         /// <summary>
@@ -136,18 +143,19 @@ namespace LibDescent.Data
                 ColorMap[i] = PCXImage.ReadRGB(block, 16 + 3 * i);
             }
             NPlanes = block[65];
-            Vdpi = BitConverter.ToInt16(block, 66);
+            //BytesPerLine = BitConverter.ToInt16(block, 66);
         }
 
-        private void DecodeData(Color[] palette)
+        /// <summary>
+        /// Generates Data from the current contents of RawData, decoding 8bpp into 24bpp (R8G8B8).
+        /// </summary>
+        public void Decode()
         {
             BinaryReader br = new BinaryReader(new MemoryStream(RawData));
-            int width = Xmax - Xmin + 1;
-            int height = Ymax - Ymin + 1;
             int pixelsRead = 0;
-            int pixelsTotal = width * height;
-            int stride = width * 3;
-            int bytes = stride * height;
+            int pixelsTotal = Width * Height;
+            int stride = Width * 3;
+            int bytes = stride * Height;
             byte[] rgbValues = new byte[bytes];
 
             int x, y, p;
@@ -163,9 +171,9 @@ namespace LibDescent.Data
                 }
                 for (int i = 0; i < runLength && pixelsRead < pixelsTotal; ++i)
                 {
-                    y = Math.DivRem(pixelsRead, width, out x);
+                    y = Math.DivRem(pixelsRead, Width, out x);
                     p = y * stride + (x * 3);
-                    clr = palette[runByte];
+                    clr = this.Palette[runByte];
                     rgbValues[p + 0] = (byte)clr.B;
                     rgbValues[p + 1] = (byte)clr.G;
                     rgbValues[p + 2] = (byte)clr.R;
@@ -177,18 +185,22 @@ namespace LibDescent.Data
             br.Close();
         }
 
+        private static Color ReadRGB(byte[] block, int v)
+        {
+            return new Color(255, block[v], block[v + 1], block[v + 2]);
+        }
+
         /// <summary>
         /// Loads a PCX image from a stream.
         /// </summary>
         /// <param name="fs">The stream to load from.</param>
-        /// <param name="palette">The palette of the decoded image. Defined only if return value is zero.</param>
         /// <returns></returns>
-        public void LoadPCX(Stream fs, out Color[] palette)
+        public void Read(Stream fs)
         {
             using (BinaryReader br = new BinaryReader(fs))
             {
                 fs.Seek(0, SeekOrigin.Begin);
-                palette = GetDefaultPalette();
+                Palette = GetDefaultPalette();
                 ParseHeader(br.ReadBytes(128));
                 if (Manufacturer != 0x0a)
                     throw new ArgumentException("file is not a valid PCX image");
@@ -210,7 +222,7 @@ namespace LibDescent.Data
                     byte[] pal = br.ReadBytes(768);
                     for (int i = 0; i < 255; ++i)
                     {
-                        palette[i] = ReadRGB(pal, i * 3);
+                        Palette[i] = ReadRGB(pal, i * 3);
                     }
                 }
 
@@ -218,41 +230,36 @@ namespace LibDescent.Data
                 fs.Seek(128, SeekOrigin.Begin);
                 int imageDataLength = (int)(imageDataEnd - 128);
                 RawData = br.ReadBytes(imageDataLength);
-                DecodeData(palette);
+                Decode();
             }
         }
 
         /// <summary>
-        /// Loads a PCX image from a file. Returns 0 on success and non-zero on failure.
+        /// Loads a PCX image from a file.
         /// </summary>
         /// <param name="filePath">The path to the file.</param>
         /// <param name="palette">The palette of the decoded image. Defined only if return value is zero.</param>
         /// <returns></returns>
-        public void LoadPCX(string filePath, out Color[] palette)
+        public void Read(string filePath)
         {
             using (FileStream fs = File.Open(filePath, FileMode.Open))
             {
-                LoadPCX(fs, out palette);
+                Read(fs);
             }
         }
 
         /// <summary>
-        /// Loads a PCX image from an array. Returns 0 on success and non-zero on failure.
+        /// Loads a PCX image from an array.
         /// </summary>
         /// <param name="contents">The array to load from.</param>
         /// <param name="palette">The palette of the decoded image. Defined only if return value is zero.</param>
         /// <returns></returns>
-        public void LoadPCX(byte[] contents, out Color[] palette)
+        public void Read(byte[] contents)
         {
             using (MemoryStream ms = new MemoryStream(contents))
             {
-                LoadPCX(ms, out palette);
+                Read(ms);
             }
-        }
-
-        private static Color ReadRGB(byte[] block, int v)
-        {
-            return new Color(255, block[v], block[v + 1], block[v + 2]);
         }
     }
 }
