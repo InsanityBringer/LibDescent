@@ -155,14 +155,17 @@ namespace LibDescent.Data
                     return;
                 }
             }
-            if (face.Classification == BSPClassification.OnPlane) //Place coplanar faces on the front side of the plane if it is facing the same direction
+            if (face.Points[0].Classification == BSPClassification.OnPlane) //Place coplanar faces on the front side of the plane if it is facing the same direction
             {
                 if (Vector3.Dot(face.Normal, planeNorm) >= 0)
                     face.Classification = BSPClassification.Front;
                 else
                     face.Classification = BSPClassification.Back;
             }
-            face.Classification = face.Points[0].Classification;
+            else
+            {
+                face.Classification = face.Points[0].Classification;
+            }
         }
 
         public int EvalulateSplitter(List<BSPFace> faces, Vector3 planePoint, Vector3 planeNorm, BSPFace splitter)
