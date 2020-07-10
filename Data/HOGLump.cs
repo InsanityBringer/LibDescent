@@ -321,7 +321,7 @@ namespace LibDescent.Data
             if (data.Length >= 8)
             {
                 if (data[0] == 0x44 && data[1] == 0x4D && data[2] == 0x56 && data[3] == 0x4C
-                    && data[7] == 0) // probably safe to sasume .MVL has no more than 16 million .MVE's
+                    && data[7] == 0) // probably safe to assume .MVL has no more than 16 million .MVE's
                 {
                     int numberOfMves = data[4] | (data[5] << 8) | (data[6] << 16) | (data[7] << 24);
                     return data.Length >= 8 + numberOfMves * (17 + 18); // 17 for MVL entry, 18 for "Interplay MVE File"
