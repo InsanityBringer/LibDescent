@@ -170,25 +170,25 @@ namespace LibDescent.Data
             // Water
             new FogPreset
             {
-                color = new Color{ A = 255, R = (int)(255.0f * 0.2f), G = (int)(255.0f * 0.4f), B = (int)(255.0f * 0.6f) },
+                color = new Color(255, (int)(255.0f * 0.2f), (int)(255.0f * 0.4f), (int)(255.0f * 0.6f)),
                 density = (11f / 20f)
             },
             // Lava
             new FogPreset
             {
-                color = new Color{ A = 255, R = (int)(255.0f * 0.8f), G = (int)(255.0f * 0.4f), B = (int)(255.0f * 0.0f) },
+                color = new Color(255, (int)(255.0f * 0.8f), (int)(255.0f * 0.4f), (int)(255.0f * 0.0f)),
                 density = (2f / 20f)
             },
             // LightFog
             new FogPreset
             {
-                color = new Color{ A = 255, R = (int)(255.0f * 0.7f), G = (int)(255.0f * 0.7f), B = (int)(255.0f * 0.7f) },
+                color = new Color(255, (int)(255.0f * 0.7f), (int)(255.0f * 0.7f), (int)(255.0f * 0.7f)),
                 density = (4f / 20f)
             },
             // HeavyFog
             new FogPreset
             {
-                color = new Color{ A = 255, R = (int)(255.0f * 0.7f), G = (int)(255.0f * 0.7f), B = (int)(255.0f * 0.7f) },
+                color = new Color(255, (int)(255.0f * 0.7f), (int)(255.0f * 0.7f), (int)(255.0f * 0.7f)),
                 density = (11f / 20f)
             }
         };

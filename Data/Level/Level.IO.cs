@@ -403,9 +403,7 @@ namespace LibDescent.Data
             {
                 for (int i = 0; i < _fileInfo.fogPresets.Length; i++)
                 {
-                    _fileInfo.fogPresets[i].color.R = reader.ReadByte();
-                    _fileInfo.fogPresets[i].color.G = reader.ReadByte();
-                    _fileInfo.fogPresets[i].color.B = reader.ReadByte();
+                    _fileInfo.fogPresets[i].color = ReadColorRGB(reader, 255);
                     // Density is encoded as byte values from 1-20, where 20 is most dense
                     _fileInfo.fogPresets[i].density = ((float)reader.ReadByte()) / 20;
                 }
@@ -667,13 +665,7 @@ namespace LibDescent.Data
                         p.Speed = reader.ReadInt32();
                         p.Drift = reader.ReadInt32();
                         p.Brightness = reader.ReadInt32();
-                        //I love properties btw
-                        Color color = new Color();
-                        color.R = reader.ReadByte();
-                        color.G = reader.ReadByte();
-                        color.B = reader.ReadByte();
-                        color.A = reader.ReadByte();
-                        p.Color = color;
+                        p.Color = ReadColorRGBA(reader);
                         p.Side = reader.ReadByte();
                         // DLE used gamedata version, but that was probably a mistake (18 is pre-release D1).
                         // Don't have a matching level to test with but level version is more likely to work
@@ -704,12 +696,7 @@ namespace LibDescent.Data
                         l.Sound = reader.ReadByte();
                         l.Random = reader.ReadByte();
                         l.InPlane = reader.ReadByte();
-                        Color color = new Color();
-                        color.R = reader.ReadByte();
-                        color.G = reader.ReadByte();
-                        color.B = reader.ReadByte();
-                        color.A = reader.ReadByte();
-                        l.Color = color;
+                        l.Color = ReadColorRGBA(reader);
                         l.Enabled = (_levelVersion < 19) ? true : (reader.ReadSByte() > 0);
                     }
                     break;
@@ -759,6 +746,23 @@ namespace LibDescent.Data
                 targetList[i].sideNum = reader.ReadInt16();
             }
             return targetList;
+        }
+
+        private Color ReadColorRGB(BinaryReader reader, int alpha = 255)
+        {
+            byte r = reader.ReadByte();
+            byte g = reader.ReadByte();
+            byte b = reader.ReadByte();
+            return new Color(alpha, r, g, b);
+        }
+
+        private Color ReadColorRGBA(BinaryReader reader)
+        {
+            byte r = reader.ReadByte();
+            byte g = reader.ReadByte();
+            byte b = reader.ReadByte();
+            byte a = reader.ReadByte();
+            return new Color(a, r, g, b);
         }
 
         protected static FixVector ReadFixVector(BinaryReader reader)

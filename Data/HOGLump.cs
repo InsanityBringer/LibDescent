@@ -32,21 +32,90 @@ namespace LibDescent.Data
     /// </summary>
     public enum LumpType
     {
+        /// <summary>
+        /// Unknown lump type.
+        /// </summary>
         Unknown,
+        /// <summary>
+        /// Unencoded text. Typical file extension: *.TXT.
+        /// </summary>
         Text, //for DESCENT.SNG and mission files, identify by file containing only printable bytes? (and SUB...)
+        /// <summary>
+        /// Text encoded using Descent TXB encoding (used mostly for briefings and credits). Typical file extensions: *.TXB, *.CTB.
+        /// </summary>
         EncodedText, //for *.TXB, and BITMAPS.BIN (shareware and registered descent 1.0). How to identify this...
+        /// <summary>
+        /// *.FNT Descent font file.
+        /// </summary>
         Font, //*.FNT lumps, Identified by PSFN header and sane version
+        /// <summary>
+        /// Raw PCM sound data, identified by the *.RAW extension.
+        /// </summary>
         RawSound, //Identified by *.RAW. ugh. Only needed for digtest.raw
+        /// <summary>
+        /// MIDI files, used for music in the Windows 95 version of Descent II.
+        /// </summary>
         Midi, //*.MID lumps, Identified by MThd header and sane length. These exist solely for the old native Windows version. 
+        /// <summary>
+        /// Music files using the HMP format designed by HMI. Typical file extensions: *.HMP, *.HMQ (used on FM cards).
+        /// </summary>
         HMP, //*.HMP/*.HMQ lumps, Identified by HMIMIDIP header and sane header data. 
+        /// <summary>
+        /// *.BNK files containing the banks used for OPL music cards to play HMP files.
+        /// </summary>
         OPLBank, //*.BNK lumps, Identified by 0x0 0x0 A * L I B perhaps? I dunno...
+        /// <summary>
+        /// Descent level. Typical file extensions: *.RDL (Descent 1), *.RL2 (Descent 2), *.SL2 (Descent 2 demo)
+        /// </summary>
         Level, //*.SL2/*.RL2 lumps, Identified by LVLP header and sane version and pointers
+        /// <summary>
+        /// *.256; a 37*256 color palette.
+        /// </summary>
         Palette, //*.256 lumps, Identified by being 9472 bytes long, and first 768 are all <64
+        /// <summary>
+        /// *.PCX image used for screen backgrounds.
+        /// </summary>
         PCXImage, //*.PCX lumps, Identifed by 0x10 0x5 0x1 0x8?
+        /// <summary>
+        /// *.LBM image used for some graphics.
+        /// </summary>
         LBMImage, //*.BBM/*.LBM lumps, Identified by FORM and sane header values
+        /// <summary>
+        /// *.HAM file, containing assorted game data.
+        /// </summary>
         HAMFile, //*.HAM lumps, Identified by HAM! header and sane version. Embeddable for DXX-Rebirth
+        /// <summary>
+        /// *.HXM file, used to replace *.HAM data per-level.
+        /// </summary>
         HXMFile, //*.HXM lumps, Identified by HXM! header and sane version.
+        /// <summary>
+        /// *.HAM file used to contain additional data in Vertigo missions, usually called D2X.HAM.
+        /// </summary>
         VHAMFile, //*.VHAM lumps, Identified by MAHX header and sane version.
+        /// <summary>
+        /// *.MSN or *.MN2 file containing mission info.
+        /// </summary>
+        Mission, //*.MN2 used for D2.MN2, identified by extension
+        /// <summary>
+        /// *.DIG file containing digital PCM samples for music.
+        /// </summary>
+        DigitalBank, //DRUM32.DIG, Identified by presumed header
+        /// <summary>
+        /// *.SNG song list containing the list of tracks to be played in-game.
+        /// </summary>
+        SongList, //*.SNG song list, identified by extension
+        /// <summary>
+        /// *.MVL movie archive containing movie (*.MVE) files.
+        /// </summary>
+        MVL, //*.MVL movie archive, identified by DMVL header and file size (maybe embeddable one day)
+        /// <summary>
+        /// *.CLR map of custom colors per texture, used for colored lights in D2X-XL.
+        /// </summary>
+        CLRMap, //*.CLR; data for colored lights for D2X-XL
+        /// <summary>
+        /// *.OGG music file, providing digital audio to serve as music in custom missions.
+        /// </summary>
+        OGGMusic, //*.OGG music, only used in custom missions (no detection so far)
     }
 
     public class HOGLump
@@ -97,16 +166,26 @@ namespace LibDescent.Data
             if (IsILBM(data)) return LumpType.LBMImage;
             if (IsPCX(data)) return LumpType.PCXImage;
             if (IsFont(data)) return LumpType.Font;
-            // Midi - missing
+            if (IsMidi(data)) return LumpType.Midi;
             if (IsHMP(data)) return LumpType.HMP;
             if (IsOPLBank(data)) return LumpType.OPLBank;
             if (IsPalette(data)) return LumpType.Palette;
+            if (IsMVL(data)) return LumpType.MVL;
+            if (IsDigitalBank(data)) return LumpType.DigitalBank;
             string ext = (name.IndexOf('.') >= 0) ? name.Substring(name.IndexOf('.')) : "";
             if (ext.Equals(".raw", StringComparison.OrdinalIgnoreCase)) return LumpType.RawSound;
+            if (ext.Equals(".clr", StringComparison.OrdinalIgnoreCase) && (data.Length % 13) == 0) return LumpType.CLRMap;
             if (IsText(data))
             {
-                if (ext.Equals(".txb", StringComparison.OrdinalIgnoreCase) || ext.Equals(".bin", StringComparison.OrdinalIgnoreCase)) //stupid hacks
+                if (ext.Equals(".txb", StringComparison.OrdinalIgnoreCase)
+                        || ext.Equals(".ctb", StringComparison.OrdinalIgnoreCase)
+                        || ext.Equals(".bin", StringComparison.OrdinalIgnoreCase)) //stupid hacks
                     return LumpType.EncodedText;
+                else if (ext.Equals(".sng", StringComparison.OrdinalIgnoreCase))
+                    return LumpType.SongList;
+                else if (ext.Equals(".msn", StringComparison.OrdinalIgnoreCase)
+                        || ext.Equals(".mn2", StringComparison.OrdinalIgnoreCase))
+                    return LumpType.Mission;
                 return LumpType.Text;
             }
             return LumpType.Unknown;
@@ -184,11 +263,38 @@ namespace LibDescent.Data
             return false;
         }
 
+        public static bool IsMidi(byte[] data)
+        {
+            if (data.Length > 64)
+            {
+                if (data[0] == 0x4D && data[1] == 0x54 && data[2] == 0x68 && data[3] == 0x64
+                    && data[14] == 0x4D && data[15] == 0x54 && data[16] == 0x72 && data[17] == 0x6B
+                    && data[4] == 0 && data[5] == 0 && data[6] == 0 && data[7] == 6 && data[8] == 0 && data[9] < 3)
+                {
+                    return true;
+                }
+            }
+            return false;
+        }
+
         public static bool IsOPLBank(byte[] data)
         {
             if (data.Length > 8)
             {
                 if (data[0] == 0 && data[1] == 0 && data[2] == 'A' && data[4] == 'L' && data[5] == 'I' && data[6] == 'B')
+                {
+                    return true;
+                }
+            }
+            return false;
+        }
+
+        public static bool IsDigitalBank(byte[] data)
+        {
+            if (data.Length > 4096)
+            {
+                if (data[0] == 'H' && data[1] == 'M' && data[2] == 'I' && data[3] == 'D'
+                    && data[4] == 'I' && data[5] == 'G' && data[6] == 'I' && data[7] == 'P' && data[8] == 0)
                 {
                     return true;
                 }
@@ -206,6 +312,20 @@ namespace LibDescent.Data
                     if (data[i] > 63) return false;
                 }
                 return true;
+            }
+            return false;
+        }
+
+        public static bool IsMVL(byte[] data)
+        {
+            if (data.Length >= 8)
+            {
+                if (data[0] == 0x44 && data[1] == 0x4D && data[2] == 0x56 && data[3] == 0x4C
+                    && data[7] == 0) // probably safe to sasume .MVL has no more than 16 million .MVE's
+                {
+                    int numberOfMves = data[4] | (data[5] << 8) | (data[6] << 16) | (data[7] << 24);
+                    return data.Length >= 8 + numberOfMves * (17 + 18); // 17 for MVL entry, 18 for "Interplay MVE File"
+                }
             }
             return false;
         }

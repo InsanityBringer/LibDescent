@@ -3,12 +3,11 @@ using System.IO;
 
 namespace LibDescent.Data
 {
+    /// <summary>
+    /// Represents a PCX image.
+    /// </summary>
     public class PCXImage
     {
-        /// <summary>
-        /// The Manufacturer number. Only supported value is 0x0A
-        /// </summary>
-        public byte Manufacturer;
         /// <summary>
         /// The version of PC Paintbrush; only supported version is 5.
         /// </summary>
@@ -46,21 +45,40 @@ namespace LibDescent.Data
         /// </summary>
         public short Vdpi;
         /// <summary>
-        /// The first 16 colors.
+        /// The 256-color palette.
         /// </summary>
-        public Color[] ColorMap;
+        public Color[] Palette;
         /// <summary>
         /// Number of bit-planes. Only 1 supported.
         /// </summary>
         public byte NPlanes;
         /// <summary>
-        /// The original image data.
+        /// The original image data, compressed with RLE.
         /// </summary>
         public byte[] RawData;
         /// <summary>
-        /// The decoded image data, in 24bpp (R8G8B8) format.
+        /// The decoded image data with one byte per pixel.
         /// </summary>
         public byte[] Data;
+
+        public PCXImage() : this(0, 0) { }
+
+        public PCXImage(int width, int height)
+        {
+            Version = 5;
+            Encoding = 1;
+            BitsPerPixel = 8;
+            Xmin = 0;
+            Ymin = 0;
+            Xmax = (short)(width - 1);
+            Ymax = (short)(height - 1);
+            Hdpi = 320;
+            Vdpi = 200;
+            NPlanes = 1;
+            Palette = GetDefaultPalette();
+            RawData = new byte[0];
+            Data = new byte[width * height];
+        }
 
         /// <summary>
         /// Gets the default 256-color palette used for PCX images.
@@ -120,7 +138,8 @@ namespace LibDescent.Data
 
         private void ParseHeader(byte[] block)
         {
-            Manufacturer = block[0];
+            if (block[0] != 0x0a)
+                throw new ArgumentException("file is not a valid PCX image");
             Version = block[1];
             Encoding = block[2];
             BitsPerPixel = block[3];
@@ -130,68 +149,134 @@ namespace LibDescent.Data
             Ymax = BitConverter.ToInt16(block, 10);
             Hdpi = BitConverter.ToInt16(block, 12);
             Vdpi = BitConverter.ToInt16(block, 14);
-            ColorMap = new Color[16];
             for (int i = 0; i < 16; ++i)
             {
-                ColorMap[i] = PCXImage.ReadRGB(block, 16 + 3 * i);
+                Palette[i] = PCXImage.ReadRGB(block, 16 + 3 * i);
             }
             NPlanes = block[65];
-            Vdpi = BitConverter.ToInt16(block, 66);
+            //BytesPerLine = BitConverter.ToInt16(block, 66);
         }
 
-        private void DecodeData(Color[] palette)
+        /// <summary>
+        /// Generates Data from the current contents of RawData, decompressing RLE into 8bpp in Data.
+        /// </summary>
+        public void Decode()
         {
-            BinaryReader br = new BinaryReader(new MemoryStream(RawData));
-            int width = Xmax - Xmin + 1;
-            int height = Ymax - Ymin + 1;
-            int pixelsRead = 0;
-            int pixelsTotal = width * height;
-            int stride = width * 3;
-            int bytes = stride * height;
-            byte[] rgbValues = new byte[bytes];
-
-            int x, y, p;
-            Color clr;
-            while (pixelsRead < pixelsTotal)
+            using (MemoryStream ms = new MemoryStream(RawData))
+            using (BinaryReader br = new BinaryReader(ms))
             {
-                int runLength = 1;
-                int runByte = br.ReadByte();
-                if ((runByte & 0xC0) == 0xC0)
+                int pixelsRead = 0;
+                int pixelsTotal = Width * Height;
+                int stride = Width;
+                int bytes = stride * Height;
+                byte[] outValues = new byte[bytes];
+
+                while (pixelsRead < pixelsTotal)
                 {
-                    runLength = runByte & 0x3F;
-                    runByte = br.ReadByte();
+                    int runLength = 1;
+                    byte runByte = br.ReadByte();
+                    if ((runByte & 0xC0) == 0xC0)
+                    {
+                        runLength = runByte & 0x3F;
+                        runByte = br.ReadByte();
+                    }
+                    for (int i = 0; i < runLength && pixelsRead < pixelsTotal; ++i)
+                        outValues[pixelsRead++] = runByte;
                 }
-                for (int i = 0; i < runLength && pixelsRead < pixelsTotal; ++i)
-                {
-                    y = Math.DivRem(pixelsRead, width, out x);
-                    p = y * stride + (x * 3);
-                    clr = palette[runByte];
-                    rgbValues[p + 0] = (byte)clr.B;
-                    rgbValues[p + 1] = (byte)clr.G;
-                    rgbValues[p + 2] = (byte)clr.R;
-                    ++pixelsRead;
-                }
+
+                Data = outValues;
+            }
+        }
+
+        private void EncodeRun(BinaryWriter bw, byte runByte, int length)
+        {
+            if (length == 0)
+                return;
+            if (length == 1 && runByte < 192)
+            {
+                bw.Write(runByte);
+                return;
             }
 
-            Data = rgbValues;
-            br.Close();
+            bw.Write((byte)(192 | length));
+            bw.Write(runByte);
+        }
+
+        private void EncodeLine(BinaryWriter bw, int offset, int length)
+        {
+            // find and detect runs
+            int runLength = 0;
+            byte runByte = 0;
+            byte nextByte;
+            
+            for (int i = offset; i < offset + length; ++i)
+            {
+                nextByte = Data[i];
+
+                if (nextByte != runByte || runLength >= 63)
+                {
+                    EncodeRun(bw, runByte, runLength);
+                    runByte = nextByte;
+                    runLength = 0;
+                }
+
+                ++runLength;
+            }
+            EncodeRun(bw, runByte, runLength);
+        }
+
+        /// <summary>
+        /// Compresses Data back into RawData as RLE.
+        /// </summary>
+        public void Encode()
+        {
+            using (MemoryStream ms = new MemoryStream())
+            using (BinaryWriter bw = new BinaryWriter(ms))
+            {
+                int stride = Width;
+                for (int y = 0; y < Height; ++y)
+                    EncodeLine(bw, y * stride, stride);
+
+                RawData = ms.ToArray();
+            }
+        }
+
+        /// <summary>
+        /// Gets the image data as RGB (B8G8R8).
+        /// </summary>
+        /// <returns>The image data as 24-bit RGB.</returns>
+        public byte[] GetRGBData()
+        {
+            byte[] result = new byte[Data.Length * 3];
+            Color clr;
+            int p = 0;
+            for (int i = 0; i < Data.Length; ++i)
+            {
+                clr = Palette[Data[i]];
+                result[p++] = (byte)clr.B;
+                result[p++] = (byte)clr.G;
+                result[p++] = (byte)clr.R;
+            }
+            return result;
+        }
+
+        private static Color ReadRGB(byte[] block, int v)
+        {
+            return new Color(255, block[v], block[v + 1], block[v + 2]);
         }
 
         /// <summary>
         /// Loads a PCX image from a stream.
         /// </summary>
-        /// <param name="fs">The stream to load from.</param>
-        /// <param name="palette">The palette of the decoded image. Defined only if return value is zero.</param>
+        /// <param name="stream">The stream to load from.</param>
         /// <returns></returns>
-        public void LoadPCX(Stream fs, out Color[] palette)
+        public void Read(Stream stream)
         {
-            using (BinaryReader br = new BinaryReader(fs))
+            using (BinaryReader br = new BinaryReader(stream))
             {
-                fs.Seek(0, SeekOrigin.Begin);
-                palette = GetDefaultPalette();
+                stream.Seek(0, SeekOrigin.Begin);
+                Palette = GetDefaultPalette();
                 ParseHeader(br.ReadBytes(128));
-                if (Manufacturer != 0x0a)
-                    throw new ArgumentException("file is not a valid PCX image");
                 if (Encoding != 1)
                     throw new ArgumentException("only PCX encoding 1 is supported");
                 if (NPlanes != 1)
@@ -202,57 +287,118 @@ namespace LibDescent.Data
                     throw new ArgumentException("only PCX version 5 is supported");
 
                 // test extended palette
-                fs.Seek(-769, SeekOrigin.End);
-                long imageDataEnd = fs.Position;
+                stream.Seek(-769, SeekOrigin.End);
+                long imageDataEnd = stream.Position;
                 if (br.ReadByte() == 0x0C)
                 {
                     // has ext palette
                     byte[] pal = br.ReadBytes(768);
-                    for (int i = 0; i < 255; ++i)
+                    for (int i = 0; i < 256; ++i)
                     {
-                        palette[i] = ReadRGB(pal, i * 3);
+                        Palette[i] = ReadRGB(pal, i * 3);
                     }
                 }
 
                 // read image data
-                fs.Seek(128, SeekOrigin.Begin);
+                stream.Seek(128, SeekOrigin.Begin);
                 int imageDataLength = (int)(imageDataEnd - 128);
                 RawData = br.ReadBytes(imageDataLength);
-                DecodeData(palette);
+                Decode();
             }
         }
 
         /// <summary>
-        /// Loads a PCX image from a file. Returns 0 on success and non-zero on failure.
+        /// Loads a PCX image from a file.
         /// </summary>
         /// <param name="filePath">The path to the file.</param>
-        /// <param name="palette">The palette of the decoded image. Defined only if return value is zero.</param>
         /// <returns></returns>
-        public void LoadPCX(string filePath, out Color[] palette)
+        public void Read(string filePath)
         {
             using (FileStream fs = File.Open(filePath, FileMode.Open))
             {
-                LoadPCX(fs, out palette);
+                Read(fs);
             }
         }
 
         /// <summary>
-        /// Loads a PCX image from an array. Returns 0 on success and non-zero on failure.
+        /// Loads a PCX image from an array.
         /// </summary>
         /// <param name="contents">The array to load from.</param>
-        /// <param name="palette">The palette of the decoded image. Defined only if return value is zero.</param>
         /// <returns></returns>
-        public void LoadPCX(byte[] contents, out Color[] palette)
+        public void Read(byte[] contents)
         {
             using (MemoryStream ms = new MemoryStream(contents))
             {
-                LoadPCX(ms, out palette);
+                Read(ms);
             }
         }
 
-        private static Color ReadRGB(byte[] block, int v)
+        private void WriteRGB(BinaryWriter bw, Color clr)
         {
-            return new Color(255, block[v], block[v + 1], block[v + 2]);
+            bw.Write((byte)clr.R);
+            bw.Write((byte)clr.G);
+            bw.Write((byte)clr.B);
+        }
+
+        /// <summary>
+        /// Writes this PCX image into a stream.
+        /// </summary>
+        /// <param name="stream">The stream to write into.</param>
+        /// <param name="encode">Whether to re-encode Data into RawData. Set to true if Data modified and false if RawData modified.</param>
+        public void Write(Stream stream, bool encode = true)
+        {
+            if (encode)
+                Encode();
+
+            BinaryWriter bw = new BinaryWriter(stream);
+            bw.Write((byte)0x0A);
+            bw.Write((byte)5); // Version
+            bw.Write((byte)1); // Compression = RLE
+            bw.Write((byte)8); // 256 colors
+            bw.Write(Xmin);
+            bw.Write(Ymin);
+            bw.Write(Xmax);
+            bw.Write(Ymax);
+            bw.Write(Hdpi);
+            bw.Write(Vdpi);
+            for (int i = 0; i < 16; ++i)
+                WriteRGB(bw, Palette[i]);
+            bw.Write((byte)0); // reserved
+            bw.Write((byte)1); // 1 plane
+            bw.Write(Width); // stride
+
+            bw.Seek(128, SeekOrigin.Begin);
+            bw.Write(RawData);
+
+            bw.Write((byte)0x0c);
+            for (int i = 0; i < 256; ++i)
+                WriteRGB(bw, Palette[i]);
+        }
+
+        /// <summary>
+        /// Writes this PCX image into a file.
+        /// </summary>
+        /// <param name="filePath">The path to the file.</param>
+        /// <param name="encode">Whether to re-encode Data into RawData. Set to true if Data modified and false if RawData modified.</param>
+        public void Write(string filePath, bool encode = true)
+        {
+            using (FileStream fs = File.Open(filePath, FileMode.Create, FileAccess.ReadWrite, FileShare.None))
+            {
+                Write(fs, encode);
+            }
+        }
+
+        /// <summary>
+        /// Writes this PCX image into a byte array.
+        /// </summary>
+        /// <param name="encode">Whether to re-encode Data into RawData. Set to true if Data modified and false if RawData modified.</param>
+        public byte[] Write(bool encode = true)
+        {
+            using (MemoryStream ms = new MemoryStream())
+            {
+                Write(ms, encode);
+                return ms.ToArray();
+            }
         }
     }
 }

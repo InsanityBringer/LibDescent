@@ -24,10 +24,22 @@ namespace LibDescent.Data
 {
     public struct Color
     {
-        public int A { get; set; }
-        public int R { get; set; }
-        public int G { get; set; }
-        public int B { get; set; }
+        /// <summary>
+        /// The alpha component of this color, between 0 (transparent) and 255 (fully opaque).
+        /// </summary>
+        public int A { get; }
+        /// <summary>
+        /// The red component of this color, between 0 and 255.
+        /// </summary>
+        public int R { get; }
+        /// <summary>
+        /// The green component of this color, between 0 and 255.
+        /// </summary>
+        public int G { get; }
+        /// <summary>
+        /// The blue component of this color, between 0 and 255.
+        /// </summary>
+        public int B { get; }
 
         public Color(int a, int r, int g, int b)
         {
@@ -35,6 +47,31 @@ namespace LibDescent.Data
             R = r;
             G = g;
             B = b;
+        }
+
+        public static bool operator==(Color me, Color other)
+        {
+            return me.A == other.A && me.R == other.R && me.G == other.G && me.B == other.B;
+        }
+
+        public static bool operator!=(Color me, Color other)
+        {
+            return me.A != other.A || me.R != other.R || me.G != other.G || me.B != other.B;
+        }
+
+        public override bool Equals(object obj)
+        {
+            return obj is Color c && c == this;
+        }
+
+        public override int GetHashCode()
+        {
+            return (A.GetHashCode() << 24) + (R.GetHashCode() << 16) + (G.GetHashCode() << 8) + B.GetHashCode();
+        }
+
+        public override string ToString()
+        {
+            return base.ToString() + $"({A}, {R}, {G}, {B})";
         }
     }
 }
