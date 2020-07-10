@@ -75,6 +75,7 @@ namespace LibDescent.Data
             Hdpi = 320;
             Vdpi = 200;
             NPlanes = 1;
+            Palette = GetDefaultPalette();
             RawData = new byte[0];
             Data = new byte[width * height];
         }
@@ -189,6 +190,8 @@ namespace LibDescent.Data
 
         private void EncodeRun(BinaryWriter bw, byte runByte, int length)
         {
+            if (length == 0)
+                return;
             if (length == 1 && runByte < 192)
             {
                 bw.Write(runByte);
@@ -202,12 +205,11 @@ namespace LibDescent.Data
         private void EncodeLine(BinaryWriter bw, int offset, int length)
         {
             // find and detect runs
-            int i;
-            int runLength = 1;
-            byte runByte = Data[i = offset];
+            int runLength = 0;
+            byte runByte = 0;
             byte nextByte;
             
-            for (; i < offset + length; ++i)
+            for (int i = offset; i < offset + length; ++i)
             {
                 nextByte = Data[i];
 
@@ -291,7 +293,7 @@ namespace LibDescent.Data
                 {
                     // has ext palette
                     byte[] pal = br.ReadBytes(768);
-                    for (int i = 0; i < 255; ++i)
+                    for (int i = 0; i < 256; ++i)
                     {
                         Palette[i] = ReadRGB(pal, i * 3);
                     }
@@ -309,7 +311,6 @@ namespace LibDescent.Data
         /// Loads a PCX image from a file.
         /// </summary>
         /// <param name="filePath">The path to the file.</param>
-        /// <param name="palette">The palette of the decoded image. Defined only if return value is zero.</param>
         /// <returns></returns>
         public void Read(string filePath)
         {
@@ -323,7 +324,6 @@ namespace LibDescent.Data
         /// Loads a PCX image from an array.
         /// </summary>
         /// <param name="contents">The array to load from.</param>
-        /// <param name="palette">The palette of the decoded image. Defined only if return value is zero.</param>
         /// <returns></returns>
         public void Read(byte[] contents)
         {

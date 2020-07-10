@@ -216,7 +216,9 @@ namespace LibDescent.Data
                                 if (rowPixels < 0)
                                     ++i; // pad
                             }
-                            else                    // 257-N (2-129) repeating bytes (run)
+                            else if (rleByte == 128)
+                                break;
+                            else                    // 257-N (2-128) repeating bytes (run)
                             {
                                 runLength = 257 - rleByte;
                                 rowPixels -= runLength;
@@ -357,6 +359,7 @@ namespace LibDescent.Data
             bw.Write((short)200); // page height
 
             bw.Write(Encoding.ASCII.GetBytes("CMAP"));
+            bw.Write(768);
             for (int i = 0; i < Palette.Length; ++i)
             {
                 bw.Write((byte)Palette[i].R);
@@ -365,6 +368,7 @@ namespace LibDescent.Data
             }
 
             bw.Write(Encoding.ASCII.GetBytes("BODY"));
+            bw.Write(((Width + 1) & ~1) * Height);
             int p = 0;
             for (int y = 0; y < Height; ++y)
             {
@@ -376,7 +380,7 @@ namespace LibDescent.Data
 
             long size = bw.BaseStream.Position;
             bw.BaseStream.Position = sizePos;
-            bw.Write((int)size);
+            bw.Write((int)size - 8);
         }
 
         /// <summary>

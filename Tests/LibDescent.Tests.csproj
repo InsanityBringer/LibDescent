@@ -7,6 +7,8 @@
   </PropertyGroup>
 
   <ItemGroup>
+    <None Remove="carpet.bbm" />
+    <None Remove="carpet.pcx" />
     <None Remove="d2x-xl.hog" />
     <None Remove="DefaultSegment.xml" />
     <None Remove="fusfrens.rdl" />
@@ -18,6 +20,8 @@
   </ItemGroup>
 
   <ItemGroup>
+    <EmbeddedResource Include="carpet.bbm" />
+    <EmbeddedResource Include="carpet.pcx" />
     <EmbeddedResource Include="d2x-xl.hog" />
     <EmbeddedResource Include="DefaultSegment.xml" />
     <EmbeddedResource Include="fusfrens.rdl" />

@@ -68,5 +68,10 @@ namespace LibDescent.Data
         {
             return (A.GetHashCode() << 24) + (R.GetHashCode() << 16) + (G.GetHashCode() << 8) + B.GetHashCode();
         }
+
+        public override string ToString()
+        {
+            return base.ToString() + $"({A}, {R}, {G}, {B})";
+        }
     }
 }
