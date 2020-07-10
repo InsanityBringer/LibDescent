@@ -66,7 +66,7 @@ namespace LibDescent.Data
 
         public override int GetHashCode()
         {
-            return A.GetHashCode() * 792689 + R.GetHashCode() * 8581 + G.GetHashCode() * 23 + B.GetHashCode();
+            return (A.GetHashCode() << 24) + (R.GetHashCode() << 16) + (G.GetHashCode() << 8) + B.GetHashCode();
         }
     }
 }

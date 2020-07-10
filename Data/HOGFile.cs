@@ -64,6 +64,11 @@ namespace LibDescent.Data
         /// </summary>
         public ICollection<HOGLump> Lumps { get { return lumps; } }
 
+        // mutexes/locks. acquiring order: hogFileLock, lumpLock, lumpNameLock.
+        private readonly object hogFileLock = new object();      // used when accessing/modifying file stream
+        private readonly object lumpLock = new object();         // used when accessing/modifying lump list
+        private readonly object lumpNameLock = new object();     // used when accessing/modifying lump name map
+
         public HOGFile() { }
 
         /// <summary>
@@ -100,93 +105,102 @@ namespace LibDescent.Data
         /// <param name="stream">The stream to read the HOG file from.</param>
         public void Read(Stream stream)
         {
-            BinaryReader br = new BinaryReader(stream);
-            fileStream = br;
-            lumps.Clear();
-
-            char[] header = new char[3];
-            header[0] = (char)br.ReadByte();
-            header[1] = (char)br.ReadByte();
-            header[2] = (char)br.ReadByte();
-
-            var headerString = new string(header);
-            switch (headerString)
+            lock (hogFileLock)
+            lock (lumpLock)
+            lock (lumpNameLock)
             {
-                case "DHF":
-                    Format = HOGFormat.Standard;
-                    break;
-                case "D2X":
-                    Format = HOGFormat.D2X_XL;
-                    break;
-                default:
-                    throw new InvalidDataException($"Unrecognized HOG header \"{headerString}\"");
-            }
+                BinaryReader br = new BinaryReader(stream);
+                fileStream = br;
+                lumps.Clear();
 
-            try
-            {
-                while (true)
+                char[] header = new char[3];
+                header[0] = (char)br.ReadByte();
+                header[1] = (char)br.ReadByte();
+                header[2] = (char)br.ReadByte();
+
+                var headerString = new string(header);
+                switch (headerString)
                 {
-                    char[] filenamedata = new char[13];
-                    bool hashitnull = false;
-                    for (int x = 0; x < 13; x++)
-                    {
-                        char c = (char)br.ReadByte();
-                        if (c == 0)
-                        {
-                            hashitnull = true;
-                        }
-                        if (!hashitnull)
-                        {
-                            filenamedata[x] = c;
-                        }
-                    }
-                    string filename = new string(filenamedata);
-                    filename = filename.Trim(' ', '\0');
-                    int filesize = br.ReadInt32();
-                    if (Format == HOGFormat.D2X_XL && filesize < 0)
-                    {
-                        // D2X-XL format encodes "extended" lump headers with negative file sizes
-                        filesize = -filesize;
-
-                        string longFilename = Encoding.ASCII.GetString(br.ReadBytes(256));
-                        if (longFilename.Contains("\0"))
-                        {
-                            longFilename = longFilename.Remove(longFilename.IndexOf('\0'));
-                        }
-                        longFilename = longFilename.Trim(' ');
-                        // No real reason to use short filename in this instance; just replace it
-                        filename = longFilename;
-                    }
-                    int offset = (int)br.BaseStream.Position;
-                    br.BaseStream.Seek(filesize, SeekOrigin.Current); //I hate hog files. Wads are cooler..
-
-                    HOGLump lump = new HOGLump(filename, filesize, offset);
-                    lumps.Add(lump);
+                    case "DHF":
+                        Format = HOGFormat.Standard;
+                        break;
+                    case "D2X":
+                        Format = HOGFormat.D2X_XL;
+                        break;
+                    default:
+                        throw new InvalidDataException($"Unrecognized HOG header \"{headerString}\"");
                 }
-            }
-            catch (EndOfStreamException)
-            {
-                //we got all the files
-                //heh
-                //i love hog
-                byte[] data;
-                for (int i = 0; i < NumLumps; i++)
+
+                try
                 {
-                    data = GetLumpData(i);
-                    lumps[i].Type = HOGLump.IdentifyLump(lumps[i].Name, data);
+                    while (true)
+                    {
+                        char[] filenamedata = new char[13];
+                        bool hashitnull = false;
+                        for (int x = 0; x < 13; x++)
+                        {
+                            char c = (char)br.ReadByte();
+                            if (c == 0)
+                            {
+                                hashitnull = true;
+                            }
+                            if (!hashitnull)
+                            {
+                                filenamedata[x] = c;
+                            }
+                        }
+                        string filename = new string(filenamedata);
+                        filename = filename.Trim(' ', '\0');
+                        int filesize = br.ReadInt32();
+                        if (Format == HOGFormat.D2X_XL && filesize < 0)
+                        {
+                            // D2X-XL format encodes "extended" lump headers with negative file sizes
+                            filesize = -filesize;
+
+                            string longFilename = Encoding.ASCII.GetString(br.ReadBytes(256));
+                            if (longFilename.Contains("\0"))
+                            {
+                                longFilename = longFilename.Remove(longFilename.IndexOf('\0'));
+                            }
+                            longFilename = longFilename.Trim(' ');
+                            // No real reason to use short filename in this instance; just replace it
+                            filename = longFilename;
+                        }
+                        int offset = (int)br.BaseStream.Position;
+                        br.BaseStream.Seek(filesize, SeekOrigin.Current); //I hate hog files. Wads are cooler..
+
+                        HOGLump lump = new HOGLump(filename, filesize, offset);
+                        lumps.Add(lump);
+                    }
+                }
+                catch (EndOfStreamException)
+                {
+                    //we got all the files
+                    //heh
+                    //i love hog
+                    byte[] data;
+                    for (int i = 0; i < NumLumps; i++)
+                    {
+                        data = GetLumpData(i);
+                        lumps[i].Type = HOGLump.IdentifyLump(lumps[i].Name, data);
+                    }
                 }
             }
         }
 
         private void RebuildLumpNameMap()
         {
-            lumpNameMap = new Dictionary<string, int>(StringComparer.InvariantCultureIgnoreCase);
-            for (int i = 0; i < NumLumps; i++)
+            lock (lumpLock)
+            lock (lumpNameLock)
             {
-                // In case of duplicates, first entry takes precedence
-                if (!lumpNameMap.ContainsKey(lumps[i].Name))
+                lumpNameMap = new Dictionary<string, int>(StringComparer.InvariantCultureIgnoreCase);
+                for (int i = 0; i < NumLumps; i++)
                 {
-                    lumpNameMap[lumps[i].Name] = i;
+                    // In case of duplicates, first entry takes precedence
+                    if (!lumpNameMap.ContainsKey(lumps[i].Name))
+                    {
+                        lumpNameMap[lumps[i].Name] = i;
+                    }
                 }
             }
         }
@@ -210,32 +224,35 @@ namespace LibDescent.Data
         /// <param name="filename">The filename to write the HOG file to.</param>
         public void Write(string filename)
         {
-            string tempFilename = Path.ChangeExtension(filename, ".newtmp");
-            using (var stream = File.Open(tempFilename, FileMode.Create, FileAccess.ReadWrite, FileShare.None))
+            lock (hogFileLock)
             {
-                Write(stream);
-            }
-
-            //Dispose of the old stream, and open up the new file as the read stream
-            fileStream.Close();
-            fileStream.Dispose();
-
-            if (File.Exists(filename))
-            {
-                try
+                string tempFilename = Path.ChangeExtension(filename, ".newtmp");
+                using (var stream = File.Open(tempFilename, FileMode.Create, FileAccess.ReadWrite, FileShare.None))
                 {
-                    File.Delete(filename);
+                    Write(stream);
                 }
-                catch (Exception exc) //Can't delete the old file for whatever reason...
-                {
-                    File.Delete(tempFilename); //Delete the temp file then...
-                    throw exc;
-                }
-            }
-            File.Move(tempFilename, filename);
 
-            fileStream = new BinaryReader(File.Open(filename, FileMode.Open, FileAccess.Read, FileShare.Read));
-            Filename = filename;
+                //Dispose of the old stream, and open up the new file as the read stream
+                fileStream.Close();
+                fileStream.Dispose();
+
+                if (File.Exists(filename))
+                {
+                    try
+                    {
+                        File.Delete(filename);
+                    }
+                    catch (Exception exc) //Can't delete the old file for whatever reason...
+                    {
+                        File.Delete(tempFilename); //Delete the temp file then...
+                        throw exc;
+                    }
+                }
+                File.Move(tempFilename, filename);
+
+                fileStream = new BinaryReader(File.Open(filename, FileMode.Open, FileAccess.Read, FileShare.Read));
+                Filename = filename;
+            }
         }
 
         /// <summary>
@@ -244,48 +261,53 @@ namespace LibDescent.Data
         /// <param name="stream">The stream to write the HOG file to.</param>
         public void Write(Stream stream)
         {
-            BinaryWriter bw = new BinaryWriter(stream, Encoding.Default, true);
-
-            string headerString = (Format == HOGFormat.Standard) ? "DHF" : "D2X";
-            foreach (char character in headerString)
+            lock (hogFileLock)
+            lock (lumpLock)
+            lock (lumpNameLock)
             {
-                bw.Write((byte)character);
-            }
+                BinaryWriter bw = new BinaryWriter(stream, Encoding.Default, true);
 
-            HOGLump lump;
-            for (int i = 0; i < lumps.Count; i++)
-            {
-                lump = lumps[i];
-                for (int c = 0; c < 13; c++)
+                string headerString = (Format == HOGFormat.Standard) ? "DHF" : "D2X";
+                foreach (char character in headerString)
                 {
-                    if (c < lump.Name.Length)
-                        bw.Write((byte)lump.Name[c]);
-                    else
-                        bw.Write((byte)0);
+                    bw.Write((byte)character);
                 }
-                if (Format == HOGFormat.Standard || lump.Name.Length <= 13)
+
+                HOGLump lump;
+                for (int i = 0; i < lumps.Count; i++)
                 {
-                    bw.Write(lump.Size);
+                    lump = lumps[i];
+                    for (int c = 0; c < 13; c++)
+                    {
+                        if (c < lump.Name.Length)
+                            bw.Write((byte)lump.Name[c]);
+                        else
+                            bw.Write((byte)0);
+                    }
+                    if (Format == HOGFormat.Standard || lump.Name.Length <= 13)
+                    {
+                        bw.Write(lump.Size);
+                    }
+                    else // D2X-XL with long filename
+                    {
+                        bw.Write(-lump.Size);
+                        var longFilenameBuffer = new byte[256]; // automatically zero-initialized
+                        // Cut off the last character if needed to ensure null-termination
+                        Encoding.ASCII.GetBytes(lump.Name.Substring(0, Math.Min(lump.Name.Length, 255)))
+                            .CopyTo(longFilenameBuffer, 0);
+                        bw.Write(longFilenameBuffer);
+                    }
+                    if (lump.Offset == -1) //This lump has cached data
+                        bw.Write(lump.Data);
+                    else //This lump doesn't have cached data, and instead needs to be read from the old stream
+                    {
+                        byte[] data = GetLumpData(i);
+                        bw.Write(data);
+                    }
+                    lump.Offset = (int)bw.BaseStream.Position - lump.Size; //Update the offset for the new file
                 }
-                else // D2X-XL with long filename
-                {
-                    bw.Write(-lump.Size);
-                    var longFilenameBuffer = new byte[256]; // automatically zero-initialized
-                    // Cut off the last character if needed to ensure null-termination
-                    Encoding.ASCII.GetBytes(lump.Name.Substring(0, Math.Min(lump.Name.Length, 255)))
-                        .CopyTo(longFilenameBuffer, 0);
-                    bw.Write(longFilenameBuffer);
-                }
-                if (lump.Offset == -1) //This lump has cached data
-                    bw.Write(lump.Data);
-                else //This lump doesn't have cached data, and instead needs to be read from the old stream
-                {
-                    byte[] data = GetLumpData(i);
-                    bw.Write(data);
-                }
-                lump.Offset = (int)bw.BaseStream.Position - lump.Size; //Update the offset for the new file
+                bw.Flush();
             }
-            bw.Flush();
         }
 
         /// <summary>
@@ -295,15 +317,19 @@ namespace LibDescent.Data
         /// <returns>The number of the lump if it exists, or -1 if it does not exist.</returns>
         public int GetLumpNum(string filename)
         {
-            if (lumpNameMap == null)
+            lock (lumpLock)
+            lock (lumpNameLock)
             {
-                RebuildLumpNameMap();
+                if (lumpNameMap == null)
+                {
+                    RebuildLumpNameMap();
+                }
+                if (!lumpNameMap.TryGetValue(filename, out int index))
+                {
+                    return -1;
+                }
+                return index;
             }
-            if (!lumpNameMap.TryGetValue(filename, out int index))
-            {
-                return -1;
-            }
-            return index;
         }
 
         /// <summary>
@@ -313,8 +339,11 @@ namespace LibDescent.Data
         /// <returns>The lump header.</returns>
         public HOGLump GetLumpHeader(int id)
         {
-            if (id < 0 || id >= lumps.Count) return null;
-            return lumps[id];
+            lock (lumpLock)
+            {
+                if (id < 0 || id >= lumps.Count) return null;
+                return lumps[id];
+            }
         }
 
         /// <summary>
@@ -334,12 +363,16 @@ namespace LibDescent.Data
         /// <returns>A byte[] array of the lump's data.</returns>
         public byte[] GetLumpData(int id)
         {
-            if (id < 0 || id >= lumps.Count) return null;
-            if (lumps[id].Data != null)
-                return lumps[id].Data;
+            lock (hogFileLock)
+            lock (lumpLock)
+            {
+                if (id < 0 || id >= lumps.Count) return null;
+                if (lumps[id].Data != null)
+                    return lumps[id].Data;
 
-            fileStream.BaseStream.Seek(lumps[id].Offset, SeekOrigin.Begin);
-            return fileStream.ReadBytes(lumps[id].Size);
+                fileStream.BaseStream.Seek(lumps[id].Offset, SeekOrigin.Begin);
+                return fileStream.ReadBytes(lumps[id].Size);
+            }
         }
 
         /// <summary>
@@ -359,9 +392,12 @@ namespace LibDescent.Data
         /// <returns>A stream containing the lump's data.</returns>
         public Stream GetLumpAsStream(int id)
         {
-            if (id < 0 || id >= lumps.Count) return null;
-            byte[] data = GetLumpData(id);
-            return new MemoryStream(data);
+            lock (lumpLock)
+            {
+                if (id < 0 || id >= lumps.Count) return null;
+                byte[] data = GetLumpData(id);
+                return new MemoryStream(data);
+            }
         }
 
         /// <summary>
@@ -380,10 +416,14 @@ namespace LibDescent.Data
         /// <param name="lump">The lump to add.</param>
         public void AddLump(HOGLump lump)
         {
-            lumps.Add(lump);
-            if (lumpNameMap != null && !lumpNameMap.ContainsKey(lump.Name))
+            lock (lumpLock)
             {
-                lumpNameMap[lump.Name] = lumps.Count - 1;
+                lumps.Add(lump);
+                if (lumpNameMap != null && !lumpNameMap.ContainsKey(lump.Name))
+                {
+                    lock (lumpNameLock)
+                        lumpNameMap[lump.Name] = lumps.Count - 1;
+                }
             }
         }
 
@@ -395,10 +435,13 @@ namespace LibDescent.Data
         /// <param name="lump">The lump to add.</param>
         public void ReplaceLump(HOGLump lump)
         {
-            int lumpNum = GetLumpNum(lump.Name);
-            if (lumpNum >= 0)
-                lumps.RemoveAt(lumpNum);
-            AddLump(lump);
+            lock (lumpLock)
+            {
+                int lumpNum = GetLumpNum(lump.Name);
+                if (lumpNum >= 0)
+                    lumps.RemoveAt(lumpNum);
+                AddLump(lump);
+            }
         }
 
         /// <summary>
@@ -408,10 +451,14 @@ namespace LibDescent.Data
         /// <param name="index">The index to add at.</param>
         public void AddLumpAt(HOGLump lump, int index)
         {
-            lumps.Insert(index, lump);
-            //For now, invalidate the lump map when adding a lump at a given location
-            //since otherwise the old indicies would be messed up.
-            lumpNameMap = null;
+            lock (lumpLock)
+            {
+                lumps.Insert(index, lump);
+                //For now, invalidate the lump map when adding a lump at a given location
+                //since otherwise the old indicies would be messed up.
+                lock (lumpNameLock)
+                    lumpNameMap = null;
+            }
         }
 
         /// <summary>
@@ -442,12 +489,16 @@ namespace LibDescent.Data
         /// <param name="id">The number of the lump to delete.</param>
         public void DeleteLump(int id)
         {
-            lumps.RemoveAt(id);
+            lock (lumpLock)
+            {
+                lumps.RemoveAt(id);
 
-            // We need to rebuild lumpNameDirectory because the indices may have all changed
-            // Do this on-demand (makes multiple deletions faster, especially if the index
-            // isn't being used)
-            lumpNameMap = null;
+                // We need to rebuild lumpNameDirectory because the indices may have all changed
+                // Do this on-demand (makes multiple deletions faster, especially if the index
+                // isn't being used)
+                lock (lumpNameLock)
+                    lumpNameMap = null;
+            }
         }
 
         /// <summary>
@@ -458,16 +509,6 @@ namespace LibDescent.Data
         public bool ContainsFile(string name)
         {
             return GetLumpNum(name) >= 0;
-        }
-
-        /// <summary>
-        /// Gets the contents of the given file name within the .HOG.
-        /// </summary>
-        /// <param name="name">The file name.</param>
-        /// <returns>Data as a byte array, or null if the file is not found.</returns>
-        public byte[] GetFileData(string name)
-        {
-            return GetLumpData(GetLumpNum(name));
         }
 
         /// <summary>

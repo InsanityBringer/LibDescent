@@ -80,7 +80,7 @@ namespace LibDescent.Data
             if (Mask != 0 && Mask != 2)
                 throw new ArgumentException("only supported Mask values are 0 and 2");
             if (Compression != 0 && Compression != 1)
-                throw new ArgumentException("only supported Compression valus are 0 and 1");
+                throw new ArgumentException("only supported Compression values are 0 and 1");
 
             for (int i = 0; i < Palette.Length; ++i)
                 Palette[i] = new Color(Mask == 2 && i == TransparentColor ? 0 : 255, Palette[i].R, Palette[i].G, Palette[i].B);
@@ -93,34 +93,52 @@ namespace LibDescent.Data
                 Palette[i] = new Color(Palette[i].A, br.ReadByte(), br.ReadByte(), br.ReadByte());
         }
 
+        /// <summary>
+        /// Gets the image data as RGB (B8G8R8).
+        /// </summary>
+        /// <returns>The image data as 24-bit RGB.</returns>
+        public byte[] GetRGBData()
+        {
+            byte[] result = new byte[Data.Length * 3];
+            Color clr;
+            int p = 0;
+            for (int i = 0; i < Data.Length; ++i)
+            {
+                clr = Palette[Data[i]];
+                result[p++] = (byte)clr.B;
+                result[p++] = (byte)clr.G;
+                result[p++] = (byte)clr.R;
+            }
+            return result;
+        }
+
         private void ConvertILBMToPBM()
         {
             byte[] newData = new byte[Width * Height];
             int dst = 0;
             int rowSz = ((Width + 15) >> 3) & ~1;
-            int row, rowoff;
-            byte checkmask, newbyte, setbit;
+            int row, rowOff;
+            byte mask, planar;
 
             for (int y = 0; y < Height; ++y)
             {
                 row = y * rowSz * NumPlanes;
-                checkmask = 0x80;
+                mask = 0x80;
                 for (int x = 0; x < Width; ++x)
                 {
-                    rowoff = x >> 3;
-                    newbyte = 0;
-                    setbit = 1;
+                    rowOff = x >> 3;
+                    planar = 0;
 
                     for (int p = 0; p < NumPlanes; ++p)
                     {
-                        if ((Data[row + rowSz * p + rowoff] & checkmask) != 0)
-                            newbyte |= setbit;
-                        setbit <<= 1;
+                        planar >>= 1;
+                        if ((Data[row + rowSz * p + rowOff] & mask) != 0)
+                            planar |= 0x80;
                     }
 
-                    newData[dst++] = newbyte;
-                    if ((checkmask >>= 1) == 0)
-                        checkmask = 0x80;
+                    newData[dst++] = planar;
+                    if ((mask >>= 1) == 0)
+                        mask = 0x80;
                 }
             }
 
@@ -144,9 +162,10 @@ namespace LibDescent.Data
                     return;
             }
 
-            byte[] rawData = br.ReadBytes((int)length);
-            if (rawData.Length < length)
+            byte[] inData = br.ReadBytes((int)length);
+            if (inData.Length < length)
                 throw new EndOfStreamException();
+            Data = new byte[Width * Height];
 
             // read offset, write offset
             int i = 0, j = 0;
@@ -158,7 +177,7 @@ namespace LibDescent.Data
                         for (int y = 0; y < Height; ++y)
                         {
                             for (int n = 0; n < stride * depth; ++n)
-                                Data[j++] = rawData[i++];
+                                Data[j++] = inData[i++];
                             if ((Mask & 1) != 0)
                                 i += stride;
                             i += (stride & 1); // pad
@@ -167,49 +186,48 @@ namespace LibDescent.Data
                     break;
                 case 1: // RLE
                     {
-                        int n, nn, end_cnt = -(stride & 1);
-                        byte tmp;
-                        for (int wid_cnt = stride, plane = 0;
-                            i < rawData.Length && j < Data.Length; )
+                        int rowPixelsEnd = -(stride & 1), runLength;
+                        byte rleByte, runByte;
+                        for (int rowPixels = stride, plane = 0; i < inData.Length && j < Data.Length; )
                         {
-                            if (wid_cnt == end_cnt)
+                            if (rowPixels == rowPixelsEnd)
                             {
-                                wid_cnt = stride;
+                                rowPixels = stride;
                                 ++plane;
                                 if (((Mask & 1) != 0 && plane == depth + 1)
                                         || ((Mask & 1) == 0 && plane == depth))
                                     plane = 0;
                             }
 
-                            n = rawData[i++];
-                            if (n < 128)        // N+1 (1-128) uncompressed bytes
+                            rleByte = inData[i++];
+                            if (rleByte < 128)      // N+1 (1-128) uncompressed bytes
                             {
-                                nn = n + 1;
-                                wid_cnt -= nn;
-                                if (wid_cnt < 0)
-                                    --nn;
-
-                                if (plane == depth)
-                                    i += nn;
-                                else
-                                    for (int k = 0; k < nn; ++k)
-                                        Data[j++] = rawData[i++];
-
-                                if (wid_cnt < 0)
-                                    ++i; // pad
-                            }
-                            else                // 257-N (2-129) repeating bytes (run)
-                            {
-                                nn = 257 - n;
-                                wid_cnt -= nn;
-                                if (wid_cnt < 0)
-                                    --nn;
-
-                                tmp = rawData[i++];
+                                runLength = rleByte + 1;
+                                rowPixels -= runLength;
+                                if (rowPixels < 0)
+                                    --runLength;
 
                                 if (plane != depth)
-                                    for (int k = 0; k < nn; ++k)
-                                        Data[j++] = tmp;
+                                    for (int k = 0; k < runLength; ++k)
+                                        Data[j++] = inData[i++];
+                                else
+                                    i += runLength;
+
+                                if (rowPixels < 0)
+                                    ++i; // pad
+                            }
+                            else                    // 257-N (2-129) repeating bytes (run)
+                            {
+                                runLength = 257 - rleByte;
+                                rowPixels -= runLength;
+                                if (rowPixels < 0)
+                                    --runLength;
+
+                                runByte = inData[i++];
+
+                                if (plane != depth)
+                                    for (int k = 0; k < runLength; ++k)
+                                        Data[j++] = runByte;
                             }
                         }
                     }
@@ -223,13 +241,13 @@ namespace LibDescent.Data
         /// <summary>
         /// Loads a BBM image from a stream.
         /// </summary>
-        /// <param name="fs">The stream to load from.</param>
+        /// <param name="stream">The stream to load from.</param>
         /// <returns></returns>
-        public void Read(Stream fs)
+        public void Read(Stream stream)
         {
-            using (BinaryReaderBE br = new BinaryReaderBE(fs))
+            using (BinaryReaderBE br = new BinaryReaderBE(stream))
             {
-                fs.Seek(0, SeekOrigin.Begin);
+                stream.Seek(0, SeekOrigin.Begin);
                 if (Encoding.ASCII.GetString(br.ReadBytes(4)) != "FORM")
                     throw new ArgumentException("Not a valid .BBM");
                 int dataSize = br.ReadInt32();
@@ -265,7 +283,7 @@ namespace LibDescent.Data
                             {
                                 ReadBODY(br, lenChunk);
                             }
-                            catch (IndexOutOfRangeException ex)
+                            catch (IndexOutOfRangeException)
                             {
                                 throw new EndOfStreamException();
                             }
@@ -309,6 +327,79 @@ namespace LibDescent.Data
             using (MemoryStream ms = new MemoryStream(contents))
             {
                 Read(ms);
+            }
+        }
+
+        /// <summary>
+        /// Writes this BBM image into a stream.
+        /// </summary>
+        /// <param name="stream">The stream to write into.</param>
+        public void Write(Stream stream)
+        {
+            BinaryWriterBE bw = new BinaryWriterBE(stream);
+            bw.Write(Encoding.ASCII.GetBytes("FORM"));
+            long sizePos = bw.BaseStream.Position;
+            bw.Write((int)0);
+            bw.Write(Encoding.ASCII.GetBytes("PBM "));
+
+            bw.Write(Encoding.ASCII.GetBytes("BMHD"));
+            bw.Write(20); // BMHD length
+            bw.Write(Width);
+            bw.Write(Height);
+            bw.Write(0); // origin (0, 0)
+            bw.Write(NumPlanes);
+            bw.Write(Mask);
+            bw.Write(Compression);
+            bw.Write((byte)0); // pad
+            bw.Write(TransparentColor);
+            bw.Write((short)0x0506); // aspect ratio
+            bw.Write((short)320); // page width
+            bw.Write((short)200); // page height
+
+            bw.Write(Encoding.ASCII.GetBytes("CMAP"));
+            for (int i = 0; i < Palette.Length; ++i)
+            {
+                bw.Write((byte)Palette[i].R);
+                bw.Write((byte)Palette[i].G);
+                bw.Write((byte)Palette[i].B);
+            }
+
+            bw.Write(Encoding.ASCII.GetBytes("BODY"));
+            int p = 0;
+            for (int y = 0; y < Height; ++y)
+            {
+                for (int x = 0; x < Width; ++x)
+                    bw.Write(Data[p++]);
+                if ((Width & 1) != 0)
+                    bw.Write((byte)0);
+            }
+
+            long size = bw.BaseStream.Position;
+            bw.BaseStream.Position = sizePos;
+            bw.Write((int)size);
+        }
+
+        /// <summary>
+        /// Writes this BBM image into a file.
+        /// </summary>
+        /// <param name="filePath">The path to the file.</param>
+        public void Write(string filePath)
+        {
+            using (FileStream fs = File.Open(filePath, FileMode.Create, FileAccess.ReadWrite, FileShare.None))
+            {
+                Write(fs);
+            }
+        }
+
+        /// <summary>
+        /// Writes this BBM image into a byte array.
+        /// </summary>
+        public byte[] Write()
+        {
+            using (MemoryStream ms = new MemoryStream())
+            {
+                Write(ms);
+                return ms.ToArray();
             }
         }
     }
