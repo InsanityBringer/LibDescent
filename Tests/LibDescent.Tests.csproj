@@ -7,6 +7,7 @@
   </PropertyGroup>
 
   <ItemGroup>
+    <None Remove="Bass_sample.mid" />
     <None Remove="carpet.bbm" />
     <None Remove="carpet.pcx" />
     <None Remove="d2x-xl.hog" />
@@ -20,6 +21,7 @@
   </ItemGroup>
 
   <ItemGroup>
+    <EmbeddedResource Include="Bass_sample.mid" />
     <EmbeddedResource Include="carpet.bbm" />
     <EmbeddedResource Include="carpet.pcx" />
     <EmbeddedResource Include="d2x-xl.hog" />
