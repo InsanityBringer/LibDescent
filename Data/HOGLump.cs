@@ -116,6 +116,10 @@ namespace LibDescent.Data
         /// *.OGG music file, providing digital audio to serve as music in custom missions.
         /// </summary>
         OGGMusic, //*.OGG music, only used in custom missions (no detection so far)
+        /// <summary>
+        /// *.LGT map of custom brightness valuee for textures, used in D2X-XL.
+        /// </summary>
+        LGTMap, //*.LGT; data for custom lights for D2X-XL
     }
 
     public class HOGLump
@@ -174,7 +178,8 @@ namespace LibDescent.Data
             if (IsDigitalBank(data)) return LumpType.DigitalBank;
             string ext = (name.IndexOf('.') >= 0) ? name.Substring(name.IndexOf('.')) : "";
             if (ext.Equals(".raw", StringComparison.OrdinalIgnoreCase)) return LumpType.RawSound;
-            if (ext.Equals(".clr", StringComparison.OrdinalIgnoreCase) && (data.Length % 13) == 0) return LumpType.CLRMap;
+            if (ext.Equals(".clr", StringComparison.OrdinalIgnoreCase) && data.Length == 11830) return LumpType.CLRMap;
+            if (ext.Equals(".lgt", StringComparison.OrdinalIgnoreCase) && data.Length == 3640) return LumpType.LGTMap;
             if (IsText(data))
             {
                 if (ext.Equals(".txb", StringComparison.OrdinalIgnoreCase)

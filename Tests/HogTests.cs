@@ -278,14 +278,14 @@ namespace LibDescent.Tests
             Assert.AreEqual("level1.lgt", lumpHeader.Name);
             Assert.AreEqual(76604, lumpHeader.Offset);
             Assert.AreEqual(3640, lumpHeader.Size);
-            Assert.AreEqual(LumpType.Unknown, lumpHeader.Type);
+            Assert.AreEqual(LumpType.LGTMap, lumpHeader.Type);
 
             lumpHeader = hogFile.GetLumpHeader(5);
             Assert.NotNull(lumpHeader);
             Assert.AreEqual("level1.clr", lumpHeader.Name);
             Assert.AreEqual(80517, lumpHeader.Offset);
             Assert.AreEqual(11830, lumpHeader.Size);
-            Assert.AreEqual(LumpType.Unknown, lumpHeader.Type);
+            Assert.AreEqual(LumpType.CLRMap, lumpHeader.Type);
 
             lumpHeader = hogFile.GetLumpHeader(6);
             Assert.NotNull(lumpHeader);
@@ -299,14 +299,14 @@ namespace LibDescent.Tests
             Assert.AreEqual("level3.lgt", lumpHeader.Name);
             Assert.AreEqual(150637, lumpHeader.Offset);
             Assert.AreEqual(3640, lumpHeader.Size);
-            Assert.AreEqual(LumpType.Unknown, lumpHeader.Type);
+            Assert.AreEqual(LumpType.LGTMap, lumpHeader.Type);
 
             lumpHeader = hogFile.GetLumpHeader(8);
             Assert.NotNull(lumpHeader);
             Assert.AreEqual("level3.clr", lumpHeader.Name);
             Assert.AreEqual(154550, lumpHeader.Offset);
             Assert.AreEqual(11830, lumpHeader.Size);
-            Assert.AreEqual(LumpType.Unknown, lumpHeader.Type);
+            Assert.AreEqual(LumpType.CLRMap, lumpHeader.Type);
 
             lumpHeader = hogFile.GetLumpHeader(9);
             Assert.NotNull(lumpHeader);
@@ -320,14 +320,14 @@ namespace LibDescent.Tests
             Assert.AreEqual("level2.lgt", lumpHeader.Name);
             Assert.AreEqual(276534, lumpHeader.Offset);
             Assert.AreEqual(3640, lumpHeader.Size);
-            Assert.AreEqual(LumpType.Unknown, lumpHeader.Type);
+            Assert.AreEqual(LumpType.LGTMap, lumpHeader.Type);
 
             lumpHeader = hogFile.GetLumpHeader(11);
             Assert.NotNull(lumpHeader);
             Assert.AreEqual("level2.clr", lumpHeader.Name);
             Assert.AreEqual(280447, lumpHeader.Offset);
             Assert.AreEqual(11830, lumpHeader.Size);
-            Assert.AreEqual(LumpType.Unknown, lumpHeader.Type);
+            Assert.AreEqual(LumpType.CLRMap, lumpHeader.Type);
         }
 
         [Test]
