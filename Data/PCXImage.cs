@@ -53,13 +53,11 @@ namespace LibDescent.Data
         /// </summary>
         public byte NPlanes;
         /// <summary>
-        /// The original image data, compressed with RLE.
-        /// </summary>
-        public byte[] RawData;
-        /// <summary>
         /// The decoded image data with one byte per pixel.
         /// </summary>
         public byte[] Data;
+
+        public byte[] rawData;
 
         public PCXImage() : this(0, 0) { }
 
@@ -76,7 +74,7 @@ namespace LibDescent.Data
             Vdpi = 200;
             NPlanes = 1;
             Palette = GetDefaultPalette();
-            RawData = new byte[0];
+            rawData = new byte[0];
             Data = new byte[width * height];
         }
 
@@ -157,12 +155,9 @@ namespace LibDescent.Data
             //BytesPerLine = BitConverter.ToInt16(block, 66);
         }
 
-        /// <summary>
-        /// Generates Data from the current contents of RawData, decompressing RLE into 8bpp in Data.
-        /// </summary>
-        public void Decode()
+        private void Decode()
         {
-            using (MemoryStream ms = new MemoryStream(RawData))
+            using (MemoryStream ms = new MemoryStream(rawData))
             using (BinaryReader br = new BinaryReader(ms))
             {
                 int pixelsRead = 0;
@@ -225,10 +220,7 @@ namespace LibDescent.Data
             EncodeRun(bw, runByte, runLength);
         }
 
-        /// <summary>
-        /// Compresses Data back into RawData as RLE.
-        /// </summary>
-        public void Encode()
+        private void Encode()
         {
             using (MemoryStream ms = new MemoryStream())
             using (BinaryWriter bw = new BinaryWriter(ms))
@@ -237,7 +229,7 @@ namespace LibDescent.Data
                 for (int y = 0; y < Height; ++y)
                     EncodeLine(bw, y * stride, stride);
 
-                RawData = ms.ToArray();
+                rawData = ms.ToArray();
             }
         }
 
@@ -302,7 +294,7 @@ namespace LibDescent.Data
                 // read image data
                 stream.Seek(128, SeekOrigin.Begin);
                 int imageDataLength = (int)(imageDataEnd - 128);
-                RawData = br.ReadBytes(imageDataLength);
+                rawData = br.ReadBytes(imageDataLength);
                 Decode();
             }
         }
@@ -344,11 +336,9 @@ namespace LibDescent.Data
         /// Writes this PCX image into a stream.
         /// </summary>
         /// <param name="stream">The stream to write into.</param>
-        /// <param name="encode">Whether to re-encode Data into RawData. Set to true if Data modified and false if RawData modified.</param>
-        public void Write(Stream stream, bool encode = true)
+        public void Write(Stream stream)
         {
-            if (encode)
-                Encode();
+            Encode();
 
             BinaryWriter bw = new BinaryWriter(stream);
             bw.Write((byte)0x0A);
@@ -368,7 +358,7 @@ namespace LibDescent.Data
             bw.Write(Width); // stride
 
             bw.Seek(128, SeekOrigin.Begin);
-            bw.Write(RawData);
+            bw.Write(rawData);
 
             bw.Write((byte)0x0c);
             for (int i = 0; i < 256; ++i)
@@ -379,24 +369,22 @@ namespace LibDescent.Data
         /// Writes this PCX image into a file.
         /// </summary>
         /// <param name="filePath">The path to the file.</param>
-        /// <param name="encode">Whether to re-encode Data into RawData. Set to true if Data modified and false if RawData modified.</param>
-        public void Write(string filePath, bool encode = true)
+        public void Write(string filePath)
         {
             using (FileStream fs = File.Open(filePath, FileMode.Create, FileAccess.ReadWrite, FileShare.None))
             {
-                Write(fs, encode);
+                Write(fs);
             }
         }
 
         /// <summary>
         /// Writes this PCX image into a byte array.
         /// </summary>
-        /// <param name="encode">Whether to re-encode Data into RawData. Set to true if Data modified and false if RawData modified.</param>
-        public byte[] Write(bool encode = true)
+        public byte[] Write()
         {
             using (MemoryStream ms = new MemoryStream())
             {
-                Write(ms, encode);
+                Write(ms);
                 return ms.ToArray();
             }
         }

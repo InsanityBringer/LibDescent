@@ -58,7 +58,7 @@ namespace LibDescent.Tests
             byte[] data;
             using (MemoryStream ms = new MemoryStream())
             {
-                pcx.Write(ms, true);
+                pcx.Write(ms);
                 data = ms.ToArray();
             }
 
