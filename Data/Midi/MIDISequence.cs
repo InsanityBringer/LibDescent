@@ -40,6 +40,11 @@ namespace LibDescent.Data.Midi
         }
 
         /// <summary>
+        /// Gets the total number of tracks in this sequence.
+        /// </summary>
+        public int TrackCount => Tracks.Count;
+
+        /// <summary>
         /// Loads a MIDI music piece from a stream.
         /// </summary>
         /// <param name="stream">The stream to load from.</param>

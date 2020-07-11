@@ -22,7 +22,7 @@ namespace LibDescent.Tests
         public void TestRead()
         {
             midi.Read(TestUtils.GetResourceStream("Bass_sample.mid"));
-            Assert.AreEqual(2, midi.Tracks.Count);
+            Assert.AreEqual(2, midi.TrackCount);
 
             int i = 0;
             List<MIDIEvent> events = new List<MIDIEvent>();
