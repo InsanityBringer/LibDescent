@@ -8,11 +8,17 @@ using System.Text;
 namespace LibDescent.Data.Midi
 {
     /// <summary>
-    /// Represents a (Standard) MIDI music track.
+    /// Represents a (Standard) MIDI sequence.
     /// </summary>
     public class MIDISequence
     {
+        /// <summary>
+        /// The MIDI format used by this sequence.
+        /// </summary>
         public MIDIFormat Format;
+        /// <summary>
+        /// The tracks contained in this sequence.
+        /// </summary>
         public List<MIDITrack> Tracks;
 
         private bool tickRateSMPTE;
@@ -20,6 +26,9 @@ namespace LibDescent.Data.Midi
         private int tickRateFrameTicks;
         private int tickRateFrames;
 
+        /// <summary>
+        /// Initializes a new instance of the MIDISequence class, representing a MIDI sequence with one track without any events.
+        /// </summary>
         public MIDISequence()
         {
             Format = MIDIFormat.Type1;
@@ -89,7 +98,7 @@ namespace LibDescent.Data.Midi
                 {
                     position += delta;
                     if (evt != null)
-                        trk.AddEvent(position, evt);
+                        trk.AddEvent(new MIDIEvent(position, evt));
                 }
             }
         }
@@ -177,7 +186,7 @@ namespace LibDescent.Data.Midi
                         case 6:
                         case 7:
                             seqlen = br.ReadVLQ();
-                            evt = new MIDIMetaMessage(metaChannel, midiMetaTypes[metaType], seqlen, br.ReadBytes(seqlen));
+                            evt = new MIDIMetaMessage(midiMetaTypes[metaType], metaChannel, br.ReadBytes(seqlen));
                             return true;
                         case 0x20:
                             if (br.ReadByte() == 1)
@@ -308,6 +317,11 @@ namespace LibDescent.Data.Midi
             return new MIDITrackDeltaEnumerator(this);
         }
 
+        /// <summary>
+        /// Gets all MIDI events that happen at a given point in time.
+        /// </summary>
+        /// <param name="time">The point in time, in ticks from the beginning of the track.</param>
+        /// <returns>The set of MIDI events occurring at that time.</returns>
         public ICollection<MIDIEvent> GetEventsAt(ulong time)
         {
             List<MIDIEvent> events = new List<MIDIEvent>();
@@ -319,6 +333,12 @@ namespace LibDescent.Data.Midi
             return events;
         }
 
+        /// <summary>
+        /// Gets all MIDI events that occur between two given points in time.
+        /// </summary>
+        /// <param name="start">The earliest time for which events should be returned.</param>
+        /// <param name="end">The latest time for which events should be returned.</param>
+        /// <returns>The set of MIDI events occurring between the two given points in time.</returns>
         public ICollection<MIDIEvent> GetEventsBetween(ulong start, ulong end)
         {
             MIDIInstant ghostStart = new MIDIInstant(start);
@@ -330,6 +350,10 @@ namespace LibDescent.Data.Midi
             return events;
         }
 
+        /// <summary>
+        /// Gets all events in this MIDI track, in order.
+        /// </summary>
+        /// <returns>The set of all MIDI events on this track.</returns>
         public ICollection<MIDIEvent> GetAllEvents()
         { 
             List<MIDIEvent> events = new List<MIDIEvent>();
@@ -339,20 +363,45 @@ namespace LibDescent.Data.Midi
             return events;
         }
 
+        /// <summary>
+        /// Gets the total number of events on this track.
+        /// </summary>
         public int EventCount => tree.Select(p => p.Messages.Count).DefaultIfEmpty(0).Sum();
 
-        public void AddEvent(ulong time, MIDIMessage evt)
+        /// <summary>
+        /// Adds a new event onto this MIDI track.
+        /// </summary>
+        /// <param name="evt">The MIDI event to add.</param>
+        public void AddEvent(MIDIEvent evt)
         {
-            if (!idict.ContainsKey(time))
+            if (!idict.ContainsKey(evt.Time))
             {
-                MIDIInstant point = new MIDIInstant(time);
+                MIDIInstant point = new MIDIInstant(evt.Time);
                 point.Messages = new List<MIDIMessage>();
-                idict[time] = point;
+                idict[evt.Time] = point;
                 tree.Add(point);
             }
-            idict[time].Messages.Add(evt);
+            idict[evt.Time].Messages.Add(evt.Data);
+        }
+        
+        /// <summary>
+        /// Removes an event from this MIDI track.
+        /// </summary>
+        /// <param name="evt">The event to remove.</param>
+        /// <returns>Whether the event was removed from this track.</returns>
+        public bool RemoveEvent(MIDIEvent evt)
+        {
+            ulong time = evt.Time;
+            if (!idict.ContainsKey(time))
+                return false;
+            return idict[time].Messages.Remove(evt.Data);
         }
 
+        /// <summary>
+        /// An enumerator that is used to iterate over all of the events in a track in order,
+        /// with the events containing the associated message and the point in time measured in
+        /// MIDI ticks from the beginning of the track.
+        /// </summary>
         public class MIDITrackEnumerator : IEnumerator<MIDIEvent>
         {
             private MIDITrack track;
@@ -397,6 +446,11 @@ namespace LibDescent.Data.Midi
             }
         }
 
+        /// <summary>
+        /// An enumerator that is used to iterate over all of the events in a track in order,
+        /// with the events containing the associated message and the point in time measured in
+        /// MIDI ticks from the last event.
+        /// </summary>
         public class MIDITrackDeltaEnumerator : IEnumerator<MIDIEventRelative>
         {
             private MIDITrack track;
@@ -540,6 +594,10 @@ namespace LibDescent.Data.Midi
     {
         public BinaryReaderMIDI(Stream stream) : base(stream) { }
 
+        /// <summary>
+        /// Reads a MIDI variable length quantity (VLQ) to the current stream and advances the stream position accordingly.
+        /// </summary>
+        /// <returns>The value that was read from the stream.</returns>
         public int ReadVLQ()
         {
             byte b;
@@ -553,6 +611,10 @@ namespace LibDescent.Data.Midi
             return r;
         }
 
+        /// <summary>
+        /// Reads a 14-bit quantity to the current stream and advances the stream position by two bytes.
+        /// </summary>
+        /// <returns>The 14-bit quantity read from the stream.</returns>
         public short ReadMidi14()
         {
             return (short)(((ReadByte() & 0x7F) << 7) | (ReadByte() & 0x7F));
@@ -568,6 +630,10 @@ namespace LibDescent.Data.Midi
 
         private byte[] vlq_buf = new byte[4];
 
+        /// <summary>
+        /// Writes a MIDI variable length quantity (VLQ) to the current stream and advances the stream position accordingly.
+        /// </summary>
+        /// <param name="v">The value to write.</param>
         public void WriteVLQ(int v)
         {
             if (v >= 0xFFFFFFF || v < 0)
@@ -584,6 +650,10 @@ namespace LibDescent.Data.Midi
             Write(vlq_buf[0]);
         }
 
+        /// <summary>
+        /// Writes a 14-bit quantity to the current stream and advances the stream position by two bytes.
+        /// </summary>
+        /// <param name="v">The value to write.</param>
         public void WriteMidi14(short v)
         {
             Write((byte)((v >> 7) & 0x7F));

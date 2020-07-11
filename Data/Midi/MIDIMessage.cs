@@ -18,6 +18,11 @@ namespace LibDescent.Data.Midi
         /// </summary>
         public int Channel { get; }
 
+        /// <summary>
+        /// Initializes a new MIDIMessage instance.
+        /// </summary>
+        /// <param name="type">The MIDI message type.</param>
+        /// <param name="channel">The channel associated with this message (0-15), or -1 if not applicable.</param>
         protected MIDIMessage(MIDIMessageType type, int channel)
         {
             Type = type;
@@ -35,10 +40,17 @@ namespace LibDescent.Data.Midi
         /// </summary>
         public int Key;
         /// <summary>
-        /// The velocity of the note (0-127), if NoteOn/NoteOff, or the pressure value (0-127) if NoteAfterttouch.
+        /// The velocity of the note (0-127), if NoteOn/NoteOff, or the pressure value (0-127) if NoteAftertouch.
         /// </summary>
         public int Velocity;
 
+        /// <summary>
+        /// Initializes a new MIDINoteMessage instance.
+        /// </summary>
+        /// <param name="type">The MIDI message type. Must be either NoteOn, NoteOff or NoteAftertouch.</param>
+        /// <param name="channel">The channel associated with this message (0-15).</param>
+        /// <param name="key">The key or note in question. Middle C (C-3) is 60, and each octave is separated by 12.</param>
+        /// <param name="velocity">The velocity of the note (0-127), if NoteOn/NoteOff, or the pressure value (0-127) if NoteAftertouch.</param>
         public MIDINoteMessage(MIDIMessageType type, int channel, int key, int velocity) : base(type, channel)
         {
             if (type != MIDIMessageType.NoteOn && type != MIDIMessageType.NoteOff && type != MIDIMessageType.NoteAftertouch)
@@ -62,6 +74,12 @@ namespace LibDescent.Data.Midi
         /// </summary>
         public int Value;
 
+        /// <summary>
+        /// Initializes a new MIDIControlChangeMessage instance.
+        /// </summary>
+        /// <param name="channel">The channel associated with this message (0-15).</param>
+        /// <param name="controller">The controller to be adjusted.</param>
+        /// <param name="value">The new raw value for the controller.</param>
         public MIDIControlChangeMessage(int channel, MIDIControl controller, int value) : base(MIDIMessageType.ControlChange, channel)
         {
             Controller = controller;
@@ -69,7 +87,17 @@ namespace LibDescent.Data.Midi
         }
 
         /// <summary>
-        /// Whether the value is on or off. Used for some events, like those controlling pedals.
+        /// Initializes a new MIDIControlChangeMessage instance.
+        /// </summary>
+        /// <param name="channel">The channel associated with this message (0-15).</param>
+        /// <param name="controller">The controller to be adjusted.</param>
+        /// <param name="on">Whether the controller should be on or off. Used with some controllers, such as those controlling pedals.</param>
+        public MIDIControlChangeMessage(int channel, MIDIControl controller, bool on) : this(channel, controller, on ? 127 : 0)
+        {
+        }
+
+        /// <summary>
+        /// Whether the value is on or off. Used with some controllers, such as those controlling pedals.
         /// </summary>
         public bool On => Value >= 64;
     }
@@ -84,6 +112,11 @@ namespace LibDescent.Data.Midi
         /// </summary>
         public byte Program;
 
+        /// <summary>
+        /// Initializes a new MIDIProgramChangeMessage instance.
+        /// </summary>
+        /// <param name="channel">The channel associated with this message (0-15).</param>
+        /// <param name="program">The program to change to.</param>
         public MIDIProgramChangeMessage(int channel, byte program) : base(MIDIMessageType.ProgramChange, channel)
         {
             Program = program;
@@ -100,6 +133,11 @@ namespace LibDescent.Data.Midi
         /// </summary>
         public byte Value;
 
+        /// <summary>
+        /// Initializes a new MIDIChannelAftertouchMessage instance.
+        /// </summary>
+        /// <param name="channel">The channel associated with this message (0-15).</param>
+        /// <param name="value">The new pressure value.</param>
         public MIDIChannelAftertouchMessage(int channel, byte value) : base(MIDIMessageType.ChannelAftertouch, channel)
         {
             Value = value;
@@ -112,10 +150,15 @@ namespace LibDescent.Data.Midi
     public class MIDIPitchBendMessage : MIDIMessage
     {
         /// <summary>
-        /// The new pitch value. 0x200 (512) represents standard pitch, and the value ranges from 0 to 0x400 (1024).
+        /// The new pitch value. 0x200 (512) represents normal pitch, and the value ranges from 0 to 0x400 (1024).
         /// </summary>
         public short Pitch;
 
+        /// <summary>
+        /// Initializes a new MIDIPitchBendMessage instance.
+        /// </summary>
+        /// <param name="channel">The channel associated with this message (0-15).</param>
+        /// <param name="pitch">The new pitch value. 0x200 (512) represents normal pitch, and the value ranges from 0 to 0x400 (1024).</param>
         public MIDIPitchBendMessage(int channel, short pitch) : base(MIDIMessageType.PitchBend, channel)
         {
             Pitch = pitch;
@@ -136,6 +179,12 @@ namespace LibDescent.Data.Midi
         /// </summary>
         public byte[] Message;
 
+        /// <summary>
+        /// Initializes a new MIDISysExMessage instance.
+        /// </summary>
+        /// <param name="channel">The channel associated with this message (0-15), or -1 if not applicable.</param>
+        /// <param name="cont">Whether this message continues an earlier SysEx message.</param>
+        /// <param name="message">The raw message data.</param>
         public MIDISysExMessage(int channel, bool cont, byte[] message) : base(MIDIMessageType.SysEx, channel)
         {
             Continue = cont;
@@ -149,20 +198,19 @@ namespace LibDescent.Data.Midi
     public class MIDIMetaMessage : MIDIMessage
     {
         /// <summary>
-        /// The length of the text associated with this message.
-        /// </summary>
-        public int Length;
-        /// <summary>
         /// The raw text data of this message.
         /// </summary>
-        public byte[] Text;
+        public byte[] Data;
 
-        public MIDIMetaMessage(int channel, MIDIMessageType type, int length, byte[] text) : base(type, channel)
+        /// <summary>
+        /// Initializes a new MIDIMetaMessage instance.
+        /// </summary>
+        /// <param name="type">The MIDI message type. Should be one of the Meta types.</param>
+        /// <param name="channel">The channel associated with this message (0-15), or -1 if not applicable.</param>
+        /// <param name="data">The data associated with this meta event.</param>
+        public MIDIMetaMessage(MIDIMessageType type, int channel, byte[] data) : base(type, channel)
         {
-            Length = length;
-            Text = text;
-            if (text.Length != Length)
-                throw new ArgumentException("Length does not match length of text data");
+            Data = data;
         }
     }
 
@@ -172,10 +220,15 @@ namespace LibDescent.Data.Midi
     public class MIDITempoMessage : MIDIMessage
     {
         /// <summary>
-        /// Tempo in microseconds per MIDI quarter note (usually 480 ticks).
+        /// Tempo in microseconds per MIDI quarter note (which is usually equivalent to 480 MIDI ticks).
         /// </summary>
         public int Tempo;
 
+        /// <summary>
+        /// Initializes a new MIDITempoMessage instance.
+        /// </summary>
+        /// <param name="channel">The channel associated with this message (0-15), or -1 if not applicable.</param>
+        /// <param name="tempo">Tempo in microseconds per MIDI quarter note (which is usually equivalent to 480 MIDI ticks).</param>
         public MIDITempoMessage(int channel, int tempo) : base(MIDIMessageType.SetTempo, channel)
         {
             Tempo = tempo;
@@ -197,13 +250,13 @@ namespace LibDescent.Data.Midi
     public class MIDITimeSignatureMessage : MIDIMessage
     {
         /// <summary>
-        /// The base-two logarithm of the denominator of the time signature.
-        /// </summary>
-        public int DenomLog2;
-        /// <summary>
         /// The numerator of the time signature.
         /// </summary>
         public int Numerator;
+        /// <summary>
+        /// The base-two logarithm of the denominator of the time signature.
+        /// </summary>
+        public int DenomLog2;
         /// <summary>
         /// The number of MIDI ticks in a metronome click. Usually 24.
         /// </summary>
@@ -213,6 +266,14 @@ namespace LibDescent.Data.Midi
         /// </summary>
         public int NotatedQuarterTicks;
 
+        /// <summary>
+        /// Initializes a new MIDITimeSignatureMessage instance.
+        /// </summary>
+        /// <param name="channel">The channel associated with this message (0-15), or -1 if not applicable.</param>
+        /// <param name="n">The numerator of the time signature.</param>
+        /// <param name="d">The base-two logarithm of the denominator of the time signature.</param>
+        /// <param name="c">The number of MIDI ticks in a metronome click. Usually 24.</param>
+        /// <param name="b">The number of notated 32th notes in a MIDI quarter note. Usually 8.</param>
         public MIDITimeSignatureMessage(int channel, byte n, byte d, byte c, byte b) : base(MIDIMessageType.TimeSignature, channel)
         {
             Numerator = n;
@@ -251,6 +312,12 @@ namespace LibDescent.Data.Midi
         /// </summary>
         public bool Minor;
 
+        /// <summary>
+        /// Initializes a new MIDIKeySignatureMessage instance.
+        /// </summary>
+        /// <param name="channel">The channel associated with this message (0-15), or -1 if not applicable.</param>
+        /// <param name="sf">Number of sharps (if positive) or flats (if negative).</param>
+        /// <param name="mi">Whether the key is a minor key, as opposed to a major key.</param>
         public MIDIKeySignatureMessage(int channel, int sf, bool mi) : base(MIDIMessageType.KeySignature, channel)
         {
             SharpsFlats = sf;
