@@ -127,6 +127,8 @@ namespace LibDescent.Data.Midi
             tmp = br.ReadByte();
             if ((tmp & 0x80) == 0x80)
                 status = tmp;
+            else                            // rewind by one byte
+                --br.BaseStream.Position;
 
             int hinib = (status >> 4) & 7;
             int lonib = status & 15;
