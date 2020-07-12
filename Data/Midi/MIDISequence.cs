@@ -1224,7 +1224,7 @@ namespace LibDescent.Data.Midi
             byte b;
             int r = 0;
             do
-                r = (r << 7) | ((b = ReadByte()) & 0xF);
+                r = (r << 7) | ((b = ReadByte()) & 0x7F);
             while (b >= 0x80);
             return r;
         }
