@@ -206,7 +206,7 @@ namespace LibDescent.Data.Midi
                     trk.AddEvent(new MIDIEvent(position, evt));
             }
             if (evt != null)
-                trk.AddEvent(new MIDIEvent(position, evt));
+                trk.AddEvent(new MIDIEvent(position + delta, evt));
         }
 
         private static readonly MIDIMessageType[] midiMetaTypes = new MIDIMessageType[]
