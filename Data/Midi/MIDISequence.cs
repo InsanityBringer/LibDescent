@@ -147,7 +147,7 @@ namespace LibDescent.Data.Midi
                 tickRateSMPTE = false;
                 br.BaseStream.Seek(48, SeekOrigin.Begin);
                 int nTracks = br.ReadInt32();
-                //tickRateQuarterTicks = br.ReadInt32();
+                int timeBase = br.ReadInt32(); // ?
                 tickRateQuarterTicks = 60;
                 int bpm = br.ReadInt32();
                 int seconds = br.ReadInt32(); //for debugging, I suppose.
@@ -165,7 +165,7 @@ namespace LibDescent.Data.Midi
                     if (trackData.Length < trackLength)
                         throw new EndOfStreamException();
 
-                    if (i == 0) // add tempo event to first track
+                    if (bpm != 120 && i == 0) // add tempo event to first track
                         trk.AddEvent(new MIDIEvent(0, new MIDITempoMessage(-1, (double)bpm)));
 
                     ReadHMPTrack(i, trk, trackData);
@@ -273,11 +273,11 @@ namespace LibDescent.Data.Midi
             switch (status)
             {
                 case 0xF0:          // SysEx
-                    seqlen = br.ReadVLQ();
+                    seqlen = br.ReadMetaVLQ();
                     evt = new MIDISysExMessage(metaChannel, false, br.ReadBytes(seqlen));
                     return true;
                 case 0xF7:          // SysEx Continue
-                    seqlen = br.ReadVLQ();
+                    seqlen = br.ReadMetaVLQ();
                     evt = new MIDISysExMessage(metaChannel, true, br.ReadBytes(seqlen));
                     return true;
                 case 0xFF:          // meta
@@ -285,13 +285,13 @@ namespace LibDescent.Data.Midi
                     switch (metaType)
                     {
                         case 0:
-                            tmp = br.ReadByte();
-                            if (tmp == 0)
+                            seqlen = br.ReadMetaVLQ();
+                            if (seqlen == 0)
                             {
                                 evt = new MIDISequenceNumberMessage(metaChannel, trackNum);
                                 return true;
                             }
-                            else if (tmp == 2)
+                            else if (seqlen == 2)
                             {
                                 evt = new MIDISequenceNumberMessage(metaChannel, br.ReadMidi14());
                                 return true;
@@ -305,11 +305,11 @@ namespace LibDescent.Data.Midi
                         case 5:
                         case 6:
                         case 7:
-                            seqlen = br.ReadVLQ();
+                            seqlen = br.ReadMetaVLQ();
                             evt = new MIDIMetaMessage(midiMetaTypes[metaType], metaChannel, br.ReadBytes(seqlen));
                             return true;
                         case 0x20:
-                            if (br.ReadByte() == 1)
+                            if (br.ReadMetaVLQ() == 1)
                             {
                                 int channelNum = br.ReadByte();
                                 metaChannel = channelNum & 15;
@@ -319,7 +319,7 @@ namespace LibDescent.Data.Midi
                             br.Rewind(1);
                             goto default;
                         case 0x2F:
-                            if (br.ReadByte() == 0)
+                            if (br.ReadMetaVLQ() == 0)
                             {
                                 evt = new MIDIEndOfTrackMessage(metaChannel);
                                 return false;
@@ -327,7 +327,7 @@ namespace LibDescent.Data.Midi
                             br.Rewind(1);
                             goto default;
                         case 0x51:
-                            if (br.ReadByte() == 3)
+                            if (br.ReadMetaVLQ() == 3)
                             {
                                 int tempo = 0;
                                 tempo |= (br.ReadByte() << 16);
@@ -341,7 +341,7 @@ namespace LibDescent.Data.Midi
                             br.Rewind(1);
                             goto default;
                         case 0x54:
-                            if (br.ReadByte() == 5)
+                            if (br.ReadMetaVLQ() == 5)
                             {
                                 int hours = br.ReadByte();
                                 MIDISMPTEFrameRate rate = (MIDISMPTEFrameRate)((hours >> 5) & 3);
@@ -357,7 +357,7 @@ namespace LibDescent.Data.Midi
                             br.Rewind(1);
                             goto default;
                         case 0x58:
-                            if (br.ReadByte() == 4)
+                            if (br.ReadMetaVLQ() == 4)
                             {
                                 byte n = br.ReadByte();
                                 byte d = br.ReadByte();
@@ -369,7 +369,7 @@ namespace LibDescent.Data.Midi
                             br.Rewind(1);
                             goto default;
                         case 0x59:
-                            if (br.ReadByte() == 2)
+                            if (br.ReadMetaVLQ() == 2)
                             {
                                 byte sf = br.ReadByte();
                                 byte mi = br.ReadByte();
@@ -379,12 +379,12 @@ namespace LibDescent.Data.Midi
                             br.Rewind(1);
                             goto default;
                         case 0x7F:
-                            seqlen = br.ReadVLQ();
+                            seqlen = br.ReadMetaVLQ();
                             evt = new MIDISequencerProprietaryMessage(metaChannel, br.ReadBytes(seqlen));
                             return true;
                         default:
                             // try to skip unknown meta event
-                            seqlen = br.ReadVLQ();
+                            seqlen = br.ReadMetaVLQ();
                             br.Skip(seqlen);
                             evt = null;
                             return true;
@@ -453,24 +453,93 @@ namespace LibDescent.Data.Midi
             using (BinaryWriterMIDI bw = new BinaryWriterMIDI(ms))
             {
                 trk.TerminateTrack();
-                WriteMIDITrackInternal(trackNum, trk, bw);
+                ulong position = 0;
+                ulong delta;
+                int metaChannel = -1;
+                byte status = 0;
+                foreach (MIDIEvent evt in trk)
+                {
+                    delta = evt.Time - position;
+                    position = evt.Time;
+                    bw.WriteVLQ((int)delta);
+                    WriteMIDIMessage(trackNum, bw, evt.Data, true, ref status, ref metaChannel);
+                }
                 return ms.ToArray();
             }
         }
 
-        private void WriteMIDITrackInternal(int trackNum, MIDITrack trk, IMIDIWriter bw)
+        private byte[] WriteHMPTrack(int trackNum, MIDITrack trk)
         {
-            ulong position = 0;
-            ulong delta;
-            int metaChannel = -1;
-            byte status = 0;
-            foreach (MIDIEvent evt in trk)
+            using (MemoryStream ms = new MemoryStream())
+            using (BinaryWriterHMP bw = new BinaryWriterHMP(ms))
             {
-                delta = evt.Time - position;
-                position = evt.Time;
-                bw.WriteVLQ((int)delta);
-                WriteMIDIMessage(trackNum, bw, evt.Data, ref status, ref metaChannel);
+                trk.TerminateTrack();
+                ulong position = 0;
+                ulong delta;
+                int metaChannel = -1;
+                byte status = 0;
+                foreach (MIDIEvent evt in trk)
+                {
+                    status = 0; // do not allow status byte omissions
+                    switch (evt.Data.Type)  // do not include some messages in HMP
+                    {
+                        case MIDIMessageType.SysEx:
+                        case MIDIMessageType.SequenceNumber:
+                        case MIDIMessageType.MetaText:
+                        case MIDIMessageType.MetaCopyright:
+                        case MIDIMessageType.MetaTrackName:
+                        case MIDIMessageType.MetaInstrumentName:
+                        case MIDIMessageType.MetaLyric:
+                        case MIDIMessageType.MetaMarker:
+                        case MIDIMessageType.MetaCuePoint:
+                        case MIDIMessageType.SMPTEOffset:
+                        case MIDIMessageType.TimeSignature:
+                        case MIDIMessageType.KeySignature:
+                        case MIDIMessageType.SequencerProprietary:
+                            continue;
+                    }
+
+                    delta = evt.Time - position;
+                    position = evt.Time;
+                    bw.WriteVLQ((int)delta);
+                    WriteMIDIMessage(trackNum, bw, evt.Data, false, ref status, ref metaChannel);
+                }
+                return ms.ToArray();
             }
+        }
+
+        private double GetDurationInSeconds(out double initialBpm)
+        {
+            double duration = 0;
+            double bpm = 120;
+            ulong position = 0;
+            initialBpm = 0;
+
+            List<MIDIEvent> events = new List<MIDIEvent>();
+            foreach (MIDITrack trk in Tracks)
+                events.AddRange(trk.GetAllEvents());
+            events.Sort(new MIDIEventComparer());
+
+            foreach (MIDIEvent evt in events)
+            {
+                if (evt.Time > position)
+                {
+                    duration += (evt.Time - position) * 60 / (bpm * tickRateQuarterTicks);
+                    position = evt.Time;
+                }
+
+                if (evt.Data is MIDITempoMessage tempo)
+                {
+                    bpm = tempo.BeatsPerMinute;
+                    if (initialBpm == 0)
+                        initialBpm = bpm;
+                }
+            }
+
+            if (initialBpm == 0)
+                initialBpm = bpm;
+
+            return duration;
         }
 
         /// <summary>
@@ -482,7 +551,42 @@ namespace LibDescent.Data.Midi
             int trackNum = 0;
             if (Format == MIDIFormat.HMI)
             {
-                // TODO
+                if (tickRateSMPTE)
+                    throw new ArgumentException("SMPTE time base is not supported on HMP");
+
+                using (BinaryWriterHMP bw = new BinaryWriterHMP(stream))
+                {
+                    stream.Seek(0, SeekOrigin.Begin);
+                    bw.Write(Encoding.ASCII.GetBytes("HMIMIDIP"));
+                    for (int i = 8; i < 32; ++i)
+                        bw.Write((byte)0);
+                    long fileSizePosition = stream.Position;
+                    bw.Write(0); bw.Write(0); bw.Write(0); bw.Write(0);
+                    bw.Write(Tracks.Count);
+                    bw.Write(480);
+                    double bpm;
+                    int duration = (int)GetDurationInSeconds(out bpm);
+                    bw.Write((int)bpm);
+                    bw.Write(duration);
+
+                    // TODO: unknown data block
+                    for (int i = 0x40; i < 0x308; ++i)
+                        bw.Write((byte)0);
+
+                    int chunkNum = 0;
+                    foreach (MIDITrack track in Tracks)
+                    {
+                        byte[] trackData = WriteHMPTrack(trackNum, track);
+                        bw.Write(chunkNum++);
+                        bw.Write(trackData.Length + 12);
+                        bw.Write(Math.Max(0, trackNum++ - 1));
+                        bw.Write(trackData);
+                    }
+
+                    int fileSize = (int)(stream.Position - 16);
+                    stream.Position = fileSizePosition;
+                    bw.Write(fileSize);
+                }
             }
             else
             {
@@ -518,7 +622,6 @@ namespace LibDescent.Data.Midi
         /// Writes a MIDI sequence from a file.
         /// </summary>
         /// <param name="filePath">The path to the file.</param>
-        /// <returns></returns>
         public void Write(string filePath)
         {
             using (FileStream fs = File.Open(filePath, FileMode.Create, FileAccess.ReadWrite, FileShare.None))
@@ -531,7 +634,7 @@ namespace LibDescent.Data.Midi
         /// Writes a MIDI sequence from an array.
         /// </summary>
         /// <param name="contents">The array to load from.</param>
-        /// <returns></returns>
+        /// <returns>The MIDI file as a byte array.</returns>
         public byte[] Write()
         {
             using (MemoryStream ms = new MemoryStream())
@@ -541,7 +644,7 @@ namespace LibDescent.Data.Midi
             }
         }
 
-        private void WriteMIDIMessage(int trackNum, IMIDIWriter bw, MIDIMessage message, ref byte status, ref int metaChannel)
+        private void WriteMIDIMessage(int trackNum, IMIDIWriter bw, MIDIMessage message, bool writeMetaChannel, ref byte status, ref int metaChannel)
         {
             byte newStatus;
             switch (message.Type)
@@ -602,17 +705,17 @@ namespace LibDescent.Data.Midi
                 case MIDIMessageType.EndOfTrack:
                     bw.Write(status = (byte)0xFF);
                     bw.Write((byte)0x2F);
-                    bw.WriteVLQ(0);
+                    bw.WriteMetaVLQ(0);
                     return;
             }
 
             // metadata event
             int msgChannel = message.Channel;
-            if (trackNum > 0 && msgChannel >= 0 && msgChannel != metaChannel)
+            if (writeMetaChannel && trackNum > 0 && msgChannel >= 0 && msgChannel != metaChannel)
             {
                 bw.Write((byte)0xFF);
                 bw.Write((byte)0x20);
-                bw.WriteVLQ(1);
+                bw.WriteMetaVLQ(1);
                 bw.Write((byte)msgChannel);
                 metaChannel = msgChannel;
             }
@@ -622,16 +725,16 @@ namespace LibDescent.Data.Midi
                 case MIDIMessageType.SysEx:
                     var sysex = message as MIDISysExMessage;
                     bw.Write(status = (byte)(sysex.Continue ? 0xF7 : 0xF0));
-                    bw.WriteVLQ(sysex.Message.Length);
+                    bw.WriteMetaVLQ(sysex.Message.Length);
                     bw.Write(sysex.Message);
                     return;
                 case MIDIMessageType.SequenceNumber:
                     var seqnex = message as MIDISequenceNumberMessage;
                     bw.Write(status = (byte)0xFF);
                     if (seqnex.Sequence == trackNum)
-                        bw.WriteVLQ(0);
+                        bw.WriteMetaVLQ(0);
                     {
-                        bw.WriteVLQ(2);
+                        bw.WriteMetaVLQ(2);
                         bw.WriteMidi14((short)seqnex.Sequence);
                     }
                     return;
@@ -645,14 +748,14 @@ namespace LibDescent.Data.Midi
                     var meta = message as MIDIMetaMessage;
                     bw.Write(status = (byte)0xFF);
                     bw.Write((byte)(midiMetaTypes.IndexOf(message.Type)));
-                    bw.WriteVLQ(meta.Data.Length);
+                    bw.WriteMetaVLQ(meta.Data.Length);
                     bw.Write(meta.Data);
                     return;
                 case MIDIMessageType.SetTempo:
                     var tempo = message as MIDITempoMessage;
                     bw.Write(status = (byte)0xFF);
                     bw.Write((byte)0x51);
-                    bw.WriteVLQ(3);
+                    bw.WriteMetaVLQ(3);
                     bw.Write((byte)((tempo.Tempo >> 16) & 0xFF));
                     bw.Write((byte)((tempo.Tempo >> 8) & 0xFF));
                     bw.Write((byte)(tempo.Tempo & 0xFF));
@@ -661,7 +764,7 @@ namespace LibDescent.Data.Midi
                     var smpte = message as MIDISMPTEOffsetMessage;
                     bw.Write(status = (byte)0xFF);
                     bw.Write((byte)0x54);
-                    bw.WriteVLQ(5);
+                    bw.WriteMetaVLQ(5);
                     bw.Write((byte)((((int)smpte.FrameRate) << 5) | smpte.Hours));
                     bw.Write((byte)(smpte.Minutes));
                     bw.Write((byte)(smpte.Seconds));
@@ -672,7 +775,7 @@ namespace LibDescent.Data.Midi
                     var ts = message as MIDITimeSignatureMessage;
                     bw.Write(status = (byte)0xFF);
                     bw.Write((byte)0x58);
-                    bw.WriteVLQ(4);
+                    bw.WriteMetaVLQ(4);
                     bw.Write((byte)(ts.Numerator));
                     bw.Write((byte)(ts.DenomLog2));
                     bw.Write((byte)(ts.MetronomeClocks));
@@ -682,7 +785,7 @@ namespace LibDescent.Data.Midi
                     var ks = message as MIDIKeySignatureMessage;
                     bw.Write(status = (byte)0xFF);
                     bw.Write((byte)0x59);
-                    bw.WriteVLQ(2);
+                    bw.WriteMetaVLQ(2);
                     bw.Write((byte)(ks.SharpsFlats));
                     bw.Write((byte)(ks.Minor ? 1 : 0));
                     return;
@@ -690,7 +793,7 @@ namespace LibDescent.Data.Midi
                     var seqp = message as MIDISequencerProprietaryMessage;
                     bw.Write(status = (byte)0xFF);
                     bw.Write((byte)0x7F);
-                    bw.WriteVLQ(seqp.Data.Length);
+                    bw.WriteMetaVLQ(seqp.Data.Length);
                     bw.Write(seqp.Data);
                     return;
             }
@@ -707,7 +810,7 @@ namespace LibDescent.Data.Midi
 
         public MIDITrack()
         {
-            tree = new SortedSet<MIDIInstant>(new MIDIPointComparer());
+            tree = new SortedSet<MIDIInstant>(new MIDIInstantComparer());
             idict = new Dictionary<ulong, MIDIInstant>();
         }
 
@@ -782,6 +885,11 @@ namespace LibDescent.Data.Midi
         /// </summary>
         public int EventCount => tree.Select(p => p.Messages.Count).DefaultIfEmpty(0).Sum();
 
+        /// <summary>
+        /// The amount of ticks until the end of the track.
+        /// </summary>
+        public ulong Duration => tree.Max.Time;
+        
         /// <summary>
         /// Adds a new event onto this MIDI track.
         /// </summary>
@@ -935,12 +1043,21 @@ namespace LibDescent.Data.Midi
             }
         }
 
-        internal class MIDIPointComparer : Comparer<MIDIInstant>
+        internal class MIDIInstantComparer : Comparer<MIDIInstant>
         {
             public override int Compare(MIDIInstant a, MIDIInstant b)
             {
                 return a.Time.CompareTo(b.Time);
             }
+        }
+    }
+
+
+    internal class MIDIEventComparer : Comparer<MIDIEvent>
+    {
+        public override int Compare(MIDIEvent a, MIDIEvent b)
+        {
+            return a.Time.CompareTo(b.Time);
         }
     }
 
@@ -1062,6 +1179,7 @@ namespace LibDescent.Data.Midi
         int ReadInt32();
         long ReadInt64();
         int ReadVLQ();
+        int ReadMetaVLQ();
         short ReadMidi14();
         /// <summary>
         /// Rewinds the stream of the reader back by a given number of bytes.
@@ -1086,6 +1204,7 @@ namespace LibDescent.Data.Midi
         void Write(int n);
         void Write(long n);
         void WriteVLQ(int v);
+        void WriteMetaVLQ(int v);
         void WriteMidi14(short v);
     }
 
@@ -1111,12 +1230,21 @@ namespace LibDescent.Data.Midi
         }
 
         /// <summary>
+        /// Reads a MIDI variable length quantity (VLQ) for a metadata field length to the current stream and advances the stream position accordingly.
+        /// </summary>
+        /// <returns>The value that was read from the stream.</returns>
+        public int ReadMetaVLQ()
+        {
+            return ReadVLQ();
+        }
+
+        /// <summary>
         /// Reads a 14-bit quantity to the current stream and advances the stream position by two bytes.
         /// </summary>
         /// <returns>The 14-bit quantity read from the stream.</returns>
         public short ReadMidi14()
         {
-            return (short)(((ReadByte() & 0x7F) << 7) | (ReadByte() & 0x7F));
+            return (short)((ReadByte() & 0x7F) | ((ReadByte() & 0x7F) << 7));
         }
 
         public void Rewind(int bytes)
@@ -1149,6 +1277,20 @@ namespace LibDescent.Data.Midi
             do
                 r = r | (((b = ReadByte()) & 0x7F) << (shift += 7));
             while ((b & 0x80) == 0); //HMI inverts the meaning of 0x80 in delta encodings.
+            return r;
+        }
+
+        /// <summary>
+        /// Reads a HMP variable length quantity (VLQ) to the current stream and advances the stream position accordingly.
+        /// </summary>
+        /// <returns>The value that was read from the stream.</returns>
+        public int ReadMetaVLQ()
+        {
+            byte b;
+            int r = 0;
+            do
+                r = (r << 7) | ((b = ReadByte()) & 0xF);
+            while (b >= 0x80);
             return r;
         }
 
@@ -1202,13 +1344,75 @@ namespace LibDescent.Data.Midi
         }
 
         /// <summary>
+        /// Writes a HMP variable length quantity (VLQ) to the current stream for a metadata field length and advances the stream position accordingly.
+        /// </summary>
+        /// <param name="v">The value to write.</param>
+        public void WriteMetaVLQ(int v)
+        {
+            WriteVLQ(v);
+        }
+
+        /// <summary>
         /// Writes a 14-bit quantity to the current stream and advances the stream position by two bytes.
         /// </summary>
         /// <param name="v">The value to write.</param>
         public void WriteMidi14(short v)
         {
-            Write((byte)((v >> 7) & 0x7F));
             Write((byte)(v & 0x7F));
+            Write((byte)((v >> 7) & 0x7F));
+        }
+    }
+
+    /// <summary>
+    /// A BinaryWriter intended for use with HMP files. Writes little-endian data and has a method for writing HMP VLQs (variable-length quantity).
+    /// </summary>
+    public class BinaryWriterHMP : BinaryWriter, IMIDIWriter
+    {
+        public BinaryWriterHMP(Stream stream) : base(stream) { }
+
+        private byte[] vlq_buf = new byte[4];
+
+        /// <summary>
+        /// Writes a HMP variable length quantity (VLQ) to the current stream and advances the stream position accordingly.
+        /// </summary>
+        /// <param name="v">The value to write.</param>
+        public void WriteVLQ(int v)
+        {
+            if (v >= 0xFFFFFFF || v < 0)
+                throw new ArgumentOutOfRangeException("n is over maximum allowed VLQ value");
+            do
+                Write((byte)((v & 0x7F) | (v < 0x80 ? 0x80 : 0)));
+            while ((v >>= 7) > 0);
+        }
+
+        /// <summary>
+        /// Writes a HMP variable length quantity (VLQ) to the current stream for a metadata field length and advances the stream position accordingly.
+        /// </summary>
+        /// <param name="v">The value to write.</param>
+        public void WriteMetaVLQ(int v)
+        {
+            if (v >= 0xFFFFFFF || v < 0)
+                throw new ArgumentOutOfRangeException("n is over maximum allowed VLQ value");
+            int q = 0;
+            vlq_buf[q] = 0;
+            while (v > 0)
+            {
+                vlq_buf[q++] = (byte)(v & 0x7F);
+                v >>= 7;
+            }
+            while (--q > 0)
+                Write((byte)(vlq_buf[q] | 0x80));
+            Write(vlq_buf[0]);
+        }
+
+        /// <summary>
+        /// Writes a 14-bit quantity to the current stream and advances the stream position by two bytes.
+        /// </summary>
+        /// <param name="v">The value to write.</param>
+        public void WriteMidi14(short v)
+        {
+            Write((byte)(v & 0x7F));
+            Write((byte)((v >> 7) & 0x7F));
         }
     }
 }
