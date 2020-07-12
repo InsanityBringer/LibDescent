@@ -166,7 +166,7 @@ namespace LibDescent.Data.Midi
                         throw new EndOfStreamException();
 
                     if (i == 0) // add tempo event to first track
-                        trk.AddEvent(new MIDIEvent(0, new MIDITempoMessage(0, (double)bpm)));
+                        trk.AddEvent(new MIDIEvent(0, new MIDITempoMessage(-1, (double)bpm)));
 
                     ReadHMPTrack(i, trk, trackData);
                     Tracks.Add(trk);
@@ -389,7 +389,6 @@ namespace LibDescent.Data.Midi
                             evt = null;
                             return true;
                     }
-                    break;
             }
 
             evt = null;
@@ -609,7 +608,7 @@ namespace LibDescent.Data.Midi
 
             // metadata event
             int msgChannel = message.Channel;
-            if (msgChannel >= 0 && msgChannel != metaChannel)
+            if (trackNum > 0 && msgChannel >= 0 && msgChannel != metaChannel)
             {
                 bw.Write((byte)0xFF);
                 bw.Write((byte)0x20);
@@ -769,7 +768,7 @@ namespace LibDescent.Data.Midi
         /// Gets all events in this MIDI track, in order.
         /// </summary>
         /// <returns>The set of all MIDI events on this track.</returns>
-        public ICollection<MIDIEvent> GetAllEvents()
+        public IList<MIDIEvent> GetAllEvents()
         { 
             List<MIDIEvent> events = new List<MIDIEvent>();
             foreach (MIDIInstant point in tree)
@@ -1106,11 +1105,8 @@ namespace LibDescent.Data.Midi
             byte b;
             int r = 0;
             do
-            {
-                r <<= 7;
-                b = ReadByte();
-                r |= (b & 0x7F);
-            } while (b >= 0x80);
+                r = (r << 7) | ((b = ReadByte()) & 0xF);
+            while (b >= 0x80);
             return r;
         }
 
@@ -1149,12 +1145,10 @@ namespace LibDescent.Data.Midi
         {
             byte b;
             int r = 0;
+            int shift = -7;
             do
-            {
-                r <<= 7;
-                b = ReadByte();
-                r |= (b & 0x7F);
-            } while ((b & 0x80) == 0); //HMI inverts the meaning of 0x80 in delta encodings.
+                r = r | (((b = ReadByte()) & 0x7F) << (shift += 7));
+            while ((b & 0x80) == 0); //HMI inverts the meaning of 0x80 in delta encodings.
             return r;
         }
 

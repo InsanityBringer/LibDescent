@@ -303,8 +303,8 @@ namespace LibDescent.Data.Midi
         /// </summary>
         public double BeatsPerMinute
         {
-            get => 60 * (1000000.0 / Tempo);
-            set => Tempo = (int)Math.Round(1000000.0 / (value / 60));
+            get => 60000000.0 / Tempo;
+            set => Tempo = (int)Math.Round(60000000.0 / value);
         }
     }
 
