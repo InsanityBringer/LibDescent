@@ -333,6 +333,8 @@ namespace LibDescent.Data.Midi
                                 tempo |= (br.ReadByte() << 16);
                                 tempo |= (br.ReadByte() << 8);
                                 tempo |= br.ReadByte();
+                                if (tempo == 0)
+                                    tempo = 500000;
                                 evt = new MIDITempoMessage(metaChannel, tempo);
                                 return true;
                             }

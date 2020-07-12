@@ -557,6 +557,9 @@ namespace LibDescent.Data.Midi
         SoundControl9 = 0x4E,
         SoundControl10 = 0x4F,
 
+        HMPLoopStart = 0x6E,
+        HMPLoopEnd = 0x6F,
+
         AllSoundOff = 0x78,
         ResetAllControl = 0x79,
         LocalControl = 0x7A,
