@@ -1503,10 +1503,6 @@ namespace LibDescent.Data.Midi
         /// </summary>
         public const int HMI_MIDI_DEVICE_MT_32 = 0xA003;
         /// <summary>
-        /// Any digital playback device.
-        /// </summary>
-        public const int HMI_MIDI_DEVICE_DIGI = 0xA005;
-        /// <summary>
         /// The internal PC speaker.
         /// </summary>
         public const int HMI_MIDI_DEVICE_INTERNAL_SPEAKER = 0xA006;

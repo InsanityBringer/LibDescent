@@ -40,7 +40,7 @@ namespace LibDescent.Data.Midi
         /// </summary>
         public int Channel { get; }
         /// <summary>
-        /// Whether this event is a system-exclusive or metadata event.
+        /// Whether this event is a system exclusive or a metadata event, as opposed to a normal MIDI event.
         /// </summary>
         public abstract bool IsExtendedEvent { get; }
 
