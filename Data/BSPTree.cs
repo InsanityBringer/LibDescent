@@ -272,7 +272,7 @@ namespace LibDescent.Data
                     bool split = SplitEdge(vert1.Point, vert2.Point, planePoint, planeNorm, ref percentage, ref intersect);
                     if (split)
                     {
-                        Vector3 texDelta = vert1.UVs - vert2.UVs;
+                        Vector3 texDelta = vert2.UVs - vert1.UVs;
                         BSPVertex newVert = new BSPVertex
                         {
                             Classification = BSPClassification.OnPlane,
