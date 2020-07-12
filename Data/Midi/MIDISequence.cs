@@ -1,4 +1,26 @@
-﻿using System;
+﻿/*
+    Copyright (c) 2020 The LibDescent Team.
+
+    Permission is hereby granted, free of charge, to any person obtaining a copy
+    of this software and associated documentation files (the "Software"), to deal
+    in the Software without restriction, including without limitation the rights
+    to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
+    copies of the Software, and to permit persons to whom the Software is
+    furnished to do so, subject to the following conditions:
+
+    The above copyright notice and this permission notice shall be included in all
+    copies or substantial portions of the Software.
+
+    THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
+    IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
+    FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
+    AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
+    LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
+    OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
+    SOFTWARE.
+*/
+
+using System;
 using System.Collections;
 using System.Collections.Generic;
 using System.IO;
@@ -89,6 +111,46 @@ namespace LibDescent.Data.Midi
             }
         }
 
+        public void ReadHMP(Stream stream)
+        {
+            using (BinaryReaderHMP br = new BinaryReaderHMP(stream))
+            {
+                stream.Seek(0, SeekOrigin.Begin);
+                if (Encoding.ASCII.GetString(br.ReadBytes(8)) != "HMIMIDIP")
+                    throw new ArgumentException("Not a valid HMP");
+
+                Format = MIDIFormat.HMI;
+
+                //Offsets directly derived from Chocolate Descent source
+                br.BaseStream.Seek(32, SeekOrigin.Begin);
+                int size = br.ReadInt32();
+
+                br.BaseStream.Seek(48, SeekOrigin.Begin);
+                int nTracks = br.ReadInt32();
+
+                br.BaseStream.Seek(56, SeekOrigin.Begin);
+                tickRateQuarterTicks = br.ReadInt32(); //[ISB] TODO: Validate if this is accurate to how HMI timing works.
+                int seconds = br.ReadInt32(); //for debugging, I suppose.
+
+                Tracks.Clear();
+                br.BaseStream.Seek(776, SeekOrigin.Begin); //The meaning of this block of bytes hasn't been documented ever.
+                for (int i = 0; i < nTracks; ++i)
+                {
+                    MIDITrack trk = new MIDITrack();
+                    int chunkNum = br.ReadInt32();
+                    int trackLength = br.ReadInt32();
+                    trackLength -= 12; //track length in HMP includes the header, for some reason.
+                    int trackNum = br.ReadInt32(); //descent2.com docs imply this is needed for loops (must be on track 1), but it's unclear if it's actually true from observation.
+                    byte[] trackData = br.ReadBytes(trackLength); 
+                    if (trackData.Length < trackLength)
+                        throw new EndOfStreamException();
+
+                    ReadHMPTrack(trk, trackData);
+                    Tracks.Add(trk);
+                }
+            }
+        }
+
         private void ReadMIDITrack(MIDITrack trk, byte[] data)
         {
             using (MemoryStream ms = new MemoryStream(data))
@@ -100,6 +162,26 @@ namespace LibDescent.Data.Midi
                 MIDIMessage evt;
                 int metaChannel = -1;
                 while (ReadMIDIEvent(br, ref status, ref metaChannel, out delta, out evt))
+                {
+                    position += delta;
+                    if (evt != null)
+                        trk.AddEvent(new MIDIEvent(position, evt));
+                }
+            }
+        }
+
+        //TODO: These should be unifiable with some interfaces.
+        private void ReadHMPTrack(MIDITrack trk, byte[] data)
+        {
+            using (MemoryStream ms = new MemoryStream(data))
+            using (BinaryReaderHMP br = new BinaryReaderHMP(ms))
+            {
+                byte status = 0;
+                ulong position = 0;
+                ulong delta;
+                MIDIMessage evt;
+                int metaChannel = -1;
+                while (ReadHMPEvent(br, ref status, ref metaChannel, out delta, out evt))
                 {
                     position += delta;
                     if (evt != null)
@@ -121,6 +203,149 @@ namespace LibDescent.Data.Midi
         };
 
         private bool ReadMIDIEvent(BinaryReaderMIDI br, ref byte status, ref int metaChannel, out ulong delta, out MIDIMessage evt)
+        {
+            byte tmp;
+            delta = (ulong)br.ReadVLQ();
+            tmp = br.ReadByte();
+            if ((tmp & 0x80) == 0x80)
+                status = tmp;
+            else                            // rewind by one byte
+                --br.BaseStream.Position;
+
+            int hinib = (status >> 4) & 7;
+            int lonib = status & 15;
+            switch (hinib)
+            {
+                case 0:             // NoteOff
+                    evt = new MIDINoteMessage(MIDIMessageType.NoteOff, lonib, br.ReadByte(), br.ReadByte());
+                    metaChannel = lonib;
+                    return true;
+                case 1:             // NoteOn
+                    evt = new MIDINoteMessage(MIDIMessageType.NoteOn, lonib, br.ReadByte(), br.ReadByte());
+                    metaChannel = lonib;
+                    return true;
+                case 2:             // NoteAftertouch
+                    evt = new MIDINoteMessage(MIDIMessageType.NoteAftertouch, lonib, br.ReadByte(), br.ReadByte());
+                    metaChannel = lonib;
+                    return true;
+                case 3:             // ControlChange
+                    evt = new MIDIControlChangeMessage(lonib, (MIDIControl)br.ReadByte(), br.ReadByte());
+                    metaChannel = lonib;
+                    return true;
+                case 4:             // ProgramChange
+                    evt = new MIDIProgramChangeMessage(lonib, br.ReadByte());
+                    metaChannel = lonib;
+                    return true;
+                case 5:             // ChannelAftertouch
+                    evt = new MIDIChannelAftertouchMessage(lonib, br.ReadByte());
+                    metaChannel = lonib;
+                    return true;
+                case 6:             // PitchBend
+                    evt = new MIDIPitchBendMessage(lonib, br.ReadMidi14());
+                    metaChannel = lonib;
+                    return true;
+                case 7:             // ...below...
+                    break;
+            }
+
+            int seqlen;
+            switch (status)
+            {
+                case 0xF0:          // SysEx
+                    seqlen = br.ReadVLQ();
+                    evt = new MIDISysExMessage(metaChannel, false, br.ReadBytes(seqlen));
+                    return true;
+                case 0xF7:          // SysEx Continue
+                    seqlen = br.ReadVLQ();
+                    evt = new MIDISysExMessage(metaChannel, true, br.ReadBytes(seqlen));
+                    return true;
+                case 0xFF:          // meta
+                    byte metaType = br.ReadByte();
+                    switch (metaType)
+                    {
+                        case 0:     // ignore
+                            br.ReadByte();
+                            evt = null;
+                            return true;
+                        case 1:
+                        case 2:
+                        case 3:
+                        case 4:
+                        case 5:
+                        case 6:
+                        case 7:
+                            seqlen = br.ReadVLQ();
+                            evt = new MIDIMetaMessage(midiMetaTypes[metaType], metaChannel, br.ReadBytes(seqlen));
+                            return true;
+                        case 0x20:
+                            if (br.ReadByte() == 1)
+                            {
+                                int trackNum = br.ReadByte();
+                                metaChannel = trackNum & 15;
+                                evt = null;
+                                return true;
+                            }
+                            break;
+                        case 0x2F:
+                            if (br.ReadByte() == 0)
+                            {
+                                // end of track
+                                evt = null;
+                                return false;
+                            }
+                            break;
+                        case 0x51:
+                            if (br.ReadByte() == 3)
+                            {
+                                int tempo = 0;
+                                tempo |= (br.ReadByte() << 16);
+                                tempo |= (br.ReadByte() << 8);
+                                tempo |= br.ReadByte();
+                                evt = new MIDITempoMessage(metaChannel, tempo);
+                                return true;
+                            }
+                            break;
+                        case 0x54:
+                            br.ReadBytes(br.ReadByte());
+                            evt = null;
+                            return true;
+                        case 0x58:
+                            if (br.ReadByte() == 4)
+                            {
+                                byte n = br.ReadByte();
+                                byte d = br.ReadByte();
+                                byte c = br.ReadByte();
+                                byte b = br.ReadByte();
+                                evt = new MIDITimeSignatureMessage(metaChannel, n, d, c, b);
+                                return true;
+                            }
+                            break;
+                        case 0x59:
+                            if (br.ReadByte() == 2)
+                            {
+                                byte sf = br.ReadByte();
+                                byte mi = br.ReadByte();
+                                evt = new MIDIKeySignatureMessage(metaChannel, sf, mi > 0);
+                                return true;
+                            }
+                            break;
+                        case 0x7F:
+                            // ignore this data
+                            seqlen = br.ReadVLQ();
+                            br.ReadBytes(seqlen);
+                            evt = null;
+                            return true;
+                        default:
+                            break;
+                    }
+                    break;
+            }
+
+            evt = null;
+            return false;
+        }
+
+        private bool ReadHMPEvent(BinaryReaderHMP br, ref byte status, ref int metaChannel, out ulong delta, out MIDIMessage evt)
         {
             byte tmp;
             delta = (ulong)br.ReadVLQ();
@@ -592,6 +817,10 @@ namespace LibDescent.Data.Midi
         /// Type 2. Multiple consecutive tracks.
         /// </summary>
         Type2 = 2,
+        /// <summary>
+        /// HMI format. Modified version of Type 1 MIDI.
+        /// </summary>
+        HMI = 3,
     }
 
     /// <summary>
@@ -625,6 +854,40 @@ namespace LibDescent.Data.Midi
         public short ReadMidi14()
         {
             return (short)(((ReadByte() & 0x7F) << 7) | (ReadByte() & 0x7F));
+        }
+    }
+
+    /// <summary>
+    /// A BinaryReader intended for use with MIDI files. Reads big-endian data and has a method for reading MIDI VLQs (variable-length quantity).
+    /// </summary>
+    public class BinaryReaderHMP : BinaryReader
+    {
+        public BinaryReaderHMP(Stream stream) : base(stream) { }
+
+        /// <summary>
+        /// Reads a HMP variable length quantity (VLQ) to the current stream and advances the stream position accordingly.
+        /// </summary>
+        /// <returns>The value that was read from the stream.</returns>
+        public int ReadVLQ()
+        {
+            byte b;
+            int r = 0;
+            do
+            {
+                r <<= 7;
+                b = ReadByte();
+                r |= (b & 0x7F);
+            } while ((b & 0x80) == 0); //HMI inverts the meaning of 0x80 in delta encodings.
+            return r;
+        }
+
+        /// <summary>
+        /// Reads a 14-bit quantity to the current stream and advances the stream position by two bytes.
+        /// </summary>
+        /// <returns>The 14-bit quantity read from the stream.</returns>
+        public short ReadMidi14() //TODO: Validate if this is actually LE in HMP. No extant songs use these quantities.
+        {
+            return (short)(((ReadByte() & 0x7F)) | ((ReadByte() & 0x7F) << 7));
         }
     }
 

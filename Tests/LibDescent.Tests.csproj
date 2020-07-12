@@ -12,12 +12,14 @@
     <None Remove="carpet.pcx" />
     <None Remove="d2x-xl.hog" />
     <None Remove="DefaultSegment.xml" />
+    <None Remove="e2game02.hmp" />
     <None Remove="fusfrens.rdl" />
     <None Remove="standard.hog" />
     <None Remove="test.blk" />
     <None Remove="test.blx" />
     <None Remove="test.rdl" />
     <None Remove="test.rl2" />
+    <None Remove="vgame12.hmp" />
   </ItemGroup>
 
   <ItemGroup>
@@ -26,12 +28,14 @@
     <EmbeddedResource Include="carpet.pcx" />
     <EmbeddedResource Include="d2x-xl.hog" />
     <EmbeddedResource Include="DefaultSegment.xml" />
+    <EmbeddedResource Include="e2game02.hmp" />
     <EmbeddedResource Include="fusfrens.rdl" />
     <EmbeddedResource Include="standard.hog" />
     <EmbeddedResource Include="test.blk" />
     <EmbeddedResource Include="test.blx" />
     <EmbeddedResource Include="test.rdl" />
     <EmbeddedResource Include="test.rl2" />
+    <EmbeddedResource Include="vgame12.hmp" />
   </ItemGroup>
 
   <ItemGroup>
