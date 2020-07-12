@@ -598,19 +598,22 @@ namespace LibDescent.Data.Midi
                         bw.Write(status = newStatus);
                     bw.WriteMidi14((message as MIDIPitchBendMessage).Pitch);
                     return;
+                case MIDIMessageType.EndOfTrack:
+                    bw.Write(status = (byte)0xFF);
+                    bw.Write((byte)0x2F);
+                    bw.WriteVLQ(0);
+                    return;
             }
 
             // metadata event
             int msgChannel = message.Channel;
             if (msgChannel >= 0 && msgChannel != metaChannel)
             {
-                // write MIDI meta channel prefix event.
-                // TODO: according to one source, it's obsolete. should we?
-                /*bw.Write((byte)0xFF);
+                bw.Write((byte)0xFF);
                 bw.Write((byte)0x20);
                 bw.WriteVLQ(1);
                 bw.Write((byte)msgChannel);
-                metaChannel = msgChannel;*/
+                metaChannel = msgChannel;
             }
 
             switch (message.Type)
@@ -643,11 +646,6 @@ namespace LibDescent.Data.Midi
                     bw.Write((byte)(midiMetaTypes.IndexOf(message.Type)));
                     bw.WriteVLQ(meta.Data.Length);
                     bw.Write(meta.Data);
-                    return;
-                case MIDIMessageType.EndOfTrack:
-                    bw.Write(status = (byte)0xFF);
-                    bw.Write((byte)0x2F);
-                    bw.WriteVLQ(0);
                     return;
                 case MIDIMessageType.SetTempo:
                     var tempo = message as MIDITempoMessage;
