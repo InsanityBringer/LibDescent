@@ -29,7 +29,7 @@ namespace LibDescent.Data.Midi
     /// <summary>
     /// Represents a MIDI event.
     /// </summary>
-    public class MIDIMessage
+    public abstract class MIDIMessage
     {
         /// <summary>
         /// The type of this event.
@@ -39,6 +39,10 @@ namespace LibDescent.Data.Midi
         /// The channel of this event (0-15), or -1 if not applicable.
         /// </summary>
         public int Channel { get; }
+        /// <summary>
+        /// Whether this event is a system-exclusive or metadata event.
+        /// </summary>
+        public abstract bool IsExtendedEvent { get; }
 
         /// <summary>
         /// Initializes a new MIDIMessage instance.
@@ -65,6 +69,8 @@ namespace LibDescent.Data.Midi
         /// The velocity of the note (0-127), if NoteOn/NoteOff, or the pressure value (0-127) if NoteAftertouch.
         /// </summary>
         public int Velocity;
+
+        public override bool IsExtendedEvent => false;
 
         /// <summary>
         /// Initializes a new MIDINoteMessage instance.
@@ -97,6 +103,8 @@ namespace LibDescent.Data.Midi
         /// The new raw value for the controller.
         /// </summary>
         public int Value;
+
+        public override bool IsExtendedEvent => false;
 
         /// <summary>
         /// Initializes a new MIDIControlChangeMessage instance.
@@ -138,6 +146,8 @@ namespace LibDescent.Data.Midi
         /// </summary>
         public byte Program;
 
+        public override bool IsExtendedEvent => false;
+
         /// <summary>
         /// Initializes a new MIDIProgramChangeMessage instance.
         /// </summary>
@@ -161,6 +171,8 @@ namespace LibDescent.Data.Midi
         /// </summary>
         public byte Value;
 
+        public override bool IsExtendedEvent => false;
+
         /// <summary>
         /// Initializes a new MIDIChannelAftertouchMessage instance.
         /// </summary>
@@ -183,6 +195,8 @@ namespace LibDescent.Data.Midi
         /// The new pitch value. 0x2000 (8192) represents normal pitch, and the value ranges from 0 to 0x3FFF (16383).
         /// </summary>
         public short Pitch;
+
+        public override bool IsExtendedEvent => false;
 
         /// <summary>
         /// Initializes a new MIDIPitchBendMessage instance.
@@ -211,6 +225,8 @@ namespace LibDescent.Data.Midi
         /// </summary>
         public byte[] Message;
 
+        public override bool IsExtendedEvent => true;
+
         /// <summary>
         /// Initializes a new MIDISysExMessage instance.
         /// </summary>
@@ -234,6 +250,8 @@ namespace LibDescent.Data.Midi
         /// </summary>
         public byte[] Data;
 
+        public override bool IsExtendedEvent => true;
+
         /// <summary>
         /// Initializes a new MIDIMetaMessage instance.
         /// </summary>
@@ -256,6 +274,8 @@ namespace LibDescent.Data.Midi
         /// </summary>
         public int Sequence;
 
+        public override bool IsExtendedEvent => true;
+
         /// <summary>
         /// Initializes a new MIDISequenceNumberMessage instance.
         /// </summary>
@@ -277,6 +297,8 @@ namespace LibDescent.Data.Midi
         /// Tempo in microseconds per MIDI quarter note (which is usually equivalent to 480 MIDI ticks).
         /// </summary>
         public int Tempo;
+
+        public override bool IsExtendedEvent => true;
 
         /// <summary>
         /// Initializes a new MIDITempoMessage instance.
@@ -335,6 +357,8 @@ namespace LibDescent.Data.Midi
         /// </summary>
         public int FractionalFrames;
 
+        public override bool IsExtendedEvent => true;
+
         /// <summary>
         /// Initializes a new MIDISMPTEOffsetMessage instance.
         /// </summary>
@@ -377,6 +401,8 @@ namespace LibDescent.Data.Midi
         /// The number of notated 32th notes in a MIDI quarter note. Usually 8.
         /// </summary>
         public int NotatedQuarterTicks;
+
+        public override bool IsExtendedEvent => true;
 
         /// <summary>
         /// Initializes a new MIDITimeSignatureMessage instance.
@@ -424,6 +450,8 @@ namespace LibDescent.Data.Midi
         /// </summary>
         public bool Minor;
 
+        public override bool IsExtendedEvent => true;
+
         /// <summary>
         /// Initializes a new MIDIKeySignatureMessage instance.
         /// </summary>
@@ -442,6 +470,8 @@ namespace LibDescent.Data.Midi
     /// </summary>
     public class MIDISequencerProprietaryMessage : MIDIMessage
     {
+        public override bool IsExtendedEvent => true;
+        
         /// <summary>
         /// The raw data of this message.
         /// </summary>
@@ -463,6 +493,8 @@ namespace LibDescent.Data.Midi
     /// </summary>
     public class MIDIEndOfTrackMessage : MIDIMessage
     {
+        public override bool IsExtendedEvent => true;
+        
         /// <summary>
         /// Initializes a new MIDIEndOfTrackMessage instance.
         /// </summary>

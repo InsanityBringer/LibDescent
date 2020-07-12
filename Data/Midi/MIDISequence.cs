@@ -147,13 +147,15 @@ namespace LibDescent.Data.Midi
                 tickRateSMPTE = false;
                 br.BaseStream.Seek(48, SeekOrigin.Begin);
                 int nTracks = br.ReadInt32();
-                int timeBase = br.ReadInt32(); // ?
-                tickRateQuarterTicks = 60;
+                tickRateQuarterTicks = br.ReadInt32();
                 int bpm = br.ReadInt32();
                 int seconds = br.ReadInt32(); //for debugging, I suppose.
 
                 Tracks.Clear();
-                br.BaseStream.Seek(776, SeekOrigin.Begin); //The meaning of this block of bytes hasn't been documented ever.
+
+                // TODO: read in track device mappings (and channel priorities?). 
+                br.BaseStream.Seek(776, SeekOrigin.Begin);
+
                 for (int i = 0; i < nTracks; ++i)
                 {
                     MIDITrack trk = new MIDITrack();
@@ -553,6 +555,8 @@ namespace LibDescent.Data.Midi
             {
                 if (tickRateSMPTE)
                     throw new ArgumentException("SMPTE time base is not supported on HMP");
+                if (trackNum > 32)
+                    throw new ArgumentException("HMP cannot take more than 32 tracks!");
 
                 using (BinaryWriterHMP bw = new BinaryWriterHMP(stream))
                 {
@@ -563,23 +567,75 @@ namespace LibDescent.Data.Midi
                     long fileSizePosition = stream.Position;
                     bw.Write(0); bw.Write(0); bw.Write(0); bw.Write(0);
                     bw.Write(Tracks.Count);
-                    bw.Write(480);
+                    bw.Write(tickRateQuarterTicks);
                     double bpm;
                     int duration = (int)GetDurationInSeconds(out bpm);
                     bw.Write((int)bpm);
                     bw.Write(duration);
 
-                    // TODO: unknown data block
-                    for (int i = 0x40; i < 0x308; ++i)
-                        bw.Write((byte)0);
+                    // channel priorities. gather all channels used during track events on all tracks
+                    // and set them all to maximum music priority
+                    int[] usedChannels = new int[16];
+                    foreach (MIDITrack track in Tracks)
+                    {
+                        foreach (MIDIEvent evt in track)
+                        {
+                            MIDIMessage msg = evt.Data;
+                            if (!msg.IsExtendedEvent && msg.Channel >= 0)
+                            {
+                                usedChannels[msg.Channel] = 1;
+                            }
+                        }
+                    }
+                    for (int i = 0; i < usedChannels.Length; ++i)
+                        bw.Write(usedChannels[i] > 0 ? 9 : 0);
+
+                    // device map information. every track has a list of devices that they will be
+                    // sent out to, but if left empty, all devices are considered valid.
+                    // (it is possible that Descent cares little about this information; it is the
+                    // responsibility of the HMI driver to do that, but it may still choose to play
+                    // the track on any device.)
+                    // TODO: should not be hardcoded. store in class.
+                    bw.Write(HMPConstants.HMI_MIDI_DEVICE_ALL);
+                    bw.Write(HMPConstants.HMI_MIDI_DEVICE_ALL);
+                    bw.Write(HMPConstants.HMI_MIDI_DEVICE_ALL);
+                    bw.Write(HMPConstants.HMI_MIDI_DEVICE_ALL);
+                    bw.Write(HMPConstants.HMI_MIDI_DEVICE_ALL);
+                    for (int i = 1; i < TrackCount; ++i)
+                    {
+                        bw.Write(HMPConstants.HMI_MIDI_DEVICE_SOUND_MASTER_II);
+                        bw.Write(HMPConstants.HMI_MIDI_DEVICE_GUS);
+                        bw.Write(HMPConstants.HMI_MIDI_DEVICE_FM);
+                        bw.Write(HMPConstants.HMI_MIDI_DEVICE_WAVETABLE);
+                        bw.Write(HMPConstants.HMI_MIDI_DEVICE_ALL);
+                    }
+                    for (int i = TrackCount; i < 32; ++i)
+                    {
+                        bw.Write(HMPConstants.HMI_MIDI_DEVICE_ALL);
+                        bw.Write(HMPConstants.HMI_MIDI_DEVICE_ALL);
+                        bw.Write(HMPConstants.HMI_MIDI_DEVICE_ALL);
+                        bw.Write(HMPConstants.HMI_MIDI_DEVICE_ALL);
+                        bw.Write(HMPConstants.HMI_MIDI_DEVICE_ALL);
+                    }
+
+                    // two reserved values
+                    bw.Write(0);
+                    bw.Write(0);
 
                     int chunkNum = 0;
                     foreach (MIDITrack track in Tracks)
                     {
                         byte[] trackData = WriteHMPTrack(trackNum, track);
+                        // track number
                         bw.Write(chunkNum++);
+                        // track length (incl. header)
                         bw.Write(trackData.Length + 12);
-                        bw.Write(Math.Max(0, trackNum++ - 1));
+                        // channel number
+                        MIDINoteMessage msg = track.GetAllEvents().Select(m => m.Data).OfType<MIDINoteMessage>().FirstOrDefault();
+                        int ch = 0;
+                        if (msg != null && msg.Channel >= 0)
+                            ch = msg.Channel;
+                        bw.Write(ch);
                         bw.Write(trackData);
                     }
 
@@ -1414,5 +1470,61 @@ namespace LibDescent.Data.Midi
             Write((byte)(v & 0x7F));
             Write((byte)((v >> 7) & 0x7F));
         }
+    }
+
+    /// <summary>
+    /// Contains constants for HMP files.
+    /// </summary>
+    public static class HMPConstants
+    {
+        /// <summary>
+        /// All MIDI devices valid, or padding value.
+        /// </summary>
+        public const int HMI_MIDI_DEVICE_ALL = 0x0000;
+
+        /// <summary>
+        /// Covox Sound Master II.
+        /// </summary>
+        public const int HMI_MIDI_DEVICE_SOUND_MASTER_II = 0xA000;
+        /// <summary>
+        /// Roland MPU-401.
+        /// </summary>
+        public const int HMI_MIDI_DEVICE_MPU_401 = 0xA001;
+        /// <summary>
+        /// Generic FM device.
+        /// </summary>
+        public const int HMI_MIDI_DEVICE_FM = 0xA002;
+        /// <summary>
+        /// Yamaha OPL2 (YM3812).
+        /// </summary>
+        public const int HMI_MIDI_DEVICE_OPL2 = 0xA002;
+        /// <summary>
+        /// Roland MT-32.
+        /// </summary>
+        public const int HMI_MIDI_DEVICE_MT_32 = 0xA003;
+        /// <summary>
+        /// Any digital playback device.
+        /// </summary>
+        public const int HMI_MIDI_DEVICE_DIGI = 0xA005;
+        /// <summary>
+        /// The internal PC speaker.
+        /// </summary>
+        public const int HMI_MIDI_DEVICE_INTERNAL_SPEAKER = 0xA006;
+        /// <summary>
+        /// Any wavetable synthesis sound card.
+        /// </summary>
+        public const int HMI_MIDI_DEVICE_WAVETABLE = 0xA007;
+        /// <summary>
+        /// Creative Sound Blaster AWE32.
+        /// </summary>
+        public const int HMI_MIDI_DEVICE_AWE32 = 0xA008;
+        /// <summary>
+        /// Yamaha OPL3 (YMF262).
+        /// </summary>
+        public const int HMI_MIDI_DEVICE_OPL3 = 0xA009;
+        /// <summary>
+        /// Gravis Ultrasound.
+        /// </summary>
+        public const int HMI_MIDI_DEVICE_GUS = 0xA00A;
     }
 }
