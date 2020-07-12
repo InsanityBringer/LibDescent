@@ -76,7 +76,9 @@ namespace LibDescent.Data.Midi
         public MIDINoteMessage(MIDIMessageType type, int channel, int key, int velocity) : base(type, channel)
         {
             if (type != MIDIMessageType.NoteOn && type != MIDIMessageType.NoteOff && type != MIDIMessageType.NoteAftertouch)
-                throw new ArgumentException("Invalid event type for MIDINoteEvent");
+                throw new ArgumentException("Invalid message type for MIDINoteMessage");
+            if (channel < 0 || channel > 15)
+                throw new ArgumentException("MIDINoteMessage must be associated with a channel 0-15");
             Key = key;
             Velocity = velocity;
         }
@@ -104,6 +106,8 @@ namespace LibDescent.Data.Midi
         /// <param name="value">The new raw value for the controller.</param>
         public MIDIControlChangeMessage(int channel, MIDIControl controller, int value) : base(MIDIMessageType.ControlChange, channel)
         {
+            if (channel < 0 || channel > 15)
+                throw new ArgumentException("MIDIControlChangeMessage must be associated with a channel 0-15");
             Controller = controller;
             Value = value;
         }
@@ -141,6 +145,8 @@ namespace LibDescent.Data.Midi
         /// <param name="program">The program to change to.</param>
         public MIDIProgramChangeMessage(int channel, byte program) : base(MIDIMessageType.ProgramChange, channel)
         {
+            if (channel < 0 || channel > 15)
+                throw new ArgumentException("MIDIProgramChangeMessage must be associated with a channel 0-15");
             Program = program;
         }
     }
@@ -162,6 +168,8 @@ namespace LibDescent.Data.Midi
         /// <param name="value">The new pressure value.</param>
         public MIDIChannelAftertouchMessage(int channel, byte value) : base(MIDIMessageType.ChannelAftertouch, channel)
         {
+            if (channel < 0 || channel > 15)
+                throw new ArgumentException("MIDIChannelAftertouchMessage must be associated with a channel 0-15");
             Value = value;
         }
     }
@@ -172,7 +180,7 @@ namespace LibDescent.Data.Midi
     public class MIDIPitchBendMessage : MIDIMessage
     {
         /// <summary>
-        /// The new pitch value. 0x200 (512) represents normal pitch, and the value ranges from 0 to 0x400 (1024).
+        /// The new pitch value. 0x2000 (8192) represents normal pitch, and the value ranges from 0 to 0x3FFF (16383).
         /// </summary>
         public short Pitch;
 
@@ -180,9 +188,11 @@ namespace LibDescent.Data.Midi
         /// Initializes a new MIDIPitchBendMessage instance.
         /// </summary>
         /// <param name="channel">The channel associated with this message (0-15).</param>
-        /// <param name="pitch">The new pitch value. 0x200 (512) represents normal pitch, and the value ranges from 0 to 0x400 (1024).</param>
+        /// <param name="pitch">The new pitch value. 0x2000 (8192) represents normal pitch, and the value ranges from 0 to 0x3FFF (16383).</param>
         public MIDIPitchBendMessage(int channel, short pitch) : base(MIDIMessageType.PitchBend, channel)
         {
+            if (channel < 0 || channel > 15)
+                throw new ArgumentException("MIDIPitchBendMessage must be associated with a channel 0-15");
             Pitch = pitch;
         }
     }
@@ -237,6 +247,28 @@ namespace LibDescent.Data.Midi
     }
 
     /// <summary>
+    /// Represents a MIDI sequence number message.
+    /// </summary>
+    public class MIDISequenceNumberMessage : MIDIMessage
+    {
+        /// <summary>
+        /// The sequence number.
+        /// </summary>
+        public int Sequence;
+
+        /// <summary>
+        /// Initializes a new MIDISequenceNumberMessage instance.
+        /// </summary>
+        /// <param name="type">The MIDI message type. Should be one of the Meta types.</param>
+        /// <param name="channel">The channel associated with this message (0-15), or -1 if not applicable.</param>
+        /// <param name="sequence">The sequence number.</param>
+        public MIDISequenceNumberMessage(int channel, int sequence) : base(MIDIMessageType.SequenceNumber, channel)
+        {
+            Sequence = sequence;
+        }
+    }
+
+    /// <summary>
     /// Represents a MIDI meta tempo message.
     /// </summary>
     public class MIDITempoMessage : MIDIMessage
@@ -257,12 +289,70 @@ namespace LibDescent.Data.Midi
         }
 
         /// <summary>
+        /// Initializes a new MIDITempoMessage instance.
+        /// </summary>
+        /// <param name="channel">The channel associated with this message (0-15), or -1 if not applicable.</param>
+        /// <param name="bpm">Tempo in beats per minute.</param>
+        public MIDITempoMessage(int channel, double bpm) : base(MIDIMessageType.SetTempo, channel)
+        {
+            BeatsPerMinute = bpm;
+        }
+
+        /// <summary>
         /// Tempo in beats per minute.
         /// </summary>
         public double BeatsPerMinute
         {
             get => 60 * (1000000.0 / Tempo);
             set => Tempo = (int)Math.Round(1000000.0 / (value / 60));
+        }
+    }
+
+    public class MIDISMPTEOffsetMessage : MIDIMessage
+    {
+        /// <summary>
+        /// The SMPTE frame rate for this offset.
+        /// </summary>
+        public MIDISMPTEFrameRate FrameRate;
+        /// <summary>
+        /// The hours of the offset.
+        /// </summary>
+        public int Hours;
+        /// <summary>
+        /// The minutes of the offset (0-59).
+        /// </summary>
+        public int Minutes;
+        /// <summary>
+        /// The seconds of the offset (0-59).
+        /// </summary>
+        public int Seconds;
+        /// <summary>
+        /// The frames of the offset (0-23/24/29).
+        /// </summary>
+        public int Frames;
+        /// <summary>
+        /// The hundredths of a frame of the offset (0-99).
+        /// </summary>
+        public int FractionalFrames;
+
+        /// <summary>
+        /// Initializes a new MIDISMPTEOffsetMessage instance.
+        /// </summary>
+        /// <param name="channel">The channel associated with this message (0-15), or -1 if not applicable.</param>
+        /// <param name="rate">The SMPTE frame rate for this offset</param>
+        /// <param name="hours">The hours of the offset.</param>
+        /// <param name="minutes">The minutes of the offset (0-59).</param>
+        /// <param name="seconds">The seconds of the offset (0-59).</param>
+        /// <param name="frames">The frames of the offset (0-23/24/29).</param>
+        /// <param name="fracFrames">The hundredths of a frame of the offset (0-99).</param>
+        public MIDISMPTEOffsetMessage(int channel, MIDISMPTEFrameRate rate, int hours, int minutes, int seconds, int frames, int fracFrames) : base(MIDIMessageType.SMPTEOffset, channel)
+        {
+            FrameRate = rate;
+            Hours = hours;
+            Minutes = minutes;
+            Seconds = seconds;
+            Frames = frames;
+            FractionalFrames = fracFrames;
         }
     }
 
@@ -348,6 +438,39 @@ namespace LibDescent.Data.Midi
     }
 
     /// <summary>
+    /// Represents a MIDI sequencer-specific proprietary message.
+    /// </summary>
+    public class MIDISequencerProprietaryMessage : MIDIMessage
+    {
+        /// <summary>
+        /// The raw data of this message.
+        /// </summary>
+        public byte[] Data;
+
+        /// <summary>
+        /// Initializes a new MIDISequencerProprietaryMessage instance.
+        /// </summary>
+        /// <param name="channel">The channel associated with this message (0-15), or -1 if not applicable.</param>
+        /// <param name="data">The data associated with this meta event.</param>
+        public MIDISequencerProprietaryMessage(int channel, byte[] data) : base(MIDIMessageType.SequencerProprietary, channel)
+        {
+            Data = data;
+        }
+    }
+
+    /// <summary>
+    /// Represents a MIDI end of track message.
+    /// </summary>
+    public class MIDIEndOfTrackMessage : MIDIMessage
+    {
+        /// <summary>
+        /// Initializes a new MIDIEndOfTrackMessage instance.
+        /// </summary>
+        /// <param name="channel">The channel associated with this message (0-15), or -1 if not applicable.</param>
+        public MIDIEndOfTrackMessage(int channel) : base(MIDIMessageType.EndOfTrack, channel) { }
+    }
+
+    /// <summary>
     /// Represents the possible MIDI event types.
     /// </summary>
     public enum MIDIMessageType
@@ -359,7 +482,10 @@ namespace LibDescent.Data.Midi
         ProgramChange,
         ChannelAftertouch,
         PitchBend,
+
         SysEx,
+
+        SequenceNumber,
         MetaText,
         MetaCopyright,
         MetaTrackName,
@@ -373,6 +499,7 @@ namespace LibDescent.Data.Midi
         SMPTEOffset,
         TimeSignature,
         KeySignature,
+
         SequencerProprietary
     }
 
