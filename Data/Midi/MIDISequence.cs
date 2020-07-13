@@ -681,13 +681,25 @@ namespace LibDescent.Data.Midi
                         int writtenDev = 0;
 
                         if (trk.HMPDevices.HasFlag(HMPValidDevice.MIDI))
+                        {
                             bw.Write(HMPConstants.HMI_MIDI_DEVICE_MIDI);
+                            ++writtenDev;
+                        }
                         if (trk.HMPDevices.HasFlag(HMPValidDevice.GUS))
+                        {
                             bw.Write(HMPConstants.HMI_MIDI_DEVICE_GUS);
+                            ++writtenDev;
+                        }
                         if (trk.HMPDevices.HasFlag(HMPValidDevice.FM))
+                        {
                             bw.Write(HMPConstants.HMI_MIDI_DEVICE_FM);
+                            ++writtenDev;
+                        }
                         if (trk.HMPDevices.HasFlag(HMPValidDevice.Wavetable))
+                        {
                             bw.Write(HMPConstants.HMI_MIDI_DEVICE_WAVETABLE);
+                            ++writtenDev;
+                        }
 
                         for (int j = writtenDev; j < 5; ++j)
                             bw.Write(0);
