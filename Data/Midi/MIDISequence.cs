@@ -53,6 +53,22 @@ namespace LibDescent.Data.Midi
         private MIDISMPTEFrameRate tickRateFrames;
 
         /// <summary>
+        /// The MIDI pulses per quarter (PPQ) value, describing the number of MIDI ticks in a quarter note, or -1 if the MIDI uses SMPTE timing.
+        /// </summary>
+        public int PulsesPerQuarter
+        {
+            get => tickRateSMPTE ? -1 : tickRateQuarterTicks;
+            set
+            {
+                if (tickRateSMPTE)
+                    return;
+                if (value <= 0)
+                    throw new ArgumentException("PPQ must be non-negative");
+                tickRateQuarterTicks = value;
+            }
+        }
+
+        /// <summary>
         /// Initializes a new instance of the MIDISequence class, representing a MIDI sequence with one track without any events.
         /// </summary>
         public MIDISequence()
@@ -186,6 +202,35 @@ namespace LibDescent.Data.Midi
                     break;
             }
             Format = newFormat;
+        }
+
+        /// <summary>
+        /// Adjusts the pulses per quarter (PPQ) value of this sequence and shifts all event times accordingly.
+        /// Returns whether the adjustment was exact; if false, there might be small inaccuracies.
+        /// </summary>
+        /// <param name="ppq">The new PPQ value.</param>
+        /// <returns>Whether the adjustment was exact.</returns>
+        public bool AdjustPPQ(int ppq)
+        {
+            if (tickRateSMPTE)
+                throw new ArgumentException("Cannot adjust PPQ of MIDI sequence that uses SMPTE timing");
+            if (ppq <= 0)
+                throw new ArgumentException("PPQ must be non-negative");
+
+            int x2 = ppq, x1 = PulsesPerQuarter;
+            bool exact = true;
+            if (x1 == x2)
+                return true;
+
+            foreach (MIDITrack trk in Tracks)
+                exact &= trk.ShiftTime(x2, x1);
+
+            tickRateQuarterTicks = ppq;
+
+            if (x2 > x1)
+                return x2 % x1 == 0 && exact;
+            else
+                return x1 % x2 == 0 && exact;
         }
 
         /// <summary>
@@ -1095,6 +1140,34 @@ namespace LibDescent.Data.Midi
             }
             if (evts.Count < 1 || evts.Last().Data.Type != MIDIMessageType.EndOfTrack)
                 AddEvent(new MIDIEvent(tree.Max.Time, new MIDIEndOfTrackMessage(-1)));
+        }
+
+        internal bool ShiftTime(int n, int d)
+        {
+            bool exact = true;
+            List<MIDIInstant> instants = new List<MIDIInstant>();
+            instants.AddRange(tree);
+            tree.Clear();
+            idict.Clear();
+
+            foreach (MIDIInstant instant in instants)
+            {
+                ulong newTime = instant.Time * (ulong)n;
+                exact &= (newTime % (ulong)d) == 0;
+                newTime /= (ulong)d;
+                if (idict.ContainsKey(newTime))
+                {
+                    idict[newTime].Messages.AddRange(instant.Messages);
+                }
+                else
+                {
+                    instant.Time = newTime;
+                    tree.Add(instant);
+                    idict[newTime] = instant;
+                }
+            }
+
+            return exact;
         }
 
         /// <summary>
