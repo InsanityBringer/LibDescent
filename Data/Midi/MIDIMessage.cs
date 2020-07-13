@@ -589,8 +589,21 @@ namespace LibDescent.Data.Midi
         SoundControl9 = 0x4E,
         SoundControl10 = 0x4F,
 
-        HMPLoopStart = 0x6E,
-        HMPLoopEnd = 0x6F,
+        // SOS controllers start
+        HMIEnableControlReset = 0x67,
+        HMIDisableControlReset = 0x68,
+        HMIChannelLock = 0x6A,
+        HMIChannelPriority = 0x6B,
+        HMILocalBranchPoint = 0x6C,
+        HMIGoToLocalBranch = 0x6D,
+        HMiGlobalLoopStart = 0x6E,
+        HMiGlobalLoopEnd = 0x6F,
+        HMIGlobalBranchPoint = 0x71,
+        HMIGoToGlobalBranch = 0x72,
+        HMILocalLoopStart = 0x74,
+        HMILocalLoopEnd = 0x75,
+        // HMITrigger = 0x77,
+        // SOS controllers end
 
         AllSoundOff = 0x78,
         ResetAllControl = 0x79,

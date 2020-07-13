@@ -234,6 +234,28 @@ namespace LibDescent.Data.Midi
         }
 
         /// <summary>
+        /// Remaps programs/instructions on all tracks.
+        /// </summary>
+        /// <param name="oldProgram">The old program number; 0-127 for melodic programs, or 128-255 for percussion programs.</param>
+        /// <param name="newProgram">The new program number, between 0-127.</param>
+        public void RemapProgram(int oldProgram, int newProgram)
+        {
+            foreach (MIDITrack trk in Tracks)
+                trk.RemapProgram(oldProgram, newProgram);
+        }
+
+        /// <summary>
+        /// Remaps programs/instructions on all tracks.
+        /// </summary>
+        /// <param name="programMap">An array of 256 integers detailing the way programs should be remapped, first 128 for melodic programs
+        /// and second 128 for percussion programs. The values should range between 0-127.</param>
+        public void RemapProgram(int[] programMap)
+        {
+            foreach (MIDITrack trk in Tracks)
+                trk.RemapProgram(programMap);
+        }
+        
+        /// <summary>
         /// Loads a HMP sequence from a stream.
         /// </summary>
         /// <param name="stream">The stream to load from.</param>
@@ -1140,6 +1162,37 @@ namespace LibDescent.Data.Midi
             }
             if (evts.Count < 1 || evts.Last().Data.Type != MIDIMessageType.EndOfTrack)
                 AddEvent(new MIDIEvent(tree.Max.Time, new MIDIEndOfTrackMessage(-1)));
+        }
+
+        /// <summary>
+        /// Remaps programs/instructions on this track.
+        /// </summary>
+        /// <param name="oldProgram">The old program number; 0-127 for melodic programs, or 128-255 for percussion programs.</param>
+        /// <param name="newProgram">The new program number, between 0-127.</param>
+        public void RemapProgram(int oldProgram, int newProgram)
+        {
+            foreach (MIDIProgramChangeMessage msg in GetAllEvents().Select(e => e.Data).OfType<MIDIProgramChangeMessage>())
+            {
+                bool percussion = msg.Channel == 9;
+                if (msg.Program == oldProgram + (percussion ? 128 : 0))
+                    msg.Program = (byte)(newProgram & 127);
+            }
+        }
+
+        /// <summary>
+        /// Remaps programs/instructions on this track.
+        /// </summary>
+        /// <param name="programMap">An array of 256 integers detailing the way programs should be remapped, first 128 for melodic programs
+        /// and second 128 for percussion programs. The values should range between 0-127.</param>
+        public void RemapProgram(int[] programMap)
+        {
+            if (programMap.Length != 256)
+                throw new ArgumentException("program remap array must be 256 items long");
+            foreach (MIDIProgramChangeMessage msg in GetAllEvents().Select(e => e.Data).OfType<MIDIProgramChangeMessage>())
+            {
+                bool percussion = msg.Channel == 9;
+                msg.Program = (byte)(programMap[(msg.Program & 127) + (percussion ? 128 : 0)] & 127);
+            }
         }
 
         internal bool ShiftTime(int n, int d)
