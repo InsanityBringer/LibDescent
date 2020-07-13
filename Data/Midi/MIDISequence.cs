@@ -37,11 +37,15 @@ namespace LibDescent.Data.Midi
         /// <summary>
         /// The MIDI format used by this sequence.
         /// </summary>
-        public MIDIFormat Format;
+        public MIDIFormat Format { get; private set; }
         /// <summary>
         /// The tracks contained in this sequence.
         /// </summary>
         public List<MIDITrack> Tracks;
+        /// <summary>
+        /// Channel playback priorities for HMP files. Undefined for MIDI files.
+        /// </summary>
+        public int[] HMPChannelPriorities = new int[16];
 
         private bool tickRateSMPTE;
         private int tickRateQuarterTicks;
@@ -127,6 +131,64 @@ namespace LibDescent.Data.Midi
         }
 
         /// <summary>
+        /// Converts this MIDI track into another format. If converting into Type0, all MIDI tracks
+        /// will be merged into one track. If converting into HMI, HMP-specific values will be
+        /// initialized with defaults.
+        /// </summary>
+        /// <param name="newFormat"></param>
+        public void Convert(MIDIFormat newFormat)
+        {
+            MIDIFormat oldFormat = Format;
+            if (oldFormat == MIDIFormat.HMI)
+            {
+                tickRateSMPTE = false;
+            }
+
+            switch (newFormat)
+            {
+                case MIDIFormat.Type0:
+                    MIDITrack mergedTrack = new MIDITrack();
+                    List<MIDIEvent> events = new List<MIDIEvent>();
+                    foreach (MIDITrack trk in Tracks)
+                        events.AddRange(trk.GetAllEvents());
+                    events.Sort(new MIDIEventComparer());
+                    foreach (MIDIEvent evt in events)
+                        mergedTrack.AddEvent(evt);
+                    Tracks.Clear();
+                    Tracks.Add(mergedTrack);
+                    mergedTrack.TerminateTrack();
+                    break;
+
+                case MIDIFormat.HMI:
+                    // channel priorities. gather all channels used during track events on all tracks
+                    // and set them all to minimum music priority
+                    int[] usedChannels = new int[16];
+                    foreach (MIDITrack track in Tracks)
+                    {
+                        foreach (MIDIEvent evt in track)
+                        {
+                            MIDIMessage msg = evt.Data;
+                            if (!msg.IsExtendedEvent && msg.Channel >= 0)
+                            {
+                                usedChannels[msg.Channel] = 1;
+                            }
+                        }
+                    }
+                    for (int i = 0; i < 16; ++i)
+                        HMPChannelPriorities[i] = usedChannels[i] > 0 ? HMPConstants.HMI_PRIORITY_MINIMUM : HMPConstants.HMI_PRIORITY_MAXIMUM;
+
+                    // default device map information
+                    if (TrackCount < 1) break;
+                    Tracks[0].HMPDevices = HMPValidDevice.Default;
+                    for (int i = 1; i < TrackCount; ++i)
+                        Tracks[i].HMPDevices = HMPValidDevice.All;
+                    
+                    break;
+            }
+            Format = newFormat;
+        }
+
+        /// <summary>
         /// Loads a HMP sequence from a stream.
         /// </summary>
         /// <param name="stream">The stream to load from.</param>
@@ -140,7 +202,7 @@ namespace LibDescent.Data.Midi
 
                 Format = MIDIFormat.HMI;
 
-                //Offsets directly derived from Chocolate Descent source
+                // offsets directly derived from Chocolate Descent source
                 br.BaseStream.Seek(32, SeekOrigin.Begin);
                 int size = br.ReadInt32();
 
@@ -153,8 +215,38 @@ namespace LibDescent.Data.Midi
 
                 Tracks.Clear();
 
-                // TODO: read in track device mappings (and channel priorities?). 
-                br.BaseStream.Seek(776, SeekOrigin.Begin);
+                for (int i = 0; i < 16; ++i)
+                    HMPChannelPriorities[i] = Util.Clamp(br.ReadInt32(), HMPConstants.HMI_PRIORITY_MAXIMUM, HMPConstants.HMI_PRIORITY_MINIMUM);
+                List<HMPValidDevice> deviceMappings = new List<HMPValidDevice>();
+                for (int i = 0; i < 32; ++i)
+                {
+                    HMPValidDevice mapping = HMPValidDevice.Default;
+
+                    for (int j = 0; j < 5; ++j)
+                    {
+                        switch (br.ReadInt32())
+                        {
+                            case HMPConstants.HMI_MIDI_DEVICE_MIDI:
+                                mapping |= HMPValidDevice.MIDI;
+                                break;
+                            case HMPConstants.HMI_MIDI_DEVICE_GUS:
+                                mapping |= HMPValidDevice.GUS;
+                                break;
+                            case HMPConstants.HMI_MIDI_DEVICE_FM:
+                                mapping |= HMPValidDevice.FM;
+                                break;
+                            case HMPConstants.HMI_MIDI_DEVICE_WAVETABLE:
+                                mapping |= HMPValidDevice.Wavetable;
+                                break;
+                        }
+                    }
+
+                    deviceMappings.Add(mapping);
+                }
+
+                // two unused values
+                br.ReadInt32();
+                br.ReadInt32();
 
                 for (int i = 0; i < nTracks; ++i)
                 {
@@ -171,6 +263,7 @@ namespace LibDescent.Data.Midi
                         trk.AddEvent(new MIDIEvent(0, new MIDITempoMessage(-1, (double)bpm)));
 
                     ReadHMPTrack(i, trk, trackData);
+                    trk.HMPDevices = i >= 32 ? HMPValidDevice.Default : deviceMappings[i];
                     Tracks.Add(trk);
                 }
             }
@@ -573,49 +666,36 @@ namespace LibDescent.Data.Midi
                     bw.Write((int)bpm);
                     bw.Write(duration);
 
-                    // channel priorities. gather all channels used during track events on all tracks
-                    // and set them all to maximum music priority
-                    int[] usedChannels = new int[16];
-                    foreach (MIDITrack track in Tracks)
-                    {
-                        foreach (MIDIEvent evt in track)
-                        {
-                            MIDIMessage msg = evt.Data;
-                            if (!msg.IsExtendedEvent && msg.Channel >= 0)
-                            {
-                                usedChannels[msg.Channel] = 1;
-                            }
-                        }
-                    }
-                    for (int i = 0; i < usedChannels.Length; ++i)
-                        bw.Write(usedChannels[i] > 0 ? 9 : 0);
+                    for (int i = 0; i < 16; ++i)
+                        bw.Write(HMPChannelPriorities[i]);
 
                     // device map information. every track has a list of devices that they will be
                     // sent out to, but if left empty, all devices are considered valid.
                     // (it is possible that Descent cares little about this information; it is the
                     // responsibility of the HMI driver to do that, but it may still choose to play
                     // the track on any device.)
-                    // TODO: should not be hardcoded. store in class.
-                    bw.Write(HMPConstants.HMI_MIDI_DEVICE_ALL);
-                    bw.Write(HMPConstants.HMI_MIDI_DEVICE_ALL);
-                    bw.Write(HMPConstants.HMI_MIDI_DEVICE_ALL);
-                    bw.Write(HMPConstants.HMI_MIDI_DEVICE_ALL);
-                    bw.Write(HMPConstants.HMI_MIDI_DEVICE_ALL);
-                    for (int i = 1; i < TrackCount; ++i)
+                    Tracks[0].HMPDevices = HMPValidDevice.Default;
+                    for (int i = 0; i < TrackCount; ++i)
                     {
-                        bw.Write(HMPConstants.HMI_MIDI_DEVICE_SOUND_MASTER_II);
-                        bw.Write(HMPConstants.HMI_MIDI_DEVICE_GUS);
-                        bw.Write(HMPConstants.HMI_MIDI_DEVICE_FM);
-                        bw.Write(HMPConstants.HMI_MIDI_DEVICE_WAVETABLE);
-                        bw.Write(HMPConstants.HMI_MIDI_DEVICE_ALL);
+                        MIDITrack trk = Tracks[i];
+                        int writtenDev = 0;
+
+                        if (trk.HMPDevices.HasFlag(HMPValidDevice.MIDI))
+                            bw.Write(HMPConstants.HMI_MIDI_DEVICE_MIDI);
+                        if (trk.HMPDevices.HasFlag(HMPValidDevice.GUS))
+                            bw.Write(HMPConstants.HMI_MIDI_DEVICE_GUS);
+                        if (trk.HMPDevices.HasFlag(HMPValidDevice.FM))
+                            bw.Write(HMPConstants.HMI_MIDI_DEVICE_FM);
+                        if (trk.HMPDevices.HasFlag(HMPValidDevice.Wavetable))
+                            bw.Write(HMPConstants.HMI_MIDI_DEVICE_WAVETABLE);
+
+                        for (int j = writtenDev; j < 5; ++j)
+                            bw.Write(0);
                     }
                     for (int i = TrackCount; i < 32; ++i)
                     {
-                        bw.Write(HMPConstants.HMI_MIDI_DEVICE_ALL);
-                        bw.Write(HMPConstants.HMI_MIDI_DEVICE_ALL);
-                        bw.Write(HMPConstants.HMI_MIDI_DEVICE_ALL);
-                        bw.Write(HMPConstants.HMI_MIDI_DEVICE_ALL);
-                        bw.Write(HMPConstants.HMI_MIDI_DEVICE_ALL);
+                        for (int j = 0; j < 5; ++j)
+                            bw.Write(0);
                     }
 
                     // two reserved values
@@ -861,6 +941,12 @@ namespace LibDescent.Data.Midi
     /// </summary>
     public class MIDITrack : IEnumerable<MIDIEvent>
     {
+        /// <summary>
+        /// The devices this track will be played on˔ Only applies to HMI/HMP files, and even
+        /// then not for the first track.
+        /// </summary>
+        public HMPValidDevice HMPDevices;
+
         internal SortedSet<MIDIInstant> tree;
         internal Dictionary<UInt64, MIDIInstant> idict;
 
@@ -868,6 +954,7 @@ namespace LibDescent.Data.Midi
         {
             tree = new SortedSet<MIDIInstant>(new MIDIInstantComparer());
             idict = new Dictionary<ulong, MIDIInstant>();
+            HMPDevices = HMPValidDevice.All;
         }
 
         IEnumerator<MIDIEvent> IEnumerable<MIDIEvent>.GetEnumerator()
@@ -1472,22 +1559,59 @@ namespace LibDescent.Data.Midi
         }
     }
 
+    [Flags]
+    public enum HMPValidDevice
+    {
+        /// <summary>
+        /// Default device mappings.
+        /// </summary>
+        Default = 0,
+        /// <summary>
+        /// A MIDI output device.
+        /// </summary>
+        MIDI = 1,
+        /// <summary>
+        /// Any sound card using wavetable synthesis.
+        /// </summary>
+        Wavetable = 2,
+        /// <summary>
+        /// Any FM (frequency modulation) sound card, such as those using OPL2 or OPL3.
+        /// </summary>
+        FM = 4,
+        /// <summary>
+        /// Gravis Ultrasound.
+        /// </summary>
+        GUS = 8,
+        /// <summary>
+        /// Play this file on all available options.
+        /// </summary>
+        All = MIDI | Wavetable | FM | GUS
+    }
+
     /// <summary>
     /// Contains constants for HMP files.
     /// </summary>
     public static class HMPConstants
     {
         /// <summary>
-        /// All MIDI devices valid, or padding value.
+        /// Represents the maximum priority for a music channel.
         /// </summary>
-        public const int HMI_MIDI_DEVICE_ALL = 0x0000;
+        public const int HMI_PRIORITY_MAXIMUM = 0;
+        /// <summary>
+        /// Represents the minimum priority for a music channel.
+        /// </summary>
+        public const int HMI_PRIORITY_MINIMUM = 9;
 
+        /// <summary>
+        /// Used by Descent for MIDI output devices in HMP files.
+        /// </summary>
+        public const int HMI_MIDI_DEVICE_MIDI = 0xA000;
         /// <summary>
         /// Covox Sound Master II.
         /// </summary>
         public const int HMI_MIDI_DEVICE_SOUND_MASTER_II = 0xA000;
         /// <summary>
-        /// Roland MPU-401.
+        /// Roland MPU-401, or any Standard MIDI compatible device.
         /// </summary>
         public const int HMI_MIDI_DEVICE_MPU_401 = 0xA001;
         /// <summary>
@@ -1501,7 +1625,7 @@ namespace LibDescent.Data.Midi
         /// <summary>
         /// Roland MT-32.
         /// </summary>
-        public const int HMI_MIDI_DEVICE_MT_32 = 0xA003;
+        public const int HMI_MIDI_DEVICE_MT_32 = 0xA004;
         /// <summary>
         /// The internal PC speaker.
         /// </summary>
