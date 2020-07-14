@@ -96,12 +96,12 @@ namespace LibDescent.Data.Midi
             {
                 stream.Seek(0, SeekOrigin.Begin);
                 if (Encoding.ASCII.GetString(br.ReadBytes(4)) != "MThd")
-                    throw new ArgumentException("Not a valid MIDI");
+                    throw new ArgumentException("Not a valid standard MIDI 1.0 file");
                 if (br.ReadInt32() != 6)
-                    throw new ArgumentException("Not a valid MIDI");
+                    throw new ArgumentException("Not a valid standard MIDI 1.0 file");
                 short format = br.ReadInt16();
                 if (format >= 3)
-                    throw new ArgumentException("Not a valid MIDI");
+                    throw new ArgumentException("Not a valid standard MIDI 1.0 file");
                 Format = (MIDIFormat)format;
                 ushort nTracks = br.ReadUInt16();
                 short division = br.ReadInt16();
@@ -146,6 +146,39 @@ namespace LibDescent.Data.Midi
             }
         }
 
+        private void SplitTrackByChannel()
+        {
+            if (TrackCount != 1) return;
+
+            // try to separate every channel into its own track
+            MIDITrack[] newTracks = new MIDITrack[17];
+            List<MIDIEvent> events = new List<MIDIEvent>();
+            newTracks[0] = new MIDITrack();
+            events.AddRange(Tracks[0].GetAllEvents());
+
+            foreach (MIDIEvent evt in events)
+            {
+                MIDIMessage msg = evt.Data;
+                int target = 0;
+                if (msg.Channel >= 0)
+                    target = msg.Channel + 1;
+                if (newTracks[target] == null)
+                    newTracks[target] = new MIDITrack();
+                newTracks[target].AddEvent(evt);
+            }
+
+            Tracks.Clear();
+            for (int i = 0; i < newTracks.Length; ++i)
+            {
+                MIDITrack trk = newTracks[i];
+                if (trk != null)
+                {
+                    trk.TerminateTrack();
+                    Tracks.Add(trk);
+                }
+            }
+        }
+
         /// <summary>
         /// Converts this MIDI track into another format. If converting into Type0, all MIDI tracks
         /// will be merged into one track. If converting into HMI, HMP-specific values will be
@@ -164,18 +197,26 @@ namespace LibDescent.Data.Midi
             {
                 case MIDIFormat.Type0:
                     MIDITrack mergedTrack = new MIDITrack();
-                    List<MIDIEvent> events = new List<MIDIEvent>();
+                    List<MIDIEvent> allEvents = new List<MIDIEvent>();
                     foreach (MIDITrack trk in Tracks)
-                        events.AddRange(trk.GetAllEvents());
-                    events.Sort(new MIDIEventComparer());
-                    foreach (MIDIEvent evt in events)
+                        allEvents.AddRange(trk.GetAllEvents());
+                    allEvents.Sort(new MIDIEventComparer());
+                    foreach (MIDIEvent evt in allEvents)
                         mergedTrack.AddEvent(evt);
                     Tracks.Clear();
                     Tracks.Add(mergedTrack);
                     mergedTrack.TerminateTrack();
                     break;
 
+                case MIDIFormat.Type1:
+                    if (oldFormat == MIDIFormat.Type0)
+                        SplitTrackByChannel();
+                    break;
+
                 case MIDIFormat.HMI:
+                    if (oldFormat == MIDIFormat.Type0)
+                        SplitTrackByChannel();
+
                     // channel priorities. gather all channels used during track events on all tracks
                     // and set them all to minimum music priority
                     int[] usedChannels = new int[16];
@@ -234,6 +275,20 @@ namespace LibDescent.Data.Midi
         }
 
         /// <summary>
+        /// Removes all tempo changes from this sequence and normalizes the entire song to use 120 BPM tempo.
+        /// </summary>
+        public void NormalizeTempo()
+        {
+            // TODO: handle mid-song tempo changes
+            double duration = GetDurationInSeconds(out double bpm);
+            foreach (MIDITrack trk in Tracks)
+            {
+                trk.RemoveMessages(m => m.Type == MIDIMessageType.SetTempo);
+                trk.ShiftTime(120 * 16, (int)(bpm * 16));
+            }
+        }
+
+        /// <summary>
         /// Remaps programs/instructions on all tracks.
         /// </summary>
         /// <param name="oldProgram">The old program number; 0-127 for melodic programs, or 128-255 for percussion programs.</param>
@@ -271,7 +326,7 @@ namespace LibDescent.Data.Midi
 
                 // offsets directly derived from Chocolate Descent source
                 br.BaseStream.Seek(32, SeekOrigin.Begin);
-                int size = br.ReadInt32();
+                int branchTableOffset = br.ReadInt32();
 
                 tickRateSMPTE = false;
                 br.BaseStream.Seek(48, SeekOrigin.Begin);
@@ -332,6 +387,29 @@ namespace LibDescent.Data.Midi
                     ReadHMPTrack(i, trk, trackData);
                     trk.HMPDevices = i >= 32 ? HMPValidDevice.Default : deviceMappings[i];
                     Tracks.Add(trk);
+                }
+
+                br.BaseStream.Seek(branchTableOffset, SeekOrigin.Begin);
+                byte[] branchesPerTrack = br.ReadBytes(nTracks);
+                // skip branch data if invalid
+                if (branchesPerTrack.Length >= nTracks && branchesPerTrack.Max() < 128)
+                {
+                    for (int i = 0; i < nTracks; ++i)
+                    {
+                        for (int j = 0; j < branchesPerTrack[i]; ++j)
+                        {
+                            int offset = br.ReadInt32();
+                            byte branchID = br.ReadByte();
+                            br.ReadByte(); // current instrument; this is used internally only, and its value has no effect
+                            br.ReadByte(); // loop count; ditto
+                            byte controlChangeCount = br.ReadByte();
+                            int controlChangeOffset = br.ReadInt32();
+                            br.ReadInt32(); // another internal value, this time usually identical to the previous
+                            br.ReadInt32(); // two unused dwords
+                            br.ReadInt32();
+                            Tracks[i].HMPBranchPoints.Add(new HMPBranchPoint(offset, branchID, controlChangeCount, controlChangeOffset));
+                        }
+                    }
                 }
             }
         }
@@ -636,6 +714,7 @@ namespace LibDescent.Data.Midi
             using (BinaryWriterHMP bw = new BinaryWriterHMP(ms))
             {
                 trk.TerminateTrack();
+
                 ulong position = 0;
                 ulong delta;
                 int metaChannel = -1;
@@ -646,6 +725,7 @@ namespace LibDescent.Data.Midi
                     switch (evt.Data.Type)  // do not include some messages in HMP
                     {
                         case MIDIMessageType.SysEx:
+                        case MIDIMessageType.ChannelPrefix:
                         case MIDIMessageType.SequenceNumber:
                         case MIDIMessageType.MetaText:
                         case MIDIMessageType.MetaCopyright:
@@ -655,6 +735,7 @@ namespace LibDescent.Data.Midi
                         case MIDIMessageType.MetaMarker:
                         case MIDIMessageType.MetaCuePoint:
                         case MIDIMessageType.SMPTEOffset:
+                        case MIDIMessageType.SetTempo:
                         case MIDIMessageType.TimeSignature:
                         case MIDIMessageType.KeySignature:
                         case MIDIMessageType.SequencerProprietary:
@@ -717,6 +798,8 @@ namespace LibDescent.Data.Midi
                     throw new ArgumentException("SMPTE time base is not supported on HMP");
                 if (trackNum > 32)
                     throw new ArgumentException("HMP cannot take more than 32 tracks!");
+                if (Tracks.Select(t => t.HMPBranchPoints.Count).Max() >= 128)
+                    throw new ArgumentException("Too many HMP branch points!");
 
                 using (BinaryWriterHMP bw = new BinaryWriterHMP(stream))
                 {
@@ -784,6 +867,7 @@ namespace LibDescent.Data.Midi
                     int chunkNum = 0;
                     foreach (MIDITrack track in Tracks)
                     {
+                        track.TerminateTrack();
                         byte[] trackData = WriteHMPTrack(trackNum, track);
                         // track number
                         bw.Write(chunkNum++);
@@ -798,9 +882,29 @@ namespace LibDescent.Data.Midi
                         bw.Write(trackData);
                     }
 
-                    int fileSize = (int)(stream.Position - 16);
+                    int branchTableOffset = (int)stream.Position;
                     stream.Position = fileSizePosition;
-                    bw.Write(fileSize);
+                    bw.Write(branchTableOffset);
+
+                    // write branch table
+                    stream.Position = branchTableOffset;
+                    for (int i = 0; i < TrackCount; ++i)
+                        bw.Write((byte)(Tracks[i].HMPBranchPoints.Count));
+                    foreach (MIDITrack trk in Tracks)
+                    {
+                        foreach (HMPBranchPoint brp in trk.HMPBranchPoints)
+                        {
+                            bw.Write(brp.Offset);
+                            bw.Write(brp.BranchID);
+                            bw.Write((byte)0); // instrument, leave as zero, overwritten internally
+                            bw.Write((byte)0); // loop count, leave as zero, overwritten internally
+                            bw.Write(brp.ControlChangeCount);
+                            bw.Write(brp.ControlChangeOffset);
+                            bw.Write(brp.ControlChangeOffset); // latter value used internally
+                            bw.Write(0); // unused value
+                            bw.Write(0); // unused value
+                        }
+                    }
                 }
             }
             else
@@ -1025,6 +1129,10 @@ namespace LibDescent.Data.Midi
         /// then not for the first track.
         /// </summary>
         public HMPValidDevice HMPDevices;
+        /// <summary>
+        /// The HMP branch points for this track. Not used in MIDI files.
+        /// </summary>
+        public List<HMPBranchPoint> HMPBranchPoints;
 
         internal SortedSet<MIDIInstant> tree;
         internal Dictionary<UInt64, MIDIInstant> idict;
@@ -1034,6 +1142,7 @@ namespace LibDescent.Data.Midi
             tree = new SortedSet<MIDIInstant>(new MIDIInstantComparer());
             idict = new Dictionary<ulong, MIDIInstant>();
             HMPDevices = HMPValidDevice.All;
+            HMPBranchPoints = new List<HMPBranchPoint>();
         }
 
         IEnumerator<MIDIEvent> IEnumerable<MIDIEvent>.GetEnumerator()
@@ -1127,7 +1236,34 @@ namespace LibDescent.Data.Midi
             }
             idict[evt.Time].Messages.Add(evt.Data);
         }
-        
+
+        /// <summary>
+        /// Moves an event from this MIDI track to a new time, and makes it the first event on that point in time.
+        /// </summary>
+        /// <param name="newTime">The new time to move to, in MIDI ticks from the beginning of the track.</param>
+        /// <param name="evt">The event to move.</param>
+        /// <returns>Whether the event was moved.</returns>
+        public bool MoveEvent(ulong newTime, MIDIEvent evt)
+        {
+            if (evt.Time == newTime)
+            {
+                if (!idict.ContainsKey(evt.Time))
+                    return false;
+                MIDIInstant instant = idict[evt.Time];
+                if (!instant.Messages.Remove(evt.Data))
+                    return false;
+                instant.Messages.Insert(0, evt.Data);
+                return true;
+            }
+            if (RemoveEvent(evt))
+            {
+                evt.Time = newTime;
+                AddEvent(evt);
+                return true;
+            }
+            return false;
+        }
+
         /// <summary>
         /// Removes an event from this MIDI track.
         /// </summary>
@@ -1161,7 +1297,29 @@ namespace LibDescent.Data.Midi
                 }
             }
             if (evts.Count < 1 || evts.Last().Data.Type != MIDIMessageType.EndOfTrack)
-                AddEvent(new MIDIEvent(tree.Max.Time, new MIDIEndOfTrackMessage(-1)));
+                AddEvent(new MIDIEvent(evts.Count < 1 ? 0 : tree.Max.Time, new MIDIEndOfTrackMessage(-1)));
+        }
+
+        /// <summary>
+        /// Removes all MIDI events that match the given filter predicate.
+        /// </summary>
+        /// <param name="messageFilter">The filter that should return true if the event should be deleted.</param>
+        public void RemoveEvents(Predicate<MIDIEvent> eventFilter)
+        {
+            List<MIDIEvent> removable = GetAllEvents().Where(e => eventFilter(e)).ToList();
+            foreach (MIDIEvent evt in removable)
+                RemoveEvent(evt);
+        }
+
+        /// <summary>
+        /// Removes all MIDI messages that match the given filter predicate.
+        /// </summary>
+        /// <param name="messageFilter">The filter that should return true if the message should be deleted.</param>
+        public void RemoveMessages(Predicate<MIDIMessage> messageFilter)
+        {
+            List<MIDIEvent> removable = GetAllEvents().Where(e => messageFilter(e.Data)).ToList();
+            foreach (MIDIEvent evt in removable)
+                RemoveEvent(evt);
         }
 
         /// <summary>
@@ -1724,6 +1882,37 @@ namespace LibDescent.Data.Midi
         /// Play this file on all available options.
         /// </summary>
         All = MIDI | Wavetable | FM | GUS
+    }
+
+    /// <summary>
+    /// Represents a HMP branch point that is used 
+    /// </summary>
+    public class HMPBranchPoint
+    {
+        /// <summary>
+        /// The offset of the branch point into track data.
+        /// </summary>
+        public int Offset;
+        /// <summary>
+        /// The ID of this branch point.
+        /// </summary>
+        public byte BranchID;
+        /// <summary>
+        /// The number of control change messages stored at ControlChangeOffset for this branch point.
+        /// </summary>
+        public byte ControlChangeCount;
+        /// <summary>
+        /// The offset into the control change messages.
+        /// </summary>
+        public int ControlChangeOffset;
+
+        public HMPBranchPoint(int offset, byte branchID, byte controlChangeCount, int controlChangeOffset)
+        {
+            Offset = offset;
+            BranchID = branchID;
+            ControlChangeCount = controlChangeCount;
+            ControlChangeOffset = controlChangeOffset;
+        }
     }
 
     /// <summary>

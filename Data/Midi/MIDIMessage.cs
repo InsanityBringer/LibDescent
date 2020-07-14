@@ -34,11 +34,11 @@ namespace LibDescent.Data.Midi
         /// <summary>
         /// The type of this event.
         /// </summary>
-        public MIDIMessageType Type { get; }
+        public MIDIMessageType Type { get; set; }
         /// <summary>
         /// The channel of this event (0-15), or -1 if not applicable.
         /// </summary>
-        public int Channel { get; }
+        public int Channel { get; set; }
         /// <summary>
         /// Whether this event is a system exclusive or a metadata event, as opposed to a normal MIDI event.
         /// </summary>
@@ -602,7 +602,7 @@ namespace LibDescent.Data.Midi
         HMIGoToGlobalBranch = 0x72,
         HMILocalLoopStart = 0x74,
         HMILocalLoopEnd = 0x75,
-        // HMITrigger = 0x77,
+        HMITrigger = 0x77,
         // SOS controllers end
 
         AllSoundOff = 0x78,

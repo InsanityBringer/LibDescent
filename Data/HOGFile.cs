@@ -462,10 +462,18 @@ namespace LibDescent.Data
         public void ReplaceLump(HOGLump lump)
         {
             lock (lumpLock)
+            lock (lumpNameLock)
             {
-                int lumpNum = GetLumpNum(lump.Name);
-                if (lumpNum >= 0)
-                    lumps.RemoveAt(lumpNum);
+                int lumpNum;
+                do
+                {
+                    lumpNum = GetLumpNum(lump.Name);
+                    if (lumpNum >= 0)
+                    {
+                        lumps.RemoveAt(lumpNum);
+                        lumpNameMap = null;
+                    }
+                } while (lumpNum >= 0);
                 AddLump(lump);
             }
         }
