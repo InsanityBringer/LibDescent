@@ -86,8 +86,8 @@ namespace LibDescent.Data
         /// Sorts a list using a stable sort; that is, if the list contains two items
         /// A and B, which are considered equal with the default comparer, such that A
         /// is always before element B in the list, then A will always remain before
-        /// element B in the sorted list; the mutual order of equivalent-by-comparison
-        /// items is not affected.
+        /// element B in the sorted list; the relative order of items considered equal
+        /// under comparison is not affected.
         /// </summary>
         /// <typeparam name="T">The type of the list.</typeparam>
         /// <param name="list">The list to sort.</param>
@@ -100,8 +100,8 @@ namespace LibDescent.Data
         /// Sorts a list using a stable sort; that is, if the list contains two items
         /// A and B, which are considered equal with the given comparer, such that A
         /// is always before element B in the list, then A will always remain before
-        /// element B in the sorted list; the mutual order of equivalent-by-comparison
-        /// items is not affected.
+        /// element B in the sorted list; the relative order of items considered equal
+        /// under comparison is not affected.
         /// </summary>
         /// <typeparam name="T">The type of the list.</typeparam>
         /// <param name="list">The list to sort.</param>
