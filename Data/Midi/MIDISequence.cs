@@ -426,14 +426,28 @@ namespace LibDescent.Data.Midi
                         {
                             int offset = br.ReadInt32();
                             byte branchID = br.ReadByte();
-                            br.ReadByte(); // current instrument; this is used internally only, and its value has no effect
-                            br.ReadByte(); // loop count; ditto
+                            byte program = br.ReadByte();
+                            byte loopCount = br.ReadByte();
                             byte controlChangeCount = br.ReadByte();
                             int controlChangeOffset = br.ReadInt32();
                             br.ReadInt32(); // another internal value, this time usually identical to the previous
                             br.ReadInt32(); // two unused dwords
                             br.ReadInt32();
-                            Tracks[i].HMPBranchPoints.Add(new HMPBranchPoint(offset, branchID, controlChangeCount, controlChangeOffset));
+                            List<HMPBranchControlChange> controlChanges = new List<HMPBranchControlChange>();
+                            if (controlChangeCount > 0)
+                            {
+                                long savedPosition = br.BaseStream.Position;
+                                br.BaseStream.Position = controlChangeOffset;
+                                for (int k = 0; k < controlChangeCount; k += 2)
+                                {
+                                    byte[] control = br.ReadBytes(2);
+                                    if (control.Length < 2) break;
+
+                                    controlChanges.Add(new HMPBranchControlChange((MIDIControl)(control[0] & 127), (byte)(control[1] & 127)));
+                                }
+                                br.BaseStream.Position = savedPosition;
+                            }
+                            Tracks[i].HMPBranchPoints.Add(new HMPBranchPoint(offset, program, loopCount, branchID, controlChanges));
                         }
                     }
                 }
@@ -876,19 +890,47 @@ namespace LibDescent.Data.Midi
                     stream.Position = branchTableOffset;
                     for (int i = 0; i < TrackCount; ++i)
                         bw.Write((byte)(Tracks[i].HMPBranchPoints.Count));
+
+                    Dictionary<HMPBranchPoint, Int64> controlChangePtrOffsets = new Dictionary<HMPBranchPoint, long>();
                     foreach (MIDITrack trk in Tracks)
                     {
                         foreach (HMPBranchPoint brp in trk.HMPBranchPoints)
                         {
+                            if (brp.ControlChanges.Count > 127)
+                                throw new ArgumentException("Too many HMP control changes for branch point!");
+
                             bw.Write(brp.Offset);
                             bw.Write(brp.BranchID);
-                            bw.Write((byte)0); // instrument, leave as zero, overwritten internally
-                            bw.Write((byte)0); // loop count, leave as zero, overwritten internally
-                            bw.Write(brp.ControlChangeCount);
-                            bw.Write(brp.ControlChangeOffset);
-                            bw.Write(brp.ControlChangeOffset); // latter value used internally
+                            bw.Write(brp.Program);
+                            bw.Write(brp.LoopCount);
+                            bw.Write((byte)(brp.ControlChanges.Count * 2));
+                            bw.Flush();
+                            controlChangePtrOffsets[brp] = bw.BaseStream.Position;
+                            bw.Write(0); // to be filled later
+                            bw.Write(0); // to be filled later
                             bw.Write(0); // unused value
                             bw.Write(0); // unused value
+                        }
+                    }
+
+                    // write branch table associated control changes
+                    foreach (MIDITrack trk in Tracks)
+                    {
+                        foreach (HMPBranchPoint brp in trk.HMPBranchPoints)
+                        {
+                            long myOffset = bw.BaseStream.Position;
+                            bw.BaseStream.Position = controlChangePtrOffsets[brp];
+                            bw.Write((int)(myOffset));
+                            bw.Write((int)(myOffset)); // second value presumably only used internally, but should match the first
+                            bw.BaseStream.Position = myOffset;
+
+                            foreach (HMPBranchControlChange cc in brp.ControlChanges)
+                            {
+                                bw.Write((byte)cc.Controller);
+                                bw.Write(cc.Value);
+                            }
+
+                            bw.Flush();
                         }
                     }
                 }
@@ -2014,24 +2056,71 @@ namespace LibDescent.Data.Midi
         /// </summary>
         public int Offset;
         /// <summary>
+        /// The program/instrument to apply when the track jumps to the branch point.
+        /// </summary>
+        public byte Program;
+        /// <summary>
+        /// The number of times the branch will be jumped to, or 0 for infinite loop.
+        /// </summary>
+        public byte LoopCount;
+        /// <summary>
         /// The ID of this branch point.
         /// </summary>
         public byte BranchID;
         /// <summary>
-        /// The number of control change messages stored at ControlChangeOffset for this branch point.
+        /// The control changes to apply when the track jumps to the branch point.
         /// </summary>
-        public byte ControlChangeCount;
-        /// <summary>
-        /// The offset into the control change messages.
-        /// </summary>
-        public int ControlChangeOffset;
+        public List<HMPBranchControlChange> ControlChanges;
 
-        public HMPBranchPoint(int offset, byte branchID, byte controlChangeCount, int controlChangeOffset)
+        /// <summary>
+        /// Initializes a new HMPBranchPoint instance.
+        /// </summary>
+        /// <param name="offset">The offset of the branch point into track data.</param>
+        /// <param name="branchID">The ID of this branch point.</param>
+        public HMPBranchPoint(int offset, byte program, byte loopCount, byte branchID)
         {
             Offset = offset;
+            Program = program;
+            LoopCount = loopCount;
             BranchID = branchID;
-            ControlChangeCount = controlChangeCount;
-            ControlChangeOffset = controlChangeOffset;
+            ControlChanges = new List<HMPBranchControlChange>();
+        }
+
+        /// <summary>
+        /// Initializes a new HMPBranchPoint instance.
+        /// </summary>
+        /// <param name="offset">The offset of the branch point into track data.</param>
+        /// <param name="branchID">The ID of this branch point.</param>
+        /// <param name="controlChanges">The control changes to apply when the track jumps to the branch point.</param>
+        public HMPBranchPoint(int offset, byte program, byte loopCount, byte branchID, IEnumerable<HMPBranchControlChange> controlChanges) : this(offset, program, loopCount, branchID)
+        {
+            ControlChanges.AddRange(controlChanges);
+        }
+    }
+
+    /// <summary>
+    /// Represents a control value change that is associated with a HMP branch point.
+    /// </summary>
+    public class HMPBranchControlChange
+    {
+        /// <summary>
+        /// The controller to change.
+        /// </summary>
+        public MIDIControl Controller;
+        /// <summary>
+        /// The new value to apply between 0-127.
+        /// </summary>
+        public byte Value;
+
+        /// <summary>
+        /// Initializes a new HMPBranchControlChange instance.
+        /// </summary>
+        /// <param name="controller">The controller to change.</param>
+        /// <param name="value">The new value to apply between 0-127.</param>
+        public HMPBranchControlChange(MIDIControl controller, byte value)
+        {
+            Controller = controller;
+            Value = value;
         }
     }
 
