@@ -112,10 +112,10 @@ namespace LibDescent.Data
             T[] array = list.ToArray();
             T[] buf = new T[list.Count];
             
-            int listA, listB, listAe, listBe, listOffset, listSize = 1, bufptr;
-            for (int groupSize = 2; listSize < array.Length; groupSize <<= 1)
+            int listA, listB, listAe, listBe, listOffset, bufOffset;
+            for (int listSize = 1; listSize < array.Length; listSize <<= 1)
             {
-                for (listOffset = 0; listOffset < array.Length; listOffset += groupSize)
+                for (listOffset = 0; listOffset < array.Length; listOffset += listSize * 2)
                 {
                     listA = listOffset;
                     listB = listAe = listA + listSize;
@@ -123,24 +123,25 @@ namespace LibDescent.Data
 
                     if (listBe <= listB)
                         break;
-
-                    bufptr = 0;
+                    bufOffset = 0;
                     
                     while (listA < listAe && listB < listBe)
                     {
                         if (comparer.Compare(array[listA], array[listB]) <= 0)
-                            buf[bufptr++] = array[listA++];
+                            buf[bufOffset++] = array[listA++];
                         else
-                            buf[bufptr++] = array[listB++];
+                            buf[bufOffset++] = array[listB++];
                     }
-                    while (listA < listAe)
-                        buf[bufptr++] = array[listA++];
-                    while (listB < listBe)
-                        buf[bufptr++] = array[listB++];
+                    if (listA < listAe)
+                    {
+                        Array.Copy(array, listA, buf, bufOffset, listAe - listA);
+                        bufOffset += listAe - listA;
+                    }
+                    if (listB < listBe)
+                        Array.Copy(array, listB, buf, bufOffset, listBe - listB);
 
-                    Array.Copy(buf, 0, array, listOffset, bufptr);
+                    Array.Copy(buf, 0, array, listOffset, bufOffset);
                 }
-                listSize = groupSize;
             }
 
             list.Clear();
