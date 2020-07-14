@@ -284,7 +284,7 @@ namespace LibDescent.Data.Midi
             foreach (MIDITrack trk in Tracks)
                 foreach (MIDIEvent evt in trk.GetAllEvents())
                     evts.Add(new MIDITrackEvent(trk, evt));
-            evts.Sort(new MIDITrackEventComparer());
+            Util.StableSort(evts, new MIDITrackEventComparer());
 
             double bpm = 120;
             const double targetBpm = 120;
@@ -736,49 +736,6 @@ namespace LibDescent.Data.Midi
             }
         }
 
-        private byte[] WriteHMPTrack(MIDIWriteOptions options, int trackNum, MIDITrack trk)
-        {
-            using (MemoryStream ms = new MemoryStream())
-            using (BinaryWriterHMP bw = new BinaryWriterHMP(ms))
-            {
-                trk.TerminateTrack();
-
-                ulong position = 0;
-                ulong delta;
-                int metaChannel = -1;
-                byte status = 0;
-                foreach (MIDIEvent evt in trk)
-                {
-                    status = 0; // do not allow status byte omissions
-                    switch (evt.Data.Type)  // do not include some messages in HMP
-                    {
-                        case MIDIMessageType.SysEx:
-                        case MIDIMessageType.ChannelPrefix:
-                        case MIDIMessageType.SequenceNumber:
-                        case MIDIMessageType.MetaText:
-                        case MIDIMessageType.MetaCopyright:
-                        case MIDIMessageType.MetaTrackName:
-                        case MIDIMessageType.MetaInstrumentName:
-                        case MIDIMessageType.MetaLyric:
-                        case MIDIMessageType.MetaMarker:
-                        case MIDIMessageType.MetaCuePoint:
-                        case MIDIMessageType.SMPTEOffset:
-                        case MIDIMessageType.SetTempo:
-                        case MIDIMessageType.TimeSignature:
-                        case MIDIMessageType.KeySignature:
-                        case MIDIMessageType.SequencerProprietary:
-                            continue;
-                    }
-
-                    delta = evt.Time - position;
-                    position = evt.Time;
-                    bw.WriteVLQ((int)delta);
-                    WriteMIDIMessage(trackNum, bw, evt.Data, false, ref status, ref metaChannel);
-                }
-                return ms.ToArray();
-            }
-        }
-
         private double GetDurationInSeconds(out double initialBpm)
         {
             double duration = 0;
@@ -1020,6 +977,49 @@ namespace LibDescent.Data.Midi
         public byte[] Write()
         {
             return Write(MIDIWriteOptions.None);
+        }
+
+        private byte[] WriteHMPTrack(MIDIWriteOptions options, int trackNum, MIDITrack trk)
+        {
+            using (MemoryStream ms = new MemoryStream())
+            using (BinaryWriterHMP bw = new BinaryWriterHMP(ms))
+            {
+                trk.TerminateTrack();
+
+                ulong position = 0;
+                ulong delta;
+                int metaChannel = -1;
+                byte status = 0;
+                foreach (MIDIEvent evt in trk)
+                {
+                    status = 0; // do not allow status byte omissions
+                    switch (evt.Data.Type)  // do not include some messages in HMP
+                    {
+                        case MIDIMessageType.SysEx:
+                        case MIDIMessageType.ChannelPrefix:
+                        case MIDIMessageType.SequenceNumber:
+                        case MIDIMessageType.MetaText:
+                        case MIDIMessageType.MetaCopyright:
+                        case MIDIMessageType.MetaTrackName:
+                        case MIDIMessageType.MetaInstrumentName:
+                        case MIDIMessageType.MetaLyric:
+                        case MIDIMessageType.MetaMarker:
+                        case MIDIMessageType.MetaCuePoint:
+                        case MIDIMessageType.SetTempo:
+                        case MIDIMessageType.SMPTEOffset:
+                        case MIDIMessageType.TimeSignature:
+                        case MIDIMessageType.KeySignature:
+                        case MIDIMessageType.SequencerProprietary:
+                            continue;
+                    }
+
+                    delta = evt.Time - position;
+                    position = evt.Time;
+                    bw.WriteVLQ((int)delta);
+                    WriteMIDIMessage(trackNum, bw, evt.Data, false, ref status, ref metaChannel);
+                }
+                return ms.ToArray();
+            }
         }
 
         private void WriteMIDIMessage(int trackNum, IMIDIWriter bw, MIDIMessage message, bool writeMetaChannel, ref byte status, ref int metaChannel)
