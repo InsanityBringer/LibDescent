@@ -54,6 +54,7 @@ namespace LibDescent.Data.Midi
 
         /// <summary>
         /// The MIDI pulses per quarter (PPQ) value, describing the number of MIDI ticks in a quarter note, or -1 if the MIDI uses SMPTE timing.
+        /// For HMP files, Descent ignores this value, and assumes it to always be 60.
         /// </summary>
         public int PulsesPerQuarter
         {
@@ -687,7 +688,7 @@ namespace LibDescent.Data.Midi
             }
         }
 
-        private byte[] WriteMIDITrack(int trackNum, MIDITrack trk)
+        private byte[] WriteMIDITrack(MIDIWriteOptions options, int trackNum, MIDITrack trk)
         {
             using (MemoryStream ms = new MemoryStream())
             using (BinaryWriterMIDI bw = new BinaryWriterMIDI(ms))
@@ -699,6 +700,8 @@ namespace LibDescent.Data.Midi
                 byte status = 0;
                 foreach (MIDIEvent evt in trk)
                 {
+                    if (options.HasFlag(MIDIWriteOptions.ExplicitStatus))
+                        status = 0;
                     delta = evt.Time - position;
                     position = evt.Time;
                     bw.WriteVLQ((int)delta);
@@ -708,7 +711,7 @@ namespace LibDescent.Data.Midi
             }
         }
 
-        private byte[] WriteHMPTrack(int trackNum, MIDITrack trk)
+        private byte[] WriteHMPTrack(MIDIWriteOptions options, int trackNum, MIDITrack trk)
         {
             using (MemoryStream ms = new MemoryStream())
             using (BinaryWriterHMP bw = new BinaryWriterHMP(ms))
@@ -789,7 +792,8 @@ namespace LibDescent.Data.Midi
         /// Writes a MIDI sequence to a stream.
         /// </summary>
         /// <param name="stream">The stream to write to.</param>
-        public void Write(Stream stream)
+        /// <param name="options">The options for writing this sequence.</param>
+        public void Write(Stream stream, MIDIWriteOptions options)
         {
             int trackNum = 0;
             if (Format == MIDIFormat.HMI)
@@ -868,7 +872,7 @@ namespace LibDescent.Data.Midi
                     foreach (MIDITrack track in Tracks)
                     {
                         track.TerminateTrack();
-                        byte[] trackData = WriteHMPTrack(trackNum, track);
+                        byte[] trackData = WriteHMPTrack(options, trackNum, track);
                         // track number
                         bw.Write(chunkNum++);
                         // track length (incl. header)
@@ -929,7 +933,7 @@ namespace LibDescent.Data.Midi
                     foreach (MIDITrack track in Tracks)
                     {
                         bw.Write(Encoding.ASCII.GetBytes("MTrk"));
-                        byte[] trackData = WriteMIDITrack(trackNum++, track);
+                        byte[] trackData = WriteMIDITrack(options, trackNum++, track);
                         bw.Write(trackData.Length);
                         bw.Write(trackData);
                     }
@@ -941,12 +945,46 @@ namespace LibDescent.Data.Midi
         /// Writes a MIDI sequence from a file.
         /// </summary>
         /// <param name="filePath">The path to the file.</param>
-        public void Write(string filePath)
+        /// <param name="options">The options for writing this sequence.</param>
+        public void Write(string filePath, MIDIWriteOptions options)
         {
             using (FileStream fs = File.Open(filePath, FileMode.Create, FileAccess.ReadWrite, FileShare.None))
             {
-                Write(fs);
+                Write(fs, options);
             }
+        }
+
+        /// <summary>
+        /// Writes a MIDI sequence from an array.
+        /// </summary>
+        /// <param name="contents">The array to load from.</param>
+        /// <param name="options">The options for writing this sequence.</param>
+        /// <returns>The MIDI file as a byte array.</returns>
+        public byte[] Write(MIDIWriteOptions options)
+        {
+            using (MemoryStream ms = new MemoryStream())
+            {
+                Write(ms, options);
+                return ms.ToArray();
+            }
+        }
+
+        /// <summary>
+        /// Writes a MIDI sequence to a stream.
+        /// </summary>
+        /// <param name="stream">The stream to write to.</param>
+        public void Write(Stream stream)
+        {
+            Write(stream, MIDIWriteOptions.None);
+        }
+
+        /// <summary>
+        /// Writes a MIDI sequence from a file.
+        /// </summary>
+        /// <param name="filePath">The path to the file.</param>
+        public void Write(string filePath)
+        {
+            Write(filePath, MIDIWriteOptions.None);
         }
 
         /// <summary>
@@ -956,11 +994,7 @@ namespace LibDescent.Data.Midi
         /// <returns>The MIDI file as a byte array.</returns>
         public byte[] Write()
         {
-            using (MemoryStream ms = new MemoryStream())
-            {
-                Write(ms);
-                return ms.ToArray();
-            }
+            return Write(MIDIWriteOptions.None);
         }
 
         private void WriteMIDIMessage(int trackNum, IMIDIWriter bw, MIDIMessage message, bool writeMetaChannel, ref byte status, ref int metaChannel)
@@ -1329,11 +1363,13 @@ namespace LibDescent.Data.Midi
         /// <param name="newProgram">The new program number, between 0-127.</param>
         public void RemapProgram(int oldProgram, int newProgram)
         {
-            foreach (MIDIProgramChangeMessage msg in GetAllEvents().Select(e => e.Data).OfType<MIDIProgramChangeMessage>())
+            foreach (MIDIMessage msg in GetAllEvents().Select(e => e.Data).Where(m => !m.IsExtendedEvent))
             {
                 bool percussion = msg.Channel == 9;
-                if (msg.Program == oldProgram + (percussion ? 128 : 0))
-                    msg.Program = (byte)(newProgram & 127);
+                if (percussion && msg is MIDINoteMessage nmsg && nmsg.Key == (oldProgram & 127))
+                    nmsg.Key = (byte)(newProgram & 127);
+                else if (!percussion && msg is MIDIProgramChangeMessage pmsg && pmsg.Program == (oldProgram & 127))
+                    pmsg.Program = (byte)(newProgram & 127);
             }
         }
 
@@ -1346,10 +1382,13 @@ namespace LibDescent.Data.Midi
         {
             if (programMap.Length != 256)
                 throw new ArgumentException("program remap array must be 256 items long");
-            foreach (MIDIProgramChangeMessage msg in GetAllEvents().Select(e => e.Data).OfType<MIDIProgramChangeMessage>())
+            foreach (MIDIMessage msg in GetAllEvents().Select(e => e.Data).Where(m => !m.IsExtendedEvent))
             {
                 bool percussion = msg.Channel == 9;
-                msg.Program = (byte)(programMap[(msg.Program & 127) + (percussion ? 128 : 0)] & 127);
+                if (percussion && msg is MIDINoteMessage nmsg)
+                    nmsg.Key = (byte)(programMap[128 | (nmsg.Key & 127)] & 127);
+                else if (!percussion && msg is MIDIProgramChangeMessage pmsg)
+                    pmsg.Program = (byte)(programMap[pmsg.Program & 127] & 127);
             }
         }
 
@@ -1498,6 +1537,19 @@ namespace LibDescent.Data.Midi
         {
             return a.Time.CompareTo(b.Time);
         }
+    }
+
+    [Flags]
+    public enum MIDIWriteOptions
+    {
+        /// <summary>
+        /// Default options.
+        /// </summary>
+        None = 0,
+        /// <summary>
+        /// Always explicitly write status bytes, even if they are repeats of the preceding byte.
+        /// </summary>
+        ExplicitStatus = 1,
     }
 
     /// <summary>

@@ -28,7 +28,7 @@ namespace LibDescent.Tests
             List<MIDIEvent> events = new List<MIDIEvent>();
 
             MIDITrack track0 = midi.Tracks[0];
-            Assert.AreEqual(2, track0.EventCount);
+            Assert.AreEqual(4, track0.EventCount);
             events.Clear();
             events.AddRange(track0.GetAllEvents());
             Assert.AreEqual(0, events[0].Time);
@@ -44,7 +44,7 @@ namespace LibDescent.Tests
             Assert.That((events[1].Data as MIDITempoMessage).BeatsPerMinute, Is.EqualTo(120).Within(0.001));
 
             MIDITrack track1 = midi.Tracks[1];
-            Assert.AreEqual(30, track1.EventCount);
+            Assert.AreEqual(31, track1.EventCount);
             events.Clear();
             events.AddRange(track1.GetAllEvents());
             Assert.AreEqual(0, events[0].Time);
@@ -73,6 +73,14 @@ namespace LibDescent.Tests
             Assert.AreEqual(0x32, (events[22].Data as MIDINoteMessage).Key);
         }
 
-        // TODO: MIDI write tests (once writing is implemented)
+        [Test]
+        public void TestWrite()
+        {
+            byte[] data = TestUtils.GetArrayFromResourceStream("Bass_sample.mid");
+            midi.Read(data);
+            MemoryStream ms = new MemoryStream();
+            midi.Write(ms, MIDIWriteOptions.ExplicitStatus);
+            Assert.AreEqual(data, ms.ToArray());
+        }
     }
 }

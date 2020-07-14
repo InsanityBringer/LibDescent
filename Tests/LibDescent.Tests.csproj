@@ -19,7 +19,7 @@
     <None Remove="test.blx" />
     <None Remove="test.rdl" />
     <None Remove="test.rl2" />
-    <None Remove="vgame12.hmp" />
+    <None Remove="vgame20.hmp" />
   </ItemGroup>
 
   <ItemGroup>
@@ -35,7 +35,7 @@
     <EmbeddedResource Include="test.blx" />
     <EmbeddedResource Include="test.rdl" />
     <EmbeddedResource Include="test.rl2" />
-    <EmbeddedResource Include="vgame12.hmp" />
+    <EmbeddedResource Include="vgame20.hmp" />
   </ItemGroup>
 
   <ItemGroup>
