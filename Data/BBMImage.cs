@@ -312,7 +312,7 @@ namespace LibDescent.Data
         /// <returns></returns>
         public void Read(string filePath)
         {
-            using (FileStream fs = File.Open(filePath, FileMode.Open))
+            using (FileStream fs = File.Open(filePath, FileMode.Open, FileAccess.Read))
             {
                 Read(fs);
             }

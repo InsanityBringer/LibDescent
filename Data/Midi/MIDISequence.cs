@@ -280,13 +280,38 @@ namespace LibDescent.Data.Midi
         /// </summary>
         public void NormalizeTempo()
         {
-            // TODO: handle mid-song tempo changes
-            double duration = GetDurationInSeconds(out double bpm);
+            List<MIDITrackEvent> evts = new List<MIDITrackEvent>();
             foreach (MIDITrack trk in Tracks)
+                foreach (MIDIEvent evt in trk.GetAllEvents())
+                    evts.Add(new MIDITrackEvent(trk, evt));
+            evts.Sort(new MIDITrackEventComparer());
+
+            double bpm = 120;
+            const double targetBpm = 120;
+            ulong time = 0;
+            ulong newTime = 0;
+            double timeAdjusted = 0;
+
+            foreach (MIDITrack trk in Tracks)
+                trk.Clear();
+            foreach (MIDITrackEvent trke in evts)
             {
-                trk.RemoveMessages(m => m.Type == MIDIMessageType.SetTempo);
-                trk.ShiftTime(120 * 16, (int)(bpm * 16));
+                if (trke.Event.Data.Type == MIDIMessageType.SetTempo)
+                    bpm = (trke.Event.Data as MIDITempoMessage).BeatsPerMinute;
+                else
+                {
+                    newTime = trke.Event.Time;
+                    if (newTime > time)
+                    {
+                        timeAdjusted += (newTime - time) * (targetBpm / bpm);
+                        time = newTime;
+                    }
+                    trke.Track.AddEvent(new MIDIEvent((ulong)timeAdjusted, trke.Event.Data));
+                }
             }
+
+            foreach (MIDITrack trk in Tracks)
+                trk.TerminateTrack();
         }
 
         /// <summary>
@@ -643,7 +668,7 @@ namespace LibDescent.Data.Midi
         /// <returns></returns>
         public void Read(string filePath)
         {
-            using (FileStream fs = File.Open(filePath, FileMode.Open))
+            using (FileStream fs = File.Open(filePath, FileMode.Open, FileAccess.Read))
             {
                 Read(fs);
             }
@@ -669,7 +694,7 @@ namespace LibDescent.Data.Midi
         /// <returns></returns>
         public void ReadHMP(string filePath)
         {
-            using (FileStream fs = File.Open(filePath, FileMode.Open))
+            using (FileStream fs = File.Open(filePath, FileMode.Open, FileAccess.Read))
             {
                 ReadHMP(fs);
             }
@@ -1254,12 +1279,24 @@ namespace LibDescent.Data.Midi
         /// The amount of ticks until the end of the track.
         /// </summary>
         public ulong Duration => tree.Max.Time;
-        
+
         /// <summary>
         /// Adds a new event onto this MIDI track.
         /// </summary>
         /// <param name="evt">The MIDI event to add.</param>
         public void AddEvent(MIDIEvent evt)
+        {
+            AddEvent(evt, false);
+        }
+
+        /// <summary>
+        /// Adds a new event onto this MIDI track.
+        /// </summary>
+        /// <param name="evt">The MIDI event to add.</param>
+        /// <param name="addToBeginning">If events already exist at that time, determines whether the
+        /// event should be added as the first event of that point in time, as opposed to being added
+        /// as the last one.</param>
+        public void AddEvent(MIDIEvent evt, bool addToBeginning)
         {
             if (!idict.ContainsKey(evt.Time))
             {
@@ -1268,7 +1305,10 @@ namespace LibDescent.Data.Midi
                 idict[evt.Time] = point;
                 tree.Add(point);
             }
-            idict[evt.Time].Messages.Add(evt.Data);
+            if (addToBeginning)
+                idict[evt.Time].Messages.Insert(0, evt.Data);
+            else
+                idict[evt.Time].Messages.Add(evt.Data);
         }
 
         /// <summary>
@@ -1421,6 +1461,15 @@ namespace LibDescent.Data.Midi
         }
 
         /// <summary>
+        /// Removes all events from this track.
+        /// </summary>
+        public void Clear()
+        {
+            tree.Clear();
+            idict.Clear();
+        }
+
+        /// <summary>
         /// An enumerator that is used to iterate over all of the events in a track in order,
         /// with the events containing the associated message and the point in time measured in
         /// MIDI ticks from the beginning of the track.
@@ -1530,12 +1579,19 @@ namespace LibDescent.Data.Midi
         }
     }
 
-
     internal class MIDIEventComparer : Comparer<MIDIEvent>
     {
         public override int Compare(MIDIEvent a, MIDIEvent b)
         {
             return a.Time.CompareTo(b.Time);
+        }
+    }
+
+    internal class MIDITrackEventComparer : Comparer<MIDITrackEvent>
+    {
+        public override int Compare(MIDITrackEvent a, MIDITrackEvent b)
+        {
+            return a.Event.Time.CompareTo(b.Event.Time);
         }
     }
 
@@ -1570,6 +1626,18 @@ namespace LibDescent.Data.Midi
         {
             Time = position;
             Data = evt;
+        }
+    }
+
+    internal class MIDITrackEvent
+    {
+        internal MIDITrack Track;
+        internal MIDIEvent Event;
+
+        internal MIDITrackEvent(MIDITrack track, MIDIEvent evt)
+        {
+            Track = track;
+            Event = evt;
         }
     }
 
