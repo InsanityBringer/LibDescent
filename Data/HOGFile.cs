@@ -357,6 +357,31 @@ namespace LibDescent.Data
         }
 
         /// <summary>
+        /// If a HOG file is open on disk, closes it.
+        /// </summary>
+        public void Close()
+        {
+            lock (hogFileLock)
+            {
+                if (fileStream != null)
+                {
+                    fileStream.Close();
+                    fileStream.Dispose();
+                    fileStream = null;
+                }
+            }
+        }
+
+        private void CheckFileStreamNotNull()
+        {
+            lock (hogFileLock)
+            {
+                if (fileStream == null && Filename != null)
+                    fileStream = new BinaryReader(File.Open(Filename, FileMode.Open, FileAccess.Read, FileShare.Read));
+            }
+        }
+
+        /// <summary>
         /// Gets the raw data of a given lump.
         /// </summary>
         /// <param name="id">The number of the lump to get the data of.</param>
@@ -370,6 +395,7 @@ namespace LibDescent.Data
                 if (lumps[id].Data != null)
                     return lumps[id].Data;
 
+                CheckFileStreamNotNull();
                 fileStream.BaseStream.Seek(lumps[id].Offset, SeekOrigin.Begin);
                 return fileStream.ReadBytes(lumps[id].Size);
             }
@@ -436,10 +462,18 @@ namespace LibDescent.Data
         public void ReplaceLump(HOGLump lump)
         {
             lock (lumpLock)
+            lock (lumpNameLock)
             {
-                int lumpNum = GetLumpNum(lump.Name);
-                if (lumpNum >= 0)
-                    lumps.RemoveAt(lumpNum);
+                int lumpNum;
+                do
+                {
+                    lumpNum = GetLumpNum(lump.Name);
+                    if (lumpNum >= 0)
+                    {
+                        lumps.RemoveAt(lumpNum);
+                        lumpNameMap = null;
+                    }
+                } while (lumpNum >= 0);
                 AddLump(lump);
             }
         }

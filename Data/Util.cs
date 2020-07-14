@@ -20,6 +20,10 @@
     SOFTWARE.
 */
 
+using LibDescent.Data.Midi;
+using System;
+using System.Collections.Generic;
+
 namespace LibDescent.Data
 {
     public class Util
@@ -62,6 +66,86 @@ namespace LibDescent.Data
         public static int Clamp(int x, int min, int max)
         {
             return Clamp(x, min, max, out bool _);
+        }
+
+        /// <summary>
+        /// Swaps two items in an array.
+        /// </summary>
+        /// <typeparam name="T">The type of the array.</typeparam>
+        /// <param name="array">The array.</param>
+        /// <param name="a">The first zero-based index.</param>
+        /// <param name="b">The second zero-based index.</param>
+        public static void Swap<T>(T[] array, int a, int b)
+        {
+            T tmp = array[a];
+            array[a] = array[b];
+            array[b] = tmp;
+        }
+
+        /// <summary>
+        /// Sorts a list using a stable sort; that is, if the list contains two items
+        /// A and B, which are considered equal with the default comparer, such that A
+        /// is always before element B in the list, then A will always remain before
+        /// element B in the sorted list; the relative order of items considered equal
+        /// under comparison is not affected.
+        /// </summary>
+        /// <typeparam name="T">The type of the list.</typeparam>
+        /// <param name="list">The list to sort.</param>
+        public static void StableSort<T>(List<T> list)
+        {
+            StableSort(list, Comparer<T>.Default);
+        }
+
+        /// <summary>
+        /// Sorts a list using a stable sort; that is, if the list contains two items
+        /// A and B, which are considered equal with the given comparer, such that A
+        /// is always before element B in the list, then A will always remain before
+        /// element B in the sorted list; the relative order of items considered equal
+        /// under comparison is not affected.
+        /// </summary>
+        /// <typeparam name="T">The type of the list.</typeparam>
+        /// <param name="list">The list to sort.</param>
+        /// <param name="comparer">The comparer to use for the sorting.</param>
+        public static void StableSort<T>(List<T> list, IComparer<T> comparer)
+        {
+            // merge sort
+            T[] array = list.ToArray();
+            T[] buf = new T[list.Count];
+            
+            int listA, listB, listAe, listBe, listOffset, bufOffset;
+            for (int listSize = 1; listSize < array.Length; listSize <<= 1)
+            {
+                for (listOffset = 0; listOffset < array.Length; listOffset += listSize * 2)
+                {
+                    listA = listOffset;
+                    listB = listAe = listA + listSize;
+                    listBe = Math.Min(listB + listSize, array.Length);
+
+                    if (listBe <= listB)
+                        break;
+                    bufOffset = 0;
+                    
+                    while (listA < listAe && listB < listBe)
+                    {
+                        if (comparer.Compare(array[listA], array[listB]) <= 0)
+                            buf[bufOffset++] = array[listA++];
+                        else
+                            buf[bufOffset++] = array[listB++];
+                    }
+                    if (listA < listAe)
+                    {
+                        Array.Copy(array, listA, buf, bufOffset, listAe - listA);
+                        bufOffset += listAe - listA;
+                    }
+                    if (listB < listBe)
+                        Array.Copy(array, listB, buf, bufOffset, listBe - listB);
+
+                    Array.Copy(buf, 0, array, listOffset, bufOffset);
+                }
+            }
+
+            list.Clear();
+            list.AddRange(array);
         }
     }
 }
