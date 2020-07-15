@@ -66,6 +66,18 @@ namespace LibDescent.Data.Midi
         }
 
         /// <summary>
+        /// Initialized a new MIDISequence instance by loading a MIDI file from a file.
+        /// </summary>
+        /// <param name="filePath">The path of the file to load from.</param>
+        /// <returns>The loaded MIDI sequence.</returns>
+        public static MIDISequence LoadMIDI(string filePath)
+        {
+            var midi = new MIDISequence();
+            midi.Read(filePath);
+            return midi;
+        }
+
+        /// <summary>
         /// Initialized a new MIDISequence instance by loading a MIDI file from a stream.
         /// </summary>
         /// <param name="stream">The stream to load from.</param>
@@ -78,7 +90,7 @@ namespace LibDescent.Data.Midi
         }
 
         /// <summary>
-        /// Initialized a new MIDISequence instance by loading a MIDI file from a stream.
+        /// Initialized a new MIDISequence instance by loading a MIDI file from a byte array.
         /// </summary>
         /// <param name="array">The byte array to load from.</param>
         /// <returns>The loaded MIDI sequence.</returns>
@@ -90,14 +102,14 @@ namespace LibDescent.Data.Midi
         }
 
         /// <summary>
-        /// Initialized a new MIDISequence instance by loading a MIDI file from a stream.
+        /// Initialized a new MIDISequence instance by loading an HMP file from a file.
         /// </summary>
         /// <param name="filePath">The path of the file to load from.</param>
         /// <returns>The loaded MIDI sequence.</returns>
-        public static MIDISequence LoadMIDI(string filePath)
+        public static MIDISequence LoadHMP(string filePath)
         {
             var midi = new MIDISequence();
-            midi.Read(filePath);
+            midi.ReadHMP(filePath);
             return midi;
         }
 
@@ -114,7 +126,7 @@ namespace LibDescent.Data.Midi
         }
 
         /// <summary>
-        /// Initialized a new MIDISequence instance by loading an HMP file from a stream.
+        /// Initialized a new MIDISequence instance by loading an HMP file from a byte array.
         /// </summary>
         /// <param name="array">The byte array to load from.</param>
         /// <returns>The loaded MIDI sequence.</returns>
@@ -122,18 +134,6 @@ namespace LibDescent.Data.Midi
         {
             var midi = new MIDISequence();
             midi.ReadHMP(array);
-            return midi;
-        }
-
-        /// <summary>
-        /// Initialized a new MIDISequence instance by loading an HMP file from a stream.
-        /// </summary>
-        /// <param name="filePath">The path of the file to load from.</param>
-        /// <returns>The loaded MIDI sequence.</returns>
-        public static MIDISequence LoadHMP(string filePath)
-        {
-            var midi = new MIDISequence();
-            midi.ReadHMP(filePath);
             return midi;
         }
 

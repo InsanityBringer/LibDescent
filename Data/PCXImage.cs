@@ -326,6 +326,18 @@ namespace LibDescent.Data
         }
 
         /// <summary>
+        /// Initialized a new PCXImage instance by loading a PCX image from a file.
+        /// </summary>
+        /// <param name="filePath">The path of the file to load from.</param>
+        /// <returns>The loaded PCX image.</returns>
+        public static PCXImage Load(string filePath)
+        {
+            var pcx = new PCXImage();
+            pcx.Read(filePath);
+            return pcx;
+        }
+
+        /// <summary>
         /// Initialized a new PCXImage instance by loading a PCX image from a stream.
         /// </summary>
         /// <param name="stream">The stream to load from.</param>
@@ -338,7 +350,7 @@ namespace LibDescent.Data
         }
 
         /// <summary>
-        /// Initialized a new PCXImage instance by loading a PCX image from a stream.
+        /// Initialized a new PCXImage instance by loading a PCX image from a byte array.
         /// </summary>
         /// <param name="array">The byte array to load from.</param>
         /// <returns>The loaded PCX image.</returns>
@@ -346,18 +358,6 @@ namespace LibDescent.Data
         {
             var pcx = new PCXImage();
             pcx.Read(array);
-            return pcx;
-        }
-
-        /// <summary>
-        /// Initialized a new PCXImage instance by loading a PCX image from a stream.
-        /// </summary>
-        /// <param name="filePath">The path of the file to load from.</param>
-        /// <returns>The loaded PCX image.</returns>
-        public static PCXImage Load(string filePath)
-        {
-            var pcx = new PCXImage();
-            pcx.Read(filePath);
             return pcx;
         }
 

@@ -332,6 +332,18 @@ namespace LibDescent.Data
         }
 
         /// <summary>
+        /// Initialized a new BBMImage instance by loading a BBM image from a file.
+        /// </summary>
+        /// <param name="filePath">The path of the file to load from.</param>
+        /// <returns>The loaded BBM image.</returns>
+        public static BBMImage Load(string filePath)
+        {
+            var bbm = new BBMImage();
+            bbm.Read(filePath);
+            return bbm;
+        }
+
+        /// <summary>
         /// Initialized a new BBMImage instance by loading a BBM image from a stream.
         /// </summary>
         /// <param name="stream">The stream to load from.</param>
@@ -344,7 +356,7 @@ namespace LibDescent.Data
         }
 
         /// <summary>
-        /// Initialized a new BBMImage instance by loading a BBM image from a stream.
+        /// Initialized a new BBMImage instance by loading a BBM image from a byte array.
         /// </summary>
         /// <param name="array">The byte array to load from.</param>
         /// <returns>The loaded BBM image.</returns>
@@ -352,18 +364,6 @@ namespace LibDescent.Data
         {
             var bbm = new BBMImage();
             bbm.Read(array);
-            return bbm;
-        }
-
-        /// <summary>
-        /// Initialized a new BBMImage instance by loading a BBM image from a stream.
-        /// </summary>
-        /// <param name="filePath">The path of the file to load from.</param>
-        /// <returns>The loaded BBM image.</returns>
-        public static BBMImage Load(string filePath)
-        {
-            var bbm = new BBMImage();
-            bbm.Read(filePath);
             return bbm;
         }
 
