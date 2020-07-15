@@ -325,6 +325,42 @@ namespace LibDescent.Data
             }
         }
 
+        /// <summary>
+        /// Initialized a new PCXImage instance by loading a PCX image from a stream.
+        /// </summary>
+        /// <param name="stream">The stream to load from.</param>
+        /// <returns>The loaded PCX image.</returns>
+        public static PCXImage Load(Stream stream)
+        {
+            var pcx = new PCXImage();
+            pcx.Read(stream);
+            return pcx;
+        }
+
+        /// <summary>
+        /// Initialized a new PCXImage instance by loading a PCX image from a stream.
+        /// </summary>
+        /// <param name="array">The byte array to load from.</param>
+        /// <returns>The loaded PCX image.</returns>
+        public static PCXImage Load(byte[] array)
+        {
+            var pcx = new PCXImage();
+            pcx.Read(array);
+            return pcx;
+        }
+
+        /// <summary>
+        /// Initialized a new PCXImage instance by loading a PCX image from a stream.
+        /// </summary>
+        /// <param name="filePath">The path of the file to load from.</param>
+        /// <returns>The loaded PCX image.</returns>
+        public static PCXImage Load(string filePath)
+        {
+            var pcx = new PCXImage();
+            pcx.Read(filePath);
+            return pcx;
+        }
+
         private void WriteRGB(BinaryWriter bw, Color clr)
         {
             bw.Write((byte)clr.R);

@@ -331,6 +331,42 @@ namespace LibDescent.Data
             }
         }
 
+        /// <summary>
+        /// Initialized a new BBMImage instance by loading a BBM image from a stream.
+        /// </summary>
+        /// <param name="stream">The stream to load from.</param>
+        /// <returns>The loaded BBM image.</returns>
+        public static BBMImage Load(Stream stream)
+        {
+            var bbm = new BBMImage();
+            bbm.Read(stream);
+            return bbm;
+        }
+
+        /// <summary>
+        /// Initialized a new BBMImage instance by loading a BBM image from a stream.
+        /// </summary>
+        /// <param name="array">The byte array to load from.</param>
+        /// <returns>The loaded BBM image.</returns>
+        public static BBMImage Load(byte[] array)
+        {
+            var bbm = new BBMImage();
+            bbm.Read(array);
+            return bbm;
+        }
+
+        /// <summary>
+        /// Initialized a new BBMImage instance by loading a BBM image from a stream.
+        /// </summary>
+        /// <param name="filePath">The path of the file to load from.</param>
+        /// <returns>The loaded BBM image.</returns>
+        public static BBMImage Load(string filePath)
+        {
+            var bbm = new BBMImage();
+            bbm.Read(filePath);
+            return bbm;
+        }
+
         private byte[] WriteBody()
         {
             switch (Compression)

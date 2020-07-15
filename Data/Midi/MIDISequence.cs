@@ -53,6 +53,91 @@ namespace LibDescent.Data.Midi
         private MIDISMPTEFrameRate tickRateFrames;
 
         /// <summary>
+        /// Initializes a new instance of the MIDISequence class, representing a MIDI sequence with one track without any events.
+        /// </summary>
+        public MIDISequence()
+        {
+            Format = MIDIFormat.Type1;
+            Tracks = new List<MIDITrack>();
+            Tracks.Add(new MIDITrack());
+
+            tickRateSMPTE = false;
+            tickRateQuarterTicks = 480;
+        }
+
+        /// <summary>
+        /// Initialized a new MIDISequence instance by loading a MIDI file from a stream.
+        /// </summary>
+        /// <param name="stream">The stream to load from.</param>
+        /// <returns>The loaded MIDI sequence.</returns>
+        public static MIDISequence LoadMIDI(Stream stream)
+        {
+            var midi = new MIDISequence();
+            midi.Read(stream);
+            return midi;
+        }
+
+        /// <summary>
+        /// Initialized a new MIDISequence instance by loading a MIDI file from a stream.
+        /// </summary>
+        /// <param name="array">The byte array to load from.</param>
+        /// <returns>The loaded MIDI sequence.</returns>
+        public static MIDISequence LoadMIDI(byte[] array)
+        {
+            var midi = new MIDISequence();
+            midi.Read(array);
+            return midi;
+        }
+
+        /// <summary>
+        /// Initialized a new MIDISequence instance by loading a MIDI file from a stream.
+        /// </summary>
+        /// <param name="filePath">The path of the file to load from.</param>
+        /// <returns>The loaded MIDI sequence.</returns>
+        public static MIDISequence LoadMIDI(string filePath)
+        {
+            var midi = new MIDISequence();
+            midi.Read(filePath);
+            return midi;
+        }
+
+        /// <summary>
+        /// Initialized a new MIDISequence instance by loading an HMP file from a stream.
+        /// </summary>
+        /// <param name="stream">The stream to load from.</param>
+        /// <returns>The loaded MIDI sequence.</returns>
+        public static MIDISequence LoadHMP(Stream stream)
+        {
+            var midi = new MIDISequence();
+            midi.ReadHMP(stream);
+            return midi;
+        }
+
+        /// <summary>
+        /// Initialized a new MIDISequence instance by loading an HMP file from a stream.
+        /// </summary>
+        /// <param name="array">The byte array to load from.</param>
+        /// <returns>The loaded MIDI sequence.</returns>
+        public static MIDISequence LoadHMP(byte[] array)
+        {
+            var midi = new MIDISequence();
+            midi.ReadHMP(array);
+            return midi;
+        }
+
+        /// <summary>
+        /// Initialized a new MIDISequence instance by loading an HMP file from a stream.
+        /// </summary>
+        /// <param name="filePath">The path of the file to load from.</param>
+        /// <returns>The loaded MIDI sequence.</returns>
+        public static MIDISequence LoadHMP(string filePath)
+        {
+            var midi = new MIDISequence();
+            midi.ReadHMP(filePath);
+            return midi;
+        }
+
+        /// <summary>
         /// The MIDI pulses per quarter (PPQ) value, describing the number of MIDI ticks in a quarter note, or -1 if the MIDI uses SMPTE timing.
         /// For HMP files, Descent ignores this value, and assumes it to always be 60.
         /// </summary>
@@ -67,19 +152,6 @@ namespace LibDescent.Data.Midi
                     throw new ArgumentException("PPQ must be non-negative");
                 tickRateQuarterTicks = value;
             }
-        }
-
-        /// <summary>
-        /// Initializes a new instance of the MIDISequence class, representing a MIDI sequence with one track without any events.
-        /// </summary>
-        public MIDISequence()
-        {
-            Format = MIDIFormat.Type1;
-            Tracks = new List<MIDITrack>();
-            Tracks.Add(new MIDITrack());
-
-            tickRateSMPTE = false;
-            tickRateQuarterTicks = 480;
         }
 
         /// <summary>
@@ -727,25 +799,40 @@ namespace LibDescent.Data.Midi
             }
         }
 
+        private void WriteMIDITrackInternal(IMIDIWriter bw, MIDIWriteOptions options, int trackNum, MIDITrack trk)
+        {
+            trk.TerminateTrack();
+            ulong position = 0;
+            ulong delta;
+            int metaChannel = -1;
+            byte status = 0;
+            foreach (MIDIEvent evt in trk)
+            {
+                if (options.HasFlag(MIDIWriteOptions.ExplicitStatus))
+                    status = 0;
+                delta = evt.Time - position;
+                position = evt.Time;
+                bw.WriteVLQ((int)delta);
+                WriteMIDIMessage(trackNum, bw, evt.Data, !options.HasFlag(MIDIWriteOptions.DoNotWriteMetaChannel), ref status, ref metaChannel);
+            }
+        }
+
         private byte[] WriteMIDITrack(MIDIWriteOptions options, int trackNum, MIDITrack trk)
         {
             using (MemoryStream ms = new MemoryStream())
             using (BinaryWriterMIDI bw = new BinaryWriterMIDI(ms))
             {
-                trk.TerminateTrack();
-                ulong position = 0;
-                ulong delta;
-                int metaChannel = -1;
-                byte status = 0;
-                foreach (MIDIEvent evt in trk)
-                {
-                    if (options.HasFlag(MIDIWriteOptions.ExplicitStatus))
-                        status = 0;
-                    delta = evt.Time - position;
-                    position = evt.Time;
-                    bw.WriteVLQ((int)delta);
-                    WriteMIDIMessage(trackNum, bw, evt.Data, true, ref status, ref metaChannel);
-                }
+                WriteMIDITrackInternal(bw, options, trackNum, trk);
+                return ms.ToArray();
+            }
+        }
+
+        private byte[] WriteHMPTrack(MIDIWriteOptions options, int trackNum, MIDITrack trk)
+        {
+            using (MemoryStream ms = new MemoryStream())
+            using (BinaryWriterHMP bw = new BinaryWriterHMP(ms))
+            {
+                WriteMIDITrackInternal(bw, options | MIDIWriteOptions.ExplicitStatus | MIDIWriteOptions.DoNotWriteMetaChannel, trackNum, trk);
                 return ms.ToArray();
             }
         }
@@ -1019,49 +1106,6 @@ namespace LibDescent.Data.Midi
         public byte[] Write()
         {
             return Write(MIDIWriteOptions.None);
-        }
-
-        private byte[] WriteHMPTrack(MIDIWriteOptions options, int trackNum, MIDITrack trk)
-        {
-            using (MemoryStream ms = new MemoryStream())
-            using (BinaryWriterHMP bw = new BinaryWriterHMP(ms))
-            {
-                trk.TerminateTrack();
-
-                ulong position = 0;
-                ulong delta;
-                int metaChannel = -1;
-                byte status = 0;
-                foreach (MIDIEvent evt in trk)
-                {
-                    status = 0; // do not allow status byte omissions
-                    switch (evt.Data.Type)  // do not include some messages in HMP
-                    {
-                        case MIDIMessageType.SysEx:
-                        case MIDIMessageType.ChannelPrefix:
-                        case MIDIMessageType.SequenceNumber:
-                        case MIDIMessageType.MetaText:
-                        case MIDIMessageType.MetaCopyright:
-                        case MIDIMessageType.MetaTrackName:
-                        case MIDIMessageType.MetaInstrumentName:
-                        case MIDIMessageType.MetaLyric:
-                        case MIDIMessageType.MetaMarker:
-                        case MIDIMessageType.MetaCuePoint:
-                        case MIDIMessageType.SetTempo:
-                        case MIDIMessageType.SMPTEOffset:
-                        case MIDIMessageType.TimeSignature:
-                        case MIDIMessageType.KeySignature:
-                        case MIDIMessageType.SequencerProprietary:
-                            continue;
-                    }
-
-                    delta = evt.Time - position;
-                    position = evt.Time;
-                    bw.WriteVLQ((int)delta);
-                    WriteMIDIMessage(trackNum, bw, evt.Data, false, ref status, ref metaChannel);
-                }
-                return ms.ToArray();
-            }
         }
 
         private void WriteMIDIMessage(int trackNum, IMIDIWriter bw, MIDIMessage message, bool writeMetaChannel, ref byte status, ref int metaChannel)
@@ -1648,6 +1692,10 @@ namespace LibDescent.Data.Midi
         /// Always explicitly write status bytes, even if they are repeats of the preceding byte.
         /// </summary>
         ExplicitStatus = 1,
+        /// <summary>
+        /// Does not write events to change the channel for meta events.
+        /// </summary>
+        DoNotWriteMetaChannel = 2,
     }
 
     /// <summary>
