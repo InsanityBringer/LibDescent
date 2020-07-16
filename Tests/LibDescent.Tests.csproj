@@ -10,6 +10,7 @@
     <None Remove="Bass_sample.mid" />
     <None Remove="carpet.bbm" />
     <None Remove="carpet.pcx" />
+    <None Remove="d2exit.mn2" />
     <None Remove="d2x-xl.hog" />
     <None Remove="DefaultSegment.xml" />
     <None Remove="e2game02.hmp" />
@@ -19,6 +20,7 @@
     <None Remove="test.blx" />
     <None Remove="test.rdl" />
     <None Remove="test.rl2" />
+    <None Remove="ulterior.sng" />
     <None Remove="vgame20.hmp" />
   </ItemGroup>
 
@@ -26,6 +28,7 @@
     <EmbeddedResource Include="Bass_sample.mid" />
     <EmbeddedResource Include="carpet.bbm" />
     <EmbeddedResource Include="carpet.pcx" />
+    <EmbeddedResource Include="d2exit.mn2" />
     <EmbeddedResource Include="d2x-xl.hog" />
     <EmbeddedResource Include="DefaultSegment.xml" />
     <EmbeddedResource Include="e2game02.hmp" />
@@ -35,6 +38,7 @@
     <EmbeddedResource Include="test.blx" />
     <EmbeddedResource Include="test.rdl" />
     <EmbeddedResource Include="test.rl2" />
+    <EmbeddedResource Include="ulterior.sng" />
     <EmbeddedResource Include="vgame20.hmp" />
   </ItemGroup>
 
