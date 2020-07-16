@@ -1,4 +1,26 @@
-﻿using System;
+﻿/*
+    Copyright (c) 2020 The LibDescent Team.
+
+    Permission is hereby granted, free of charge, to any person obtaining a copy
+    of this software and associated documentation files (the "Software"), to deal
+    in the Software without restriction, including without limitation the rights
+    to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
+    copies of the Software, and to permit persons to whom the Software is
+    furnished to do so, subject to the following conditions:
+
+    The above copyright notice and this permission notice shall be included in all
+    copies or substantial portions of the Software.
+
+    THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
+    IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
+    FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
+    AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
+    LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
+    OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
+    SOFTWARE.
+*/
+
+using System;
 using System.IO;
 
 namespace LibDescent.Data
@@ -261,7 +283,6 @@ namespace LibDescent.Data
         /// Loads a PCX image from a stream.
         /// </summary>
         /// <param name="stream">The stream to load from.</param>
-        /// <returns></returns>
         public void Read(Stream stream)
         {
             using (BinaryReader br = new BinaryReader(stream))
@@ -303,7 +324,6 @@ namespace LibDescent.Data
         /// Loads a PCX image from a file.
         /// </summary>
         /// <param name="filePath">The path to the file.</param>
-        /// <returns></returns>
         public void Read(string filePath)
         {
             using (FileStream fs = File.Open(filePath, FileMode.Open, FileAccess.Read))
@@ -316,7 +336,6 @@ namespace LibDescent.Data
         /// Loads a PCX image from an array.
         /// </summary>
         /// <param name="contents">The array to load from.</param>
-        /// <returns></returns>
         public void Read(byte[] contents)
         {
             using (MemoryStream ms = new MemoryStream(contents))
@@ -326,7 +345,7 @@ namespace LibDescent.Data
         }
 
         /// <summary>
-        /// Initialized a new PCXImage instance by loading a PCX image from a file.
+        /// Initializes a new PCXImage instance by loading a PCX image from a file.
         /// </summary>
         /// <param name="filePath">The path of the file to load from.</param>
         /// <returns>The loaded PCX image.</returns>
@@ -338,7 +357,7 @@ namespace LibDescent.Data
         }
 
         /// <summary>
-        /// Initialized a new PCXImage instance by loading a PCX image from a stream.
+        /// Initializes a new PCXImage instance by loading a PCX image from a stream.
         /// </summary>
         /// <param name="stream">The stream to load from.</param>
         /// <returns>The loaded PCX image.</returns>
@@ -350,7 +369,7 @@ namespace LibDescent.Data
         }
 
         /// <summary>
-        /// Initialized a new PCXImage instance by loading a PCX image from a byte array.
+        /// Initializes a new PCXImage instance by loading a PCX image from a byte array.
         /// </summary>
         /// <param name="array">The byte array to load from.</param>
         /// <returns>The loaded PCX image.</returns>
@@ -416,6 +435,7 @@ namespace LibDescent.Data
         /// <summary>
         /// Writes this PCX image into a byte array.
         /// </summary>
+        /// <returns>The PCX image as a byte array.</returns>
         public byte[] Write()
         {
             using (MemoryStream ms = new MemoryStream())

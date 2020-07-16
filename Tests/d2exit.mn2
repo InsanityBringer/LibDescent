@@ -1,0 +1,19 @@
+name = D2 exit test
+type = normal
+num_levels = 1
+d2exit.rl2
+editor = DLE
+date = 30 dec 2018
+revision = 1.0
+custom_textures = no
+custom_robots = no
+custom_music = no
+normal = no
+anarchy = no
+robo_anarchy = no
+coop = no
+capture_flag = no
+hoard = no
+multi_author = no
+want_feedback = no
+;this is not a comment
