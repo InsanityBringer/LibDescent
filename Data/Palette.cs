@@ -43,11 +43,11 @@ namespace LibDescent.Data
                 throw new ArgumentException("palette must be at least 768 bytes long");
 
             byte r, g, b;
-            for (int c = 0; c < 768; c += 3)
+            for (int c = 0; c < 256; c++)
             {
-                r = data[c];
-                g = data[c + 1];
-                b = data[c + 2];
+                r = data[c*3];
+                g = data[c*3 + 1];
+                b = data[c*3 + 2];
 
                 if (rescale)
                 {
