@@ -16,8 +16,8 @@ namespace LibDescent.Tests
             face.Points.Add(new BSPVertex { Point = new Vector3(-1.0f, 2.0f, 0.0f) });
             face.Points.Add(new BSPVertex { Point = new Vector3(0.0f, 2.0f, 1.0f) });
             face.Points.Add(new BSPVertex { Point = new Vector3(1.0f, 2.0f, 0.0f) });
+            face.Point = face.Points[0].Point;
             face.Normal = new Vector3(0.0f, 1.0f, 0.0f);
-
 
             Vector3 planePoint = new Vector3(0.0f, 1.0f, 0.0f); // Just a basic plane
             Vector3 planeNormal = new Vector3(0.0f, 1.0f, 0.0f);
@@ -40,6 +40,7 @@ namespace LibDescent.Tests
             face.Points.Add(new BSPVertex { Point = new Vector3(-1.0f, -2.0f, 0.0f) });
             face.Points.Add(new BSPVertex { Point = new Vector3(0.0f, -2.0f, 1.0f) });
             face.Points.Add(new BSPVertex { Point = new Vector3(1.0f, -2.0f, 0.0f) });
+            
             face.Normal = new Vector3(0.0f, 1.0f, 0.0f);
 
 
@@ -64,8 +65,8 @@ namespace LibDescent.Tests
             face.Points.Add(new BSPVertex { Point = new Vector3(-1.0f, -2.0f, 0.0f) });
             face.Points.Add(new BSPVertex { Point = new Vector3(0.0f, 2.0f, 0.0f) });
             face.Points.Add(new BSPVertex { Point = new Vector3(1.0f, -2.0f, 0.0f) });
+            face.Point = face.Points[0].Point;
             face.Normal = new Vector3(0.0f, 0.0f, 1.0f);
-
 
             Vector3 planePoint = new Vector3(0.0f, 1.0f, 0.0f); // Just a basic plane
             Vector3 planeNormal = new Vector3(0.0f, 1.0f, 0.0f);
@@ -88,8 +89,8 @@ namespace LibDescent.Tests
             face.Points.Add(new BSPVertex { Point = new Vector3(-1.0f, 1.0f, 0.0f) });
             face.Points.Add(new BSPVertex { Point = new Vector3(0.0f, 1.0f, 1.0f) });
             face.Points.Add(new BSPVertex { Point = new Vector3(1.0f, 1.0f, 0.0f) });
+            face.Point = face.Points[0].Point;
             face.Normal = new Vector3(0.0f, 1.0f, 0.0f);
-
 
             Vector3 planePoint = new Vector3(0.0f, 1.0f, 0.0f); // Just a basic plane
             Vector3 planeNormal = new Vector3(0.0f, 1.0f, 0.0f);
@@ -112,8 +113,8 @@ namespace LibDescent.Tests
             face.Points.Add(new BSPVertex { Point = new Vector3(-1.0f, 1.0f, 0.0f) });
             face.Points.Add(new BSPVertex { Point = new Vector3(0.0f, 1.0f, 1.0f) });
             face.Points.Add(new BSPVertex { Point = new Vector3(1.0f, 1.0f, 0.0f) });
+            face.Point = face.Points[0].Point;
             face.Normal = new Vector3(0.0f, 1.0f, 0.0f);
-
 
             Vector3 planePoint = new Vector3(0.0f, 1.0f, 0.0f); // Just a basic plane
             Vector3 planeNormal = new Vector3(0.0f, -1.0f, 0.0f);

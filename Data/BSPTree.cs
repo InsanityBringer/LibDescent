@@ -73,7 +73,8 @@ namespace LibDescent.Data
 
         public void CalculateCenter()
         {
-            Point = new Vector3(Points.Average(p => p.Point.X), Points.Average(p => p.Point.Y), Points.Average(p => p.Point.Z));
+            //Point = new Vector3(Points.Average(p => p.Point.X), Points.Average(p => p.Point.Y), Points.Average(p => p.Point.Z));
+            Point = Points[0].Point;
         }
 
         public void CalculateNormal()
@@ -136,8 +137,8 @@ namespace LibDescent.Data
             {
                 foreach (BSPFace face in faces)
                 {
-                    if (face != node.Splitter) //splitter is already classified. TODO should classification and executing splits be separate phases ala doom or quake?
-                        ClassifyFace(face, node.Point, node.Normal);
+                    if (face != node.Splitter) //splitter is classified separatley
+                        ClassifyFace(face, node.Splitter.Point, node.Splitter.Normal);
                     else
                         //[ISB] Fix bug with splitters ending up on both sides. Doom puts them in front implicity
                         face.Classification = BSPClassification.Front;
@@ -154,7 +155,7 @@ namespace LibDescent.Data
                             BSPFace frontFace = new BSPFace();
                             BSPFace backFace = new BSPFace();
 
-                            SplitPolygon(face, node.Point, node.Normal, ref frontFace, ref backFace);
+                            SplitPolygon(face, node.Splitter.Point, node.Splitter.Normal, ref frontFace, ref backFace);
 
 
                             frontList.Add(frontFace);
@@ -257,19 +258,18 @@ namespace LibDescent.Data
             int score;
             foreach (BSPFace potential in faces)
             {
-                score = EvalulateSplitter(faces, planePoint, planeNorm, potential);
+                score = EvalulateSplitter(faces, potential.Point, potential.Normal, potential);
                 if (score < bestScore)
                 {
                     bestScore = score;
                     bestFace = potential;
                 }
             }
-            /*if (bestFace != null) //Splitter can fail to be found if volume is convex
+            if (bestFace != null)
             {
                 planePoint = bestFace.Point;
                 planeNorm = bestFace.Normal;
-                return bestFace;
-            }*/
+            }
             return bestFace;
         }
 
@@ -374,13 +374,10 @@ namespace LibDescent.Data
             front.Normal = face.Normal;
             back.Normal = face.Normal;
 
-            front.Point = new Vector3(front.Points.Average(p => p.Point.X), front.Points.Average(p => p.Point.Y), front.Points.Average(p => p.Point.Z));
-            back.Point = new Vector3(back.Points.Average(p => p.Point.X), back.Points.Average(p => p.Point.Y), back.Points.Average(p => p.Point.Z));
-
-            front.CalculateNormal();
+            //front.CalculateNormal();
             front.CalculateCenter();
 
-            back.CalculateNormal();
+            //back.CalculateNormal();
             back.CalculateCenter();
         }
     }

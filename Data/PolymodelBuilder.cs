@@ -51,7 +51,7 @@ namespace LibDescent.Data
                 var triangle = modelData.Triangles.First();
 
                 triangle.CalculateCenter();
-                triangle.CalculateNormal();
+                //triangle.CalculateNormal();
 
                 rootNode.Point = triangle.Point;
                 rootNode.Normal = triangle.Normal;
@@ -61,7 +61,7 @@ namespace LibDescent.Data
                 foreach (var face in faces)
                 {
                     face.CalculateCenter();
-                    face.CalculateNormal();
+                    //face.CalculateNormal();
                 }
 
                 tree.BuildTree(rootNode, faces);
@@ -269,11 +269,11 @@ namespace LibDescent.Data
 
                 // Correct the back offset
                 modelDataOffset = backOffset;
-                SetShort(data, ref modelDataOffset, (short)backOffsetValue); // fix the back offset later
+                SetShort(data, ref modelDataOffset, (short)frontOffsetValue); // fix the back offset later
 
                 // Correct the front offset
                 modelDataOffset = frontOffset;
-                SetShort(data, ref modelDataOffset, (short)frontOffsetValue); // fix the back offset later
+                SetShort(data, ref modelDataOffset, (short)backOffsetValue); // fix the back offset later
 
 
                 // Restore the offset to the end position
