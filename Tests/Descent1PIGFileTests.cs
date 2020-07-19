@@ -12,7 +12,8 @@ namespace LibDescent.Tests
         const string PigFileLocation = @"D:\GOG Games\Descent\rDESCENT.PIG";
 
         [Test]
-        public void Jaap()
+        [Ignore("Requires real Descent 1 (1.5) pig file")]
+        public void RebuildAndReplaceMode()
         {
             // Setup
             var modelToLoad = @"D:\GOG Games\Descent\aaa.pof";
@@ -26,10 +27,8 @@ namespace LibDescent.Tests
             // Store
             Descent1PIGFile piggy = new Descent1PIGFile();
 
-
-            using (var readFile = File.OpenRead(@"D:\GOG Games\Descent\RDESCENT.PIG"))
+            using (var readFile = File.OpenRead(PigFileLocation))
             {
-
                 piggy.Read(readFile);
             }
 
