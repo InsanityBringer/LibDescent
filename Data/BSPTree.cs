@@ -131,9 +131,6 @@ namespace LibDescent.Data
             {
                 node.faces = faces;
                 node.type = BSPNodeType.Leaf;
-
-                //[ISB] Fix bug with splitters ending up on both sides. Doom puts them in front implicity
-                node.Splitter.Classification = BSPClassification.Front;
             }
             else //A splitter is known, so do any needed splits and recurse
             {
@@ -141,6 +138,9 @@ namespace LibDescent.Data
                 {
                     if (face != node.Splitter) //splitter is already classified. TODO should classification and executing splits be separate phases ala doom or quake?
                         ClassifyFace(face, node.Point, node.Normal);
+                    else
+                        //[ISB] Fix bug with splitters ending up on both sides. Doom puts them in front implicity
+                        face.Classification = BSPClassification.Front;
 
                     switch (face.Classification)
                     {

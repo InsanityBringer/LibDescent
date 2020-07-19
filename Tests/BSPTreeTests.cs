@@ -1,6 +1,7 @@
 ﻿using LibDescent.Data;
 using NUnit.Framework;
 using System.Numerics;
+using System.IO;
 
 namespace LibDescent.Tests
 {
@@ -124,6 +125,25 @@ namespace LibDescent.Tests
 
             // Assert
             Assert.AreEqual(BSPClassification.Back, face.Classification);
+        }
+
+        [Test]
+        public void GenerateBSPTest() //note: this mostly just tests ATM that the code executes without error. 
+            //Proper results currently need to be visually validated with a tool like Descent 2 Workshop
+        {
+            Polymodel model = LibDescent.Data.POFReader.ReadPOFFile(TestUtils.GetResourceStream("NewConcussion.pof"));
+            model.ExpandSubmodels();
+
+            //Build the BSP tree
+            PolymodelBuilder polymodelBuilder = new PolymodelBuilder();
+            polymodelBuilder.RebuildModel(model);
+
+            BinaryWriter bw = new BinaryWriter(File.Open("NewConcussionBSP.pof", FileMode.Create));
+            //the POFWriter API needs some changes...
+            POFWriter.SerializePolymodel(bw, model, 8);
+            bw.Flush();
+            bw.Close();
+            bw.Dispose();
         }
     }
 }

@@ -27,9 +27,9 @@ namespace LibDescent.Data
 {
     public class POFReader
     {
-        public static Polymodel ReadPOFFile(string filename)
+        public static Polymodel ReadPOFFile(Stream stream)
         {
-            BinaryReader br = new BinaryReader(File.Open(filename, FileMode.Open));
+            BinaryReader br = new BinaryReader(stream);
             Polymodel model = new Polymodel();
 
             int sig = br.ReadInt32();

@@ -15,6 +15,7 @@
     <None Remove="DefaultSegment.xml" />
     <None Remove="e2game02.hmp" />
     <None Remove="fusfrens.rdl" />
+    <None Remove="NewConcussion.pof" />
     <None Remove="standard.hog" />
     <None Remove="test.blk" />
     <None Remove="test.blx" />
@@ -33,6 +34,7 @@
     <EmbeddedResource Include="DefaultSegment.xml" />
     <EmbeddedResource Include="e2game02.hmp" />
     <EmbeddedResource Include="fusfrens.rdl" />
+    <EmbeddedResource Include="NewConcussion.pof" />
     <EmbeddedResource Include="standard.hog" />
     <EmbeddedResource Include="test.blk" />
     <EmbeddedResource Include="test.blx" />
