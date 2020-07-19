@@ -32,12 +32,12 @@ namespace LibDescent.Data
         public void RebuildModel (Polymodel model)
         {
             List<ModelData> data = ExtractModelData(model);
-            List<BSPNode> trees = BuildBespTrees(data);
+            List<BSPNode> trees = BuildBSPTrees(data);
 
             RebuildModel(model, trees);
         }
 
-        private static List<BSPNode> BuildBespTrees(List<ModelData> data)
+        private static List<BSPNode> BuildBSPTrees(List<ModelData> data)
         {
             List<BSPNode> trees = new List<BSPNode>();
 
@@ -78,6 +78,8 @@ namespace LibDescent.Data
             me.SetModel(model);
 
             var data = me.Extract();
+            if (me.IsPartitioned)
+                throw new Exception("Model is already partitioned. Further partitioning will bloat data.");
             return data;
         }
 

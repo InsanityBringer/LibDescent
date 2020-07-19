@@ -11,6 +11,11 @@ namespace LibDescent.Data
         List<ModelData> modelDatas = new List<ModelData>();
         private FixVector[] interpPoints = new FixVector[1000];
 
+        /// <summary>
+        /// True if the model already has been partitioned, false otherwise.
+        /// </summary>
+        public bool IsPartitioned { get; private set; } = false;
+
         public PolymodelExtractor()
         {
         }
@@ -87,8 +92,6 @@ namespace LibDescent.Data
 
                             if (pointc >= 3)
                             {
-
-                                ///
                                 var triangle = new BSPFace();
 
                                 triangle.Normal = new Vector3(normal.X, normal.Y, normal.Z);
@@ -134,8 +137,6 @@ namespace LibDescent.Data
 
                             if (pointc >= 3)
                             {
-
-                                ///
                                 var triangle = new BSPFace();
 
                                 triangle.Normal = new Vector3(normal.X, normal.Y, normal.Z);
@@ -145,7 +146,6 @@ namespace LibDescent.Data
 
                                 for (int i = 0; i < pointc; i++)
                                 {
-                                    ///
                                     var vxA = interpPoints[points[i]].X;
                                     var vyA = interpPoints[points[i]].Y;
                                     var vzA = interpPoints[points[i]].Z;
@@ -153,15 +153,14 @@ namespace LibDescent.Data
                                     var uvxA = uvls[i].X;
                                     var uvyA = uvls[i].Y;
 
-
                                     triangle.Points.Add(new BSPVertex { Point = new Vector3(vxA, vyA, vzA), UVs = new Vector3(uvxA, uvyA, 0.0f) });
-
                                 }
                             }
                         }
                         break;
                     case ModelOpCode.SortNormal: //SORTNORM
                         {
+                            IsPartitioned = true;
                             int baseOffset = offset - 2;
                             int n_points = GetShort(data, ref offset);
                             FixVector norm = GetFixVector(data, ref offset);
