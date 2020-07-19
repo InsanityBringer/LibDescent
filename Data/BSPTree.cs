@@ -154,6 +154,8 @@ namespace LibDescent.Data
                         case BSPClassification.Spanning:
                             BSPFace frontFace = new BSPFace();
                             BSPFace backFace = new BSPFace();
+                            if (face.TextureID == -1) // colored face
+                                frontFace.Color = backFace.Color = face.Color;
 
                             SplitPolygon(face, node.Splitter.Point, node.Splitter.Normal, ref frontFace, ref backFace);
 
@@ -248,7 +250,7 @@ namespace LibDescent.Data
             {
                 return int.MaxValue;
             }
-            return Math.Abs(numFront - numBack) + (numSplits * 8);
+            return Math.Abs(numFront - numBack) + (numSplits * 6);
         }
 
         public BSPFace FindSplitter(List<BSPFace> faces, ref Vector3 planePoint, ref Vector3 planeNorm)

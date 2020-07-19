@@ -182,32 +182,76 @@ namespace LibDescent.Data
             return furthest;
         }
 
+        static Dictionary<FixVector, int> vertexDict;
+        static List<FixVector> uniqueVertices;
+
         public static void BuildModelPolygons(BSPNode tree, byte[] data, ref int modelDataOffset)
         {
             short pointCount = 0;
+
+            vertexDict = new Dictionary<FixVector, int>();
+            uniqueVertices = new List<FixVector>();
 
             SetShort(data, ref modelDataOffset, ModelOpCode.DefinePointStart);
 
             int vertexCountOffset = modelDataOffset;
 
-            SetShort(data, ref modelDataOffset, 0); // Point count: update this later on
-            SetShort(data, ref modelDataOffset, 0); // Start
+            // Get all points
+            //An ordered set would be great here...
+            
+            GetVertexes(tree, data);
+
+            SetShort(data, ref modelDataOffset, (short)uniqueVertices.Count); // Point count: update this later on
+            SetShort(data, ref modelDataOffset, 0); // Start TODO: This is critical for morphs
             SetShort(data, ref modelDataOffset, 0); // not sure what this is
 
-            // Get all points
-            GetVertexes(tree, data, ref modelDataOffset, ref pointCount);
+            foreach (var point in uniqueVertices)
+            {
+                SetFixVector(data, ref modelDataOffset, point);
+            }
 
             // Update the point count
-            int returnLocation = modelDataOffset;
+            //int returnLocation = modelDataOffset;
             //modelDataOffset = 2;
-            modelDataOffset = vertexCountOffset;
-            SetShort(data, ref modelDataOffset, pointCount); // Point count: update this later on
-            modelDataOffset = returnLocation;
+            //modelDataOffset = vertexCountOffset;
+            //SetShort(data, ref modelDataOffset, pointCount); // Point count: update this later on
+            //modelDataOffset = returnLocation;
 
             // Get faces
             int vertexOffset = 0;
 
             GetFaces(tree, data, ref modelDataOffset, ref vertexOffset);
+        }
+
+        private static void GetVertexes(BSPNode bSPNode, byte[] interpreterData)
+        {
+            if (bSPNode == null)
+                return;
+
+            if (bSPNode.faces != null)
+            {
+                foreach (var face in bSPNode.faces)
+                {
+                    foreach (var point in face.Points)
+                    {
+                        Fix x = point.Point.X;
+                        Fix y = point.Point.Y;
+                        Fix z = point.Point.Z;
+
+                        //TODO this is a bit slow overall
+                        var vec = new FixVector(x, y, z);
+
+                        if (!vertexDict.ContainsKey(vec))
+                        {
+                            vertexDict.Add(vec, uniqueVertices.Count);
+                            uniqueVertices.Add(vec);
+                        }
+                    }
+                }
+            }
+
+            GetVertexes(bSPNode.Front, interpreterData);
+            GetVertexes(bSPNode.Back, interpreterData);
         }
 
         public static void GetFaces(BSPNode node, byte[] data, ref int modelDataOffset, ref int vertexOffset, bool deep = false)
@@ -267,7 +311,8 @@ namespace LibDescent.Data
                 // Store the end position
                 int endPosition = modelDataOffset;
 
-
+                if (frontOffsetValue > short.MaxValue || backOffsetValue > short.MaxValue || modelDataOffset < 0)
+                    throw new Exception("Model is too complex: 32KB displacement limit exceeded.");
 
                 // Correct the back offset
                 modelDataOffset = backOffset;
@@ -289,6 +334,8 @@ namespace LibDescent.Data
             else if (node.faces != null)
             {
                 int facesStatPosition = modelDataOffset;
+                BSPVertex vert;
+                short vertexNum;
                 foreach (var face in node.faces)
                 {
                     if (face.TextureID == -1)
@@ -315,11 +362,12 @@ namespace LibDescent.Data
 
                         SetFixVector(data, ref modelDataOffset, normal);
                         SetShort(data, ref modelDataOffset, (short)face.Color);
-
                         for (short i = 0; i < pointc; i++)
                         {
-                            SetShort(data, ref modelDataOffset, (short)vertexOffset);
-                            vertexOffset++;
+                            vert = face.Points[i];
+                            FixVector vec = new FixVector(vert.Point.X, vert.Point.Y, vert.Point.Z);
+                            vertexNum = (short)vertexDict[vec];
+                            SetShort(data, ref modelDataOffset, vertexNum);
                         }
 
                         if (pointc % 2 == 0)
@@ -355,15 +403,16 @@ namespace LibDescent.Data
 
                         for (short i = 0; i < pointc; i++)
                         {
-                            SetShort(data, ref modelDataOffset, (short)vertexOffset);
-                            vertexOffset++;
+                            vert = face.Points[i];
+                            FixVector vec = new FixVector(vert.Point.X, vert.Point.Y, vert.Point.Z);
+                            vertexNum = (short)vertexDict[vec];
+                            SetShort(data, ref modelDataOffset, vertexNum);
                         }
 
                         if (pointc % 2 == 0)
                         {
                             SetShort(data, ref modelDataOffset, 0);
                         }
-
 
                         for (short i = 0; i < pointc; i++)
                         {
@@ -383,34 +432,6 @@ namespace LibDescent.Data
                 SetShort(data, ref modelDataOffset, ModelOpCode.End);
 
 
-
-            }
-        }
-
-        private static void GetVertexes(BSPNode bSPNode, byte[] interpreterData, ref int modelDataOffset, ref short pointCount)
-        {
-            if (bSPNode == null)
-                return;
-
-            GetVertexes(bSPNode.Front, interpreterData, ref modelDataOffset, ref pointCount);
-            GetVertexes(bSPNode.Back, interpreterData, ref modelDataOffset, ref pointCount);
-
-            if (bSPNode.faces != null)
-            {
-                foreach (var face in bSPNode.faces)
-                {
-                    foreach (var point in face.Points)
-                    {
-                        Fix x = point.Point.X;
-                        Fix y = point.Point.Y;
-                        Fix z = point.Point.Z;
-
-                        var vec = new FixVector(x, y, z);
-
-                        SetFixVector(interpreterData, ref modelDataOffset, vec);
-                        pointCount++;
-                    }
-                }
 
             }
         }
