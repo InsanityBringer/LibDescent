@@ -22,6 +22,7 @@
 
 using System;
 using System.Collections.Generic;
+using System.Linq;
 using System.Numerics;
 
 //Horrible BSP compiler made from some online article. Ugh. Blech.
@@ -62,10 +63,49 @@ namespace LibDescent.Data
     {
         public Vector3 Point;
         public Vector3 Normal;
-        public int textureID;
-        public int color;
+        public int TextureID;
+        public int Color;
         public List<BSPVertex> Points = new List<BSPVertex>();
         public BSPClassification Classification;
+
+        public BSPFace()
+        {
+            TextureID = -1;
+        }
+
+        public void CalculateCenter()
+        {
+            Point = new Vector3(Points.Average(p => p.Point.X), Points.Average(p => p.Point.Y), Points.Average(p => p.Point.Z));
+        }
+
+        public void CalculateNormal()
+        {
+            this.Normal = new Vector3(0.0f);
+
+            for (int i = 0; i < this.Points.Count; i++)
+            {
+                int j = i + 1;
+
+                if (j == Points.Count)
+                {
+                    j = 0;
+                }
+
+                Normal.X -= (((Points[i].Point.Z) + (Points[j].Point.Z)) * ((Points[j].Point.Y) - (Points[i].Point.Y)));
+                Normal.Y -= (((Points[i].Point.X) + (Points[j].Point.X)) * ((Points[j].Point.Z) - (Points[i].Point.Z)));
+                Normal.Z -= (((Points[i].Point.Y) + (Points[j].Point.Y)) * ((Points[j].Point.X) - (Points[i].Point.X)));
+            }
+
+            float l = Normal.Length();
+
+            if (l > 0.0f)
+            {
+                Normal.X /= l;
+                Normal.Y /= l;
+                Normal.Z /= l;
+
+            }
+        }
     }
 
     public class BSPTree
@@ -82,11 +122,13 @@ namespace LibDescent.Data
             return Vector3.Dot(localPoint, planeNorm) > 0;
         }
 
-        public void BuildTree(BSPNode node, List<BSPFace> faces)
+        public void BuildTree(BSPNode node, List<BSPFace> faces, bool first)
         {
             List<BSPFace> frontList = new List<BSPFace>();
             List<BSPFace> backList = new List<BSPFace>();
+
             node.Splitter = FindSplitter(faces, ref node.Point, ref node.Normal);
+
             if (node.Splitter == null) //If a splitter wasn't found, this set of faces is convex
             {
                 node.faces = faces;
@@ -96,7 +138,7 @@ namespace LibDescent.Data
             {
                 foreach (BSPFace face in faces)
                 {
-                    if (face != node.Splitter)
+                    if (face != node.Splitter || first == true)
                     {
                         ClassifyFace(face, node.Point, node.Normal);
                         switch (face.Classification)
@@ -110,10 +152,16 @@ namespace LibDescent.Data
                             case BSPClassification.Spanning:
                                 BSPFace frontFace = new BSPFace();
                                 BSPFace backFace = new BSPFace();
+
                                 SplitPolygon(face, node.Point, node.Normal, ref frontFace, ref backFace);
+
+
                                 frontList.Add(frontFace);
                                 backList.Add(backFace);
                                 break;
+
+                            default:
+                                throw new Exception("What is going on?!");
                         }
                     }
                 }
@@ -122,15 +170,16 @@ namespace LibDescent.Data
                 {
                     BSPNode newNode = new BSPNode();
                     newNode.type = BSPNodeType.Node;
-                    BuildTree(newNode, frontList);
+                    BuildTree(newNode, frontList, false);
                     node.Front = newNode;
+
                 }
 
                 if (backList.Count > 0)
                 {
                     BSPNode newNode = new BSPNode();
                     newNode.type = BSPNodeType.Node;
-                    BuildTree(newNode, faces);
+                    BuildTree(newNode, backList, false);
                     node.Back = newNode;
                 }
             }
@@ -145,26 +194,31 @@ namespace LibDescent.Data
 
         public void ClassifyFace(BSPFace face, Vector3 planePoint, Vector3 planeNorm)
         {
-            ClassifyPoint(face.Points[0], planePoint, planeNorm);
+            face.Classification = BSPClassification.OnPlane;
+
             foreach (BSPVertex point in face.Points)
             {
                 ClassifyPoint(point, planePoint, planeNorm);
-                if (point.Classification != face.Points[0].Classification)
+
+                if (point.Classification != face.Classification)
                 {
-                    face.Classification = BSPClassification.Spanning;
-                    return;
+                    if (face.Classification == BSPClassification.OnPlane)
+                    {
+                        face.Classification = point.Classification;
+                    }
+                    else if (point.Classification != BSPClassification.OnPlane)
+                    {
+                        face.Classification = BSPClassification.Spanning;
+                        return;
+                    }
                 }
             }
-            if (face.Points[0].Classification == BSPClassification.OnPlane) //Place coplanar faces on the front side of the plane if it is facing the same direction
+            if (face.Classification == BSPClassification.OnPlane) //Place coplanar faces on the front side of the plane if it is facing the same direction
             {
                 if (Vector3.Dot(face.Normal, planeNorm) >= 0)
                     face.Classification = BSPClassification.Front;
                 else
                     face.Classification = BSPClassification.Back;
-            }
-            else
-            {
-                face.Classification = face.Points[0].Classification;
             }
         }
 
@@ -239,6 +293,9 @@ namespace LibDescent.Data
 
         public void SplitPolygon(BSPFace face, Vector3 planePoint, Vector3 planeNorm, ref BSPFace front, ref BSPFace back)
         {
+            front.TextureID = face.TextureID;
+            back.TextureID = face.TextureID;
+
             BSPVertex firstPoint = face.Points[0];
             if (firstPoint.Classification == BSPClassification.OnPlane)
             {
@@ -246,9 +303,14 @@ namespace LibDescent.Data
                 back.Points.Add(firstPoint);
             }
             else if (firstPoint.Classification == BSPClassification.Front)
+            {
                 front.Points.Add(firstPoint);
+            }
             else
+            {
                 back.Points.Add(firstPoint);
+            }
+
             int current = 0;
             BSPVertex vert1, vert2;
             for (int i = 1; i < face.Points.Count + 1; i++)
@@ -269,7 +331,9 @@ namespace LibDescent.Data
                 {
                     Vector3 intersect = new Vector3();
                     float percentage = 0.0f;
+
                     bool split = SplitEdge(vert1.Point, vert2.Point, planePoint, planeNorm, ref percentage, ref intersect);
+
                     if (split)
                     {
                         Vector3 texDelta = vert2.UVs - vert1.UVs;
@@ -309,6 +373,15 @@ namespace LibDescent.Data
             //TODO: This isn't always accurate at extreme splits. 
             front.Normal = face.Normal;
             back.Normal = face.Normal;
+
+            front.Point = new Vector3(front.Points.Average(p => p.Point.X), front.Points.Average(p => p.Point.Y), front.Points.Average(p => p.Point.Z));
+            back.Point = new Vector3(back.Points.Average(p => p.Point.X), back.Points.Average(p => p.Point.Y), back.Points.Average(p => p.Point.Z));
+
+            front.CalculateNormal();
+            front.CalculateCenter();
+
+            back.CalculateNormal();
+            back.CalculateCenter();
         }
     }
 }
