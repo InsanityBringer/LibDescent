@@ -1,5 +1,5 @@
 ﻿/*
-    Copyright (c) 2019 SaladBadger
+    Copyright (c) 2019 The LibDescent Team
 
     Permission is hereby granted, free of charge, to any person obtaining a copy
     of this software and associated documentation files (the "Software"), to deal
@@ -25,8 +25,6 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Numerics;
 
-//Horrible BSP compiler made from some online article. Ugh. Blech.
-//Its not even complete...
 namespace LibDescent.Data
 {
     public enum BSPClassification
@@ -122,7 +120,7 @@ namespace LibDescent.Data
             return Vector3.Dot(localPoint, planeNorm) > 0;
         }
 
-        public void BuildTree(BSPNode node, List<BSPFace> faces, bool first)
+        public void BuildTree(BSPNode node, List<BSPFace> faces)
         {
             List<BSPFace> frontList = new List<BSPFace>();
             List<BSPFace> backList = new List<BSPFace>();
@@ -133,36 +131,38 @@ namespace LibDescent.Data
             {
                 node.faces = faces;
                 node.type = BSPNodeType.Leaf;
+
+                //[ISB] Fix bug with splitters ending up on both sides. Doom puts them in front implicity
+                node.Splitter.Classification = BSPClassification.Front;
             }
             else //A splitter is known, so do any needed splits and recurse
             {
                 foreach (BSPFace face in faces)
                 {
-                    if (face != node.Splitter || first == true)
-                    {
+                    if (face != node.Splitter) //splitter is already classified. TODO should classification and executing splits be separate phases ala doom or quake?
                         ClassifyFace(face, node.Point, node.Normal);
-                        switch (face.Classification)
-                        {
-                            case BSPClassification.Front:
-                                frontList.Add(face);
-                                break;
-                            case BSPClassification.Back:
-                                backList.Add(face);
-                                break;
-                            case BSPClassification.Spanning:
-                                BSPFace frontFace = new BSPFace();
-                                BSPFace backFace = new BSPFace();
 
-                                SplitPolygon(face, node.Point, node.Normal, ref frontFace, ref backFace);
+                    switch (face.Classification)
+                    {
+                        case BSPClassification.Front:
+                            frontList.Add(face);
+                            break;
+                        case BSPClassification.Back:
+                            backList.Add(face);
+                            break;
+                        case BSPClassification.Spanning:
+                            BSPFace frontFace = new BSPFace();
+                            BSPFace backFace = new BSPFace();
+
+                            SplitPolygon(face, node.Point, node.Normal, ref frontFace, ref backFace);
 
 
-                                frontList.Add(frontFace);
-                                backList.Add(backFace);
-                                break;
+                            frontList.Add(frontFace);
+                            backList.Add(backFace);
+                            break;
 
-                            default:
-                                throw new Exception("What is going on?!");
-                        }
+                        default:
+                            throw new Exception("What is going on?!");
                     }
                 }
 
@@ -170,7 +170,7 @@ namespace LibDescent.Data
                 {
                     BSPNode newNode = new BSPNode();
                     newNode.type = BSPNodeType.Node;
-                    BuildTree(newNode, frontList, false);
+                    BuildTree(newNode, frontList);
                     node.Front = newNode;
 
                 }
@@ -179,7 +179,7 @@ namespace LibDescent.Data
                 {
                     BSPNode newNode = new BSPNode();
                     newNode.type = BSPNodeType.Node;
-                    BuildTree(newNode, backList, false);
+                    BuildTree(newNode, backList);
                     node.Back = newNode;
                 }
             }
