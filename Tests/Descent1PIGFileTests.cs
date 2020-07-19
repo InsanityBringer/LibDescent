@@ -13,6 +13,37 @@ namespace LibDescent.Tests
 
         [Test]
         [Ignore("Requires real Descent 1 (1.5) pig file")]
+        public void RebuildAndReplaceMode()
+        {
+            // Setup
+            var modelToLoad = @"D:\GOG Games\Descent\aaa.pof";
+            var model = LibDescent.Data.POFReader.ReadPOFFile(modelToLoad);
+            model.ExpandSubmodels();
+
+            // Rebuild
+            PolymodelBuilder polymodelBuilder = new PolymodelBuilder();
+            polymodelBuilder.RebuildModel(model);
+
+            // Store
+            Descent1PIGFile piggy = new Descent1PIGFile();
+
+            using (var readFile = File.OpenRead(PigFileLocation))
+            {
+                piggy.Read(readFile);
+            }
+
+            piggy.Models[5] = model;
+            piggy.Models[7] = model;
+
+            using (var readFile = File.OpenWrite(@"D:\GOG Games\Descent\DESCENT.PIG"))
+            {
+
+                piggy.Write(readFile);
+            }
+        }
+
+        [Test]
+        [Ignore("Requires real Descent 1 (1.5) pig file")]
         public void LoadD15PigFile()
         {
             Descent1PIGFile piggie = new Descent1PIGFile();

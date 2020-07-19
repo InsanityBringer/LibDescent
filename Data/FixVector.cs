@@ -58,6 +58,15 @@ namespace LibDescent.Data
             return new FixVector(new Fix(x), new Fix(y), new Fix(z));
         }
 
+        public static float Dist(FixVector a, FixVector b)
+        {
+            float x = (a.X - b.X);
+            float y = (a.Y - b.Y);
+            float z = (a.Z - b.Z);
+
+            return (float)Math.Sqrt((x * x) + (y * y) + (z * z));
+        }
+
         public static explicit operator Vector3(FixVector v)
             => new Vector3(v.X, v.Y, v.Z);
         public static implicit operator FixVector(Vector3 v)
