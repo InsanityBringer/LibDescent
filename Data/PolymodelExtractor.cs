@@ -8,7 +8,7 @@ namespace LibDescent.Data
     {
         private Polymodel model;
 
-        List<ModelData> modelDatas = new List<ModelData>();
+        List<BSPModel> modelDatas = new List<BSPModel>();
         private FixVector[] interpPoints = new FixVector[1000];
 
         /// <summary>
@@ -26,14 +26,32 @@ namespace LibDescent.Data
         }
         
 
-        public List<ModelData> Extract()
+        public List<BSPModel> Extract()
         {
-            modelDatas = new List<ModelData>();
-            var currentModel = new ModelData();
-            modelDatas.Add(currentModel);
+            modelDatas = new List<BSPModel>();
 
+            for (int i = 0; i < model.NumSubmodels; i++)
+            {
+                var currentModel = new BSPModel(i);
+                modelDatas.Add(currentModel);
 
-            Execute(model.InterpreterData, 0, model, model.Submodels[1], currentModel);
+                //Make sure IDs are correct
+                model.Submodels[i].ID = i;
+            }
+
+            Execute(model.InterpreterData, 0, model, model.Submodels[0], modelDatas[0]);
+
+            for (int i = 0; i < modelDatas.Count; i++)
+            {
+                //bash all pointers to 0 because they'll be set later.
+                model.Submodels[modelDatas[i].SubmodelNum].Pointer = 0;
+
+                //Build list of all children for eash BSP model. This list will be used to build trees across submodels.
+                if (model.Submodels[modelDatas[i].SubmodelNum].Parent != 255)
+                {
+                    modelDatas[model.Submodels[modelDatas[i].SubmodelNum].Parent].ChildrenList.Add(i);
+                }
+            }
 
             return modelDatas;
         }
@@ -57,7 +75,7 @@ namespace LibDescent.Data
             return FixVector.FromRawValues(GetInt(data, ref offset), GetInt(data, ref offset), GetInt(data, ref offset));
         }
 
-        private void Execute(byte[] data, int offset, Polymodel mainModel, Submodel model, ModelData currentModel)
+        private void Execute(byte[] data, int offset, Polymodel mainModel, Submodel model, BSPModel currentModel)
         {
             short instruction = GetShort(data, ref offset);
             while (true)
@@ -99,11 +117,10 @@ namespace LibDescent.Data
                                 triangle.Color = color;
                                 triangle.TextureID = -1;
 
-                                currentModel.Triangles.Add(triangle);
+                                currentModel.Polygons.Add(triangle);
 
                                 for (int i = 0; i < pointc; i++)
                                 {
-                                    ///
                                     var vxA = interpPoints[points[i]].X;
                                     var vyA = interpPoints[points[i]].Y;
                                     var vzA = interpPoints[points[i]].Z;
@@ -142,7 +159,7 @@ namespace LibDescent.Data
                                 triangle.Normal = new Vector3(normal.X, normal.Y, normal.Z);
                                 triangle.Point = new Vector3(point.X, point.Y, point.Z);
                                 triangle.TextureID = texture;
-                                currentModel.Triangles.Add(triangle);
+                                currentModel.Polygons.Add(triangle);
 
                                 for (int i = 0; i < pointc; i++)
                                 {
@@ -179,9 +196,6 @@ namespace LibDescent.Data
                         break;
                     case ModelOpCode.SubCall: //SUBCALL
                         {
-                            var newModelData = new ModelData();
-                            this.modelDatas.Add(newModelData);
-
                             int baseOffset = offset - 2;
                             short submodelNum = GetShort(data, ref offset);
                             FixVector submodelOffset = GetFixVector(data, ref offset);
@@ -192,7 +206,7 @@ namespace LibDescent.Data
 
                             currentModel.modelOffset = submodelOffset;
 
-                            Execute(data, baseOffset + modelOffset, mainModel, newModel, newModelData);
+                            Execute(data, baseOffset + modelOffset, mainModel, newModel, modelDatas[submodelNum]);
                         }
                         break;
                     case ModelOpCode.DefinePointStart: //DEFPSTART

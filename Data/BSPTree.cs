@@ -102,7 +102,6 @@ namespace LibDescent.Data
                 Normal.X /= l;
                 Normal.Y /= l;
                 Normal.Z /= l;
-
             }
         }
     }
@@ -165,7 +164,7 @@ namespace LibDescent.Data
                             break;
 
                         default:
-                            throw new Exception("What is going on?!");
+                            throw new Exception("BSPTree::BuildTree: Face has invalid classification.");
                     }
                 }
 

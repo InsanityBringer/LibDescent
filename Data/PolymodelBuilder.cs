@@ -29,82 +29,115 @@ namespace LibDescent.Data
 {
     public class PolymodelBuilder
     {
+        Polymodel currentModel;
+        List<BSPModel> submodels;
         public void RebuildModel (Polymodel model)
         {
-            List<ModelData> data = ExtractModelData(model);
-            List<BSPNode> trees = BuildBSPTrees(data);
+            currentModel = model;
+            List<BSPModel> data = ExtractModelData(model);
+            submodels = data;
+            BuildBSPTrees(data);
 
-            RebuildModel(model, trees);
+            RebuildModel(model, data);
         }
 
-        private static List<BSPNode> BuildBSPTrees(List<ModelData> data)
+        private void BuildBSPTrees(List<BSPModel> data)
         {
-            List<BSPNode> trees = new List<BSPNode>();
-
-            foreach (ModelData modelData in data)
+            foreach (BSPModel modelData in data)
             {
-                BSPNode rootNode = new BSPNode();
-                rootNode.type = BSPNodeType.Node;
+                modelData.RootNode = new BSPNode();
+                modelData.RootNode.type = BSPNodeType.Node;
 
                 BSPTree tree = new BSPTree();
 
-                var triangle = modelData.Triangles.First();
+                //These will get overridden down the line.
+                modelData.RootNode.Point = new Vector3(0, 0, 0);
+                modelData.RootNode.Normal = new Vector3(0, 0, 0);
 
-                triangle.CalculateCenter();
-                //triangle.CalculateNormal();
-
-                rootNode.Point = triangle.Point;
-                rootNode.Normal = triangle.Normal;
-
-                var faces = modelData.Triangles.ToList();
-
-                foreach (var face in faces)
-                {
-                    face.CalculateCenter();
-                    //face.CalculateNormal();
-                }
-
-                tree.BuildTree(rootNode, faces);
-
-                trees.Add(rootNode);
+                tree.BuildTree(modelData.RootNode, modelData.Polygons);
             }
-
-            return trees;
         }
 
-        private static List<ModelData> ExtractModelData(Polymodel model)
+        private List<BSPModel> ExtractModelData(Polymodel model)
         {
             PolymodelExtractor me = new PolymodelExtractor();
             me.SetModel(model);
 
             var data = me.Extract();
             if (me.IsPartitioned)
-                throw new Exception("Model is already partitioned. Further partitioning will bloat data.");
+                throw new ArgumentException("Model is already partitioned. Further partitioning will bloat data.");
             return data;
         }
 
-        private void RebuildModel(Polymodel newModel, List<BSPNode> trees)
+        private void RebuildModel(Polymodel newModel, List<BSPModel> bspModels)
         {
             int offset = 0;
+            int vertexOffset = 0;
 
-            newModel.InterpreterData = new byte[1024 * 1024];
+            //global scratch space.
+            var data = new byte[1024 * 1024];
 
-            var data = newModel.InterpreterData;
+            for (int i = 0; i < bspModels.Count; i++)
+            {
+                bspModels[i].CompileInterpreterData(vertexOffset);
+                vertexOffset += bspModels[i].NumVertices;
+                if (vertexOffset > 1000)
+                    throw new ArgumentException("Model has too many vertices after partitioning.");
+            }
 
-            MetaInstructionBase hierarchy = this.GetHierarchy(newModel.Submodels[0]);
-
-            hierarchy.Write(newModel.InterpreterData, ref offset, trees);
-
-            SetShort(newModel.InterpreterData, ref offset, 0);
+            MetaInstructionBase hierarchy = this.GetHierarchy(0);
+            hierarchy.Write(data, ref offset);
+            SetShort(data, ref offset, 0);
 
             newModel.ModelIDTASize = offset;
-            newModel.InterpreterData = newModel.InterpreterData.Take(offset).ToArray();
-
+            newModel.InterpreterData = data.Take(offset).ToArray();
         }
 
-        private MetaInstructionBase GetHierarchy(Submodel rootModel)
+        private MetaInstructionBase GetHierarchy(int modelIndex)
         {
-            MetaInstructionBase rootInstruction = new MetaModelInstruction
+            //Form the hierachy by the following process:
+            //Pick the submitted model, and take one of its children
+            //Generate a sortnorm with the child in front, and the model, with that child removed on the back
+            //Recurse across the child in front, which will sort its children, and the original model on the back, with that child gone.
+            Submodel submodel = currentModel.Submodels[modelIndex];
+            BSPModel data = submodels[modelIndex];
+
+            //Check if no children. If not, we're done.
+            if (data.ChildrenList.Count == 0)
+            {
+                MetaModelInstruction instruction = new MetaModelInstruction()
+                {
+                    Model = submodel,
+                    DataModel = data
+                };
+
+                return instruction;
+            }
+            else
+            {
+                //Get the child and remove it from the front
+                int child = data.ChildrenList[0];
+                data.ChildrenList.RemoveAt(0);
+
+                //Generate a sortnorm instruction
+                MetaSortInstruction instruction = new MetaSortInstruction();
+                instruction.Normal = submodel.Normal;
+                instruction.Point = submodel.Point;
+
+                //Front is the newly created child
+                //Need a subcall entering it. A submodel should only ever be entered in the front once.
+                MetaSubModelInstruction submodelInstruction = new MetaSubModelInstruction();
+                submodelInstruction.SubModel = currentModel.Submodels[child];
+                submodelInstruction.Instruction = GetHierarchy(child);
+                instruction.FrontInstruction = submodelInstruction;
+
+                //Back is the current set, but with the original child no longer considered
+                instruction.BackInstruction = GetHierarchy(modelIndex);
+
+                return instruction;
+            }
+
+            /*MetaInstructionBase rootInstruction = new MetaModelInstruction
             {
                 Model = rootModel
             };
@@ -131,9 +164,8 @@ namespace LibDescent.Data
                 sorting.FrontInstruction = rootInstruction;
 
                 rootInstruction = sorting;
-            }
-
-            return rootInstruction;
+            }*/
+            throw new Exception("PolymodelBuilder::GetHierarchy: generated null instruction");
         }
 
         private void CalculatePositionAndNormal(Submodel rootModel, Submodel furthesModel, MetaSortInstruction sortInstruction)
@@ -180,260 +212,6 @@ namespace LibDescent.Data
             }
 
             return furthest;
-        }
-
-        static Dictionary<FixVector, int> vertexDict;
-        static List<FixVector> uniqueVertices;
-
-        public static void BuildModelPolygons(BSPNode tree, byte[] data, ref int modelDataOffset)
-        {
-            short pointCount = 0;
-
-            vertexDict = new Dictionary<FixVector, int>();
-            uniqueVertices = new List<FixVector>();
-
-            SetShort(data, ref modelDataOffset, ModelOpCode.DefinePointStart);
-
-            int vertexCountOffset = modelDataOffset;
-
-            // Get all points
-            //An ordered set would be great here...
-            
-            GetVertexes(tree, data);
-
-            SetShort(data, ref modelDataOffset, (short)uniqueVertices.Count); // Point count: update this later on
-            SetShort(data, ref modelDataOffset, 0); // Start TODO: This is critical for morphs
-            SetShort(data, ref modelDataOffset, 0); // not sure what this is
-
-            foreach (var point in uniqueVertices)
-            {
-                SetFixVector(data, ref modelDataOffset, point);
-            }
-
-            // Update the point count
-            //int returnLocation = modelDataOffset;
-            //modelDataOffset = 2;
-            //modelDataOffset = vertexCountOffset;
-            //SetShort(data, ref modelDataOffset, pointCount); // Point count: update this later on
-            //modelDataOffset = returnLocation;
-
-            // Get faces
-            int vertexOffset = 0;
-
-            GetFaces(tree, data, ref modelDataOffset, ref vertexOffset);
-        }
-
-        private static void GetVertexes(BSPNode bSPNode, byte[] interpreterData)
-        {
-            if (bSPNode == null)
-                return;
-
-            if (bSPNode.faces != null)
-            {
-                foreach (var face in bSPNode.faces)
-                {
-                    foreach (var point in face.Points)
-                    {
-                        Fix x = point.Point.X;
-                        Fix y = point.Point.Y;
-                        Fix z = point.Point.Z;
-
-                        //TODO this is a bit slow overall
-                        var vec = new FixVector(x, y, z);
-
-                        if (!vertexDict.ContainsKey(vec))
-                        {
-                            vertexDict.Add(vec, uniqueVertices.Count);
-                            uniqueVertices.Add(vec);
-                        }
-                    }
-                }
-            }
-
-            GetVertexes(bSPNode.Front, interpreterData);
-            GetVertexes(bSPNode.Back, interpreterData);
-        }
-
-        public static void GetFaces(BSPNode node, byte[] data, ref int modelDataOffset, ref int vertexOffset, bool deep = false)
-        {
-            if (node == null)
-            {
-                return;
-            }
-
-            if (node.Front == null && node.Back != null)
-            {
-                throw new Exception("eh f");
-            }
-            else if (node.Front != null && node.Back == null)
-            {
-                throw new Exception("eh b");
-            }
-
-            if (node.Front != null && node.Back != null)
-            {
-                if (node.Point.X == node.Point.Y && node.Point.Y == node.Point.Z && node.Point.Z == 0.0f)
-                {
-                    throw new Exception("0!");
-                }
-
-                // Sort start
-                int sortStatPosition = modelDataOffset;
-
-                SetShort(data, ref modelDataOffset, 4); // SORTNORM opcode
-
-                SetShort(data, ref modelDataOffset, 0); // int n_points
-
-                FixVector normal = new FixVector(node.Normal.X, node.Normal.Y, node.Normal.Z);
-                FixVector point = new FixVector(node.Point.X, node.Point.Y, node.Point.Z);
-
-                SetFixVector(data, ref modelDataOffset, normal);
-                SetFixVector(data, ref modelDataOffset, point);
-
-                short backOffset = (short)modelDataOffset;
-                SetShort(data, ref modelDataOffset, backOffset); // fix the back offset later
-
-                short frontOffset = (short)modelDataOffset;
-                SetShort(data, ref modelDataOffset, frontOffset); // fix the front offset later
-
-                // Terminator opcode
-                SetShort(data, ref modelDataOffset, ModelOpCode.End);
-
-                // Process front and store offset
-                int frontOffsetValue = modelDataOffset - sortStatPosition;
-                GetFaces(node.Front, data, ref modelDataOffset, ref vertexOffset, true);
-
-                // Process back and store offset
-                int backOffsetValue = modelDataOffset - sortStatPosition;
-                GetFaces(node.Back, data, ref modelDataOffset, ref vertexOffset, true);
-
-
-                // Store the end position
-                int endPosition = modelDataOffset;
-
-                if (frontOffsetValue > short.MaxValue || backOffsetValue > short.MaxValue || modelDataOffset < 0)
-                    throw new Exception("Model is too complex: 32KB displacement limit exceeded.");
-
-                // Correct the back offset
-                modelDataOffset = backOffset;
-                SetShort(data, ref modelDataOffset, (short)frontOffsetValue); // fix the back offset later
-
-                // Correct the front offset
-                modelDataOffset = frontOffset;
-                SetShort(data, ref modelDataOffset, (short)backOffsetValue); // fix the back offset later
-
-
-                // Restore the offset to the end position
-                modelDataOffset = endPosition;
-
-                if (node.faces != null && node.faces.Any())
-                {
-                    throw new Exception("Missing faces!");
-                }
-            }
-            else if (node.faces != null)
-            {
-                int facesStatPosition = modelDataOffset;
-                BSPVertex vert;
-                short vertexNum;
-                foreach (var face in node.faces)
-                {
-                    if (face.TextureID == -1)
-                    {
-                        // Flat poly opcode
-                        SetShort(data, ref modelDataOffset, ModelOpCode.FlatPoly);
-
-                        short pointc = (short)face.Points.Count();
-                        SetShort(data, ref modelDataOffset, pointc);
-
-                        Fix x = face.Point.X;
-                        Fix y = face.Point.Y;
-                        Fix z = face.Point.Z;
-
-                        var facePoint = new FixVector(x, y, z);
-
-                        SetFixVector(data, ref modelDataOffset, facePoint);
-
-                        x = face.Normal.X;
-                        y = face.Normal.Y;
-                        z = face.Normal.Z;
-
-                        var normal = new FixVector(x, y, z);
-
-                        SetFixVector(data, ref modelDataOffset, normal);
-                        SetShort(data, ref modelDataOffset, (short)face.Color);
-                        for (short i = 0; i < pointc; i++)
-                        {
-                            vert = face.Points[i];
-                            FixVector vec = new FixVector(vert.Point.X, vert.Point.Y, vert.Point.Z);
-                            vertexNum = (short)vertexDict[vec];
-                            SetShort(data, ref modelDataOffset, vertexNum);
-                        }
-
-                        if (pointc % 2 == 0)
-                        {
-                            SetShort(data, ref modelDataOffset, 0);
-                        }
-                    }
-                    else
-                    {
-                        // tmapped poly opcode
-                        SetShort(data, ref modelDataOffset, ModelOpCode.TexturedPoly);
-
-                        short pointc = (short)face.Points.Count();
-                        SetShort(data, ref modelDataOffset, pointc);
-
-                        Fix x = face.Point.X;
-                        Fix y = face.Point.Y;
-                        Fix z = face.Point.Z;
-
-                        var facePoint = new FixVector(x, y, z);
-
-                        SetFixVector(data, ref modelDataOffset, facePoint);
-
-                        x = face.Normal.X;
-                        y = face.Normal.Y;
-                        z = face.Normal.Z;
-
-                        var normal = new FixVector(x, y, z);
-
-                        SetFixVector(data, ref modelDataOffset, normal);
-
-                        SetShort(data, ref modelDataOffset, (short)face.TextureID);
-
-                        for (short i = 0; i < pointc; i++)
-                        {
-                            vert = face.Points[i];
-                            FixVector vec = new FixVector(vert.Point.X, vert.Point.Y, vert.Point.Z);
-                            vertexNum = (short)vertexDict[vec];
-                            SetShort(data, ref modelDataOffset, vertexNum);
-                        }
-
-                        if (pointc % 2 == 0)
-                        {
-                            SetShort(data, ref modelDataOffset, 0);
-                        }
-
-                        for (short i = 0; i < pointc; i++)
-                        {
-                            x = face.Points[i].UVs.X;
-                            y = face.Points[i].UVs.Y;
-                            z = face.Points[i].UVs.Z;
-
-                            var uv = new FixVector(x, y, z);
-
-                            SetFixVector(data, ref modelDataOffset, uv);
-                        }
-
-                    }
-
-                }
-
-                SetShort(data, ref modelDataOffset, ModelOpCode.End);
-
-
-
-            }
         }
 
         public static void SetShort(byte[] data, ref int offset, Int16 value)
@@ -573,17 +351,10 @@ namespace LibDescent.Data
         public void Read(DescentReader reader)
         {
             PointCount = reader.ReadInt16();
-
             FirstPoint = reader.ReadInt16();
-
             Skip = reader.ReadInt16();
 
             Points = new FixVector[PointCount];
-
-            //GL.PointSize(4.0f);
-            //GL.Begin(PrimitiveType.Points);
-            //GL.Color3(1.0f, 1.0f, 1.0f);
-
             for (int i = 0; i < PointCount; i++)
             {
                 Points[i] = reader.ReadFixVector();
@@ -591,11 +362,9 @@ namespace LibDescent.Data
         }
     }
 
-
-
     public abstract class MetaInstructionBase
     {
-        public abstract void Write(byte[] data, ref int offset, List<BSPNode> trees);
+        public abstract void Write(byte[] data, ref int offset);
     }
 
     public class MetaSortInstruction : MetaInstructionBase
@@ -603,26 +372,21 @@ namespace LibDescent.Data
         public FixVector Normal { get; set; }
         public FixVector Point { get; set; }
 
-
         public MetaInstructionBase BackInstruction { get; set; }
 
         public MetaInstructionBase FrontInstruction { get; set; }
 
-
-        public override void Write(byte[] data, ref int offset, List<BSPNode> trees)
+        public override void Write(byte[] data, ref int offset)
         {
+            Console.WriteLine("Generating sortnorm instruction");
             int sortStatPosition = offset;
 
             PolymodelBuilder.SetShort(data, ref offset, 4); // SORTNORM opcode
 
             PolymodelBuilder.SetShort(data, ref offset, 0); // int n_points
 
-            FixVector normal = new FixVector(Normal.X, Normal.Y, Normal.Z);
-            FixVector point = new FixVector(Point.X, Point.Y, Point.Z);
-
-
-            PolymodelBuilder.SetFixVector(data, ref offset, normal);
-            PolymodelBuilder.SetFixVector(data, ref offset, point);
+            PolymodelBuilder.SetFixVector(data, ref offset, Normal);
+            PolymodelBuilder.SetFixVector(data, ref offset, Point);
 
             short backOffset = (short)offset;
             PolymodelBuilder.SetShort(data, ref offset, backOffset); // fix the back offset later
@@ -630,54 +394,49 @@ namespace LibDescent.Data
             short frontOffset = (short)offset;
             PolymodelBuilder.SetShort(data, ref offset, frontOffset); // fix the front offset later
 
-
             // End
             PolymodelBuilder.SetShort(data, ref offset, ModelOpCode.End); // END opcode
 
+            // Front
+            int frontOffsetValue = offset - sortStatPosition;
+            FrontInstruction.Write(data, ref offset);
+
+            Console.WriteLine("Sortnorm instruction front end");
 
             // Back
             int backOffsetValue = offset - sortStatPosition;
-            BackInstruction.Write(data, ref offset, trees);
+            BackInstruction.Write(data, ref offset);
 
-            // Front
-            int frontOffsetValue = offset - sortStatPosition;
-            FrontInstruction.Write(data, ref offset, trees);
-
+            Console.WriteLine("Sortnorm instruction back end");
 
             // store current position
             int endPosition = offset;
 
-            offset = backOffset;
-            PolymodelBuilder.SetShort(data, ref offset, (short)backOffsetValue);
-
-
             offset = frontOffset;
             PolymodelBuilder.SetShort(data, ref offset, (short)frontOffsetValue);
 
+            offset = backOffset;
+            PolymodelBuilder.SetShort(data, ref offset, (short)backOffsetValue);
+
             // Return
             offset = endPosition;
-
-
         }
     }
 
     public class MetaModelInstruction : MetaInstructionBase
     {
         public Submodel Model { get; set; }
+        public BSPModel DataModel { get; set; }
 
-        public bool IsTerminator { get; set; }
-
-        public override void Write(byte[] data, ref int offset, List<BSPNode> trees)
+        public override void Write(byte[] data, ref int offset)
         {
+            Console.WriteLine("Generating model instruction for {0}", Model.ID);
             Model.Pointer = offset;
 
-            var tree = trees[Model.ID];
-            PolymodelBuilder.BuildModelPolygons(tree, data, ref offset);
-
-            if (this.IsTerminator)
-            {
-                PolymodelBuilder.SetShort(data, ref offset, ModelOpCode.End);
-            }
+            Array.Copy(DataModel.InterpreterData, 0, data, offset, DataModel.InterpreterData.Length);
+            offset += DataModel.InterpreterData.Length;
+            Console.WriteLine("Model instruction end");
+            //PolymodelBuilder.BuildModelPolygons(tree, data, ref offset);
         }
     }
 
@@ -687,47 +446,36 @@ namespace LibDescent.Data
 
         public MetaInstructionBase Instruction { get; set; }
 
-        public override void Write(byte[] data, ref int offset, List<BSPNode> trees)
+        public override void Write(byte[] data, ref int offset)
         {
+            Console.WriteLine("Generating submodel instruction for {0}", SubModel.ID);
             int index = SubModel.ID;
-            var tree = trees[index];
-
 
             int offsetBase = offset;
 
-            PolymodelBuilder.SetShort(data, ref offset, ModelOpCode.SubCall); // SUBCALL
+            PolymodelBuilder.SetShort(data, ref offset, ModelOpCode.SubCall);
 
             short submodelNum = (short)(index);
             PolymodelBuilder.SetShort(data, ref offset, submodelNum);
 
-
-            //FixVector submodelOffset = newModel.Submodels[index].Offset;
             FixVector submodelOffset = SubModel.Offset;
 
             PolymodelBuilder.SetFixVector(data, ref offset, submodelOffset);
 
-            // The address where we write the new offset value
+            //The address where we write the new offset value
             int offsetAddress = offset;
             short offsetValue = 0;
-
 
             PolymodelBuilder.SetShort(data, ref offset, offsetValue);
             offset += 2;
 
-
-
-            // Always, write the end op code
+            //Subcall is immediately followed with the end op code
             PolymodelBuilder.SetShort(data, ref offset, ModelOpCode.End);
-
-
 
             // Calculate the new offset 
             offsetValue = (short)(offset - offsetBase);
 
-
-            // If there is a sub instruction, follow it here, just don't draw the model yourself
-            Instruction?.Write(data, ref offset, trees);
-
+            Instruction.Write(data, ref offset);
 
             // Store offset
             var endOffset = offset;
@@ -736,12 +484,7 @@ namespace LibDescent.Data
             PolymodelBuilder.SetShort(data, ref offset, (short)offsetValue);
 
             offset = endOffset;
-
-
-
-
-            // 
-
+            Console.WriteLine("End submodel instruction for {0}", SubModel.ID);
         }
     }
 }
