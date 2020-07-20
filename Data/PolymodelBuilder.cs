@@ -121,8 +121,8 @@ namespace LibDescent.Data
 
                 //Generate a sortnorm instruction
                 MetaSortInstruction instruction = new MetaSortInstruction();
-                instruction.Normal = submodel.Normal;
-                instruction.Point = submodel.Point;
+                instruction.Normal = currentModel.Submodels[child].Normal;
+                instruction.Point = currentModel.Submodels[child].Point;
 
                 //Front is the newly created child
                 //Need a subcall entering it. A submodel should only ever be entered in the front once.
@@ -378,7 +378,6 @@ namespace LibDescent.Data
 
         public override void Write(byte[] data, ref int offset)
         {
-            Console.WriteLine("Generating sortnorm instruction");
             int sortStatPosition = offset;
 
             PolymodelBuilder.SetShort(data, ref offset, 4); // SORTNORM opcode
@@ -388,11 +387,11 @@ namespace LibDescent.Data
             PolymodelBuilder.SetFixVector(data, ref offset, Normal);
             PolymodelBuilder.SetFixVector(data, ref offset, Point);
 
-            short backOffset = (short)offset;
-            PolymodelBuilder.SetShort(data, ref offset, backOffset); // fix the back offset later
-
             short frontOffset = (short)offset;
-            PolymodelBuilder.SetShort(data, ref offset, frontOffset); // fix the front offset later
+            PolymodelBuilder.SetShort(data, ref offset, frontOffset); // fix the back offset later
+
+            short backOffset = (short)offset;
+            PolymodelBuilder.SetShort(data, ref offset, backOffset); // fix the front offset later
 
             // End
             PolymodelBuilder.SetShort(data, ref offset, ModelOpCode.End); // END opcode
@@ -401,13 +400,9 @@ namespace LibDescent.Data
             int frontOffsetValue = offset - sortStatPosition;
             FrontInstruction.Write(data, ref offset);
 
-            Console.WriteLine("Sortnorm instruction front end");
-
             // Back
             int backOffsetValue = offset - sortStatPosition;
             BackInstruction.Write(data, ref offset);
-
-            Console.WriteLine("Sortnorm instruction back end");
 
             // store current position
             int endPosition = offset;
@@ -430,13 +425,10 @@ namespace LibDescent.Data
 
         public override void Write(byte[] data, ref int offset)
         {
-            Console.WriteLine("Generating model instruction for {0}", Model.ID);
             Model.Pointer = offset;
 
             Array.Copy(DataModel.InterpreterData, 0, data, offset, DataModel.InterpreterData.Length);
             offset += DataModel.InterpreterData.Length;
-            Console.WriteLine("Model instruction end");
-            //PolymodelBuilder.BuildModelPolygons(tree, data, ref offset);
         }
     }
 
@@ -448,7 +440,6 @@ namespace LibDescent.Data
 
         public override void Write(byte[] data, ref int offset)
         {
-            Console.WriteLine("Generating submodel instruction for {0}", SubModel.ID);
             int index = SubModel.ID;
 
             int offsetBase = offset;
@@ -484,7 +475,6 @@ namespace LibDescent.Data
             PolymodelBuilder.SetShort(data, ref offset, (short)offsetValue);
 
             offset = endOffset;
-            Console.WriteLine("End submodel instruction for {0}", SubModel.ID);
         }
     }
 }
