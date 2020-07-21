@@ -72,6 +72,8 @@ namespace LibDescent.Data
 
             NumVertices += vertexDict.Count;
 
+            Console.WriteLine("Subobject generated {0} unique vertices", vertexDict.Count);
+
             foreach (var point in vertexDict.Keys)
             {
                 PolymodelBuilder.SetFixVector(data, ref offset, point);

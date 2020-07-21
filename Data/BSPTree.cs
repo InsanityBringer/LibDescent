@@ -224,13 +224,14 @@ namespace LibDescent.Data
             }
         }
 
-        public int EvalulateSplitter(List<BSPFace> faces, Vector3 planePoint, Vector3 planeNorm, BSPFace splitter)
+        public int EvalulateSplitter(List<BSPFace> faces, BSPFace splitter)
         {
             int numFront = 0, numBack = 0, numSplits = 0;
+            //int numVertsFront = 0, numVertsBack = 0;
             foreach (BSPFace face in faces)
             {
                 if (face == splitter) continue;
-                ClassifyFace(face, planePoint, planeNorm);
+                ClassifyFace(face, splitter.Point, splitter.Normal);
                 switch (face.Classification)
                 {
                     case BSPClassification.Front:
@@ -240,16 +241,34 @@ namespace LibDescent.Data
                         numBack++;
                         break;
                     case BSPClassification.Spanning:
+                        numFront++;
+                        numBack++;
                         numSplits++;
                         break;
                 }
+
+                /*foreach (BSPVertex vert in face.Points)
+                {
+                    if (vert.Classification == BSPClassification.Back)
+                        numVertsBack++;
+                    else if (vert.Classification == BSPClassification.Front)
+                        numVertsFront++;
+                    else if (vert.Classification == BSPClassification.OnPlane)
+                    {
+                        numVertsFront++;
+                    }
+                }*/
             }
+
+            //int newFaces = (numFront + numBack) - faces.Count;
 
             if (numSplits == 0 && (numFront == 0 || numBack == 0)) //If everything is on one side of this splitter, it has no value. 
             {
                 return int.MaxValue;
             }
             return Math.Abs(numFront - numBack) + (numSplits * 6);
+            //return Math.Abs(numVertsFront - numVertsBack) + (numSplits * 6);
+            //return Math.Max(numFront, numBack) + (newFaces * 16);
         }
 
         public BSPFace FindSplitter(List<BSPFace> faces, ref Vector3 planePoint, ref Vector3 planeNorm)
@@ -259,7 +278,7 @@ namespace LibDescent.Data
             int score;
             foreach (BSPFace potential in faces)
             {
-                score = EvalulateSplitter(faces, potential.Point, potential.Normal, potential);
+                score = EvalulateSplitter(faces, potential);
                 if (score < bestScore)
                 {
                     bestScore = score;
