@@ -28,26 +28,61 @@ namespace LibDescent.Data
 {
     public class SoundData
     {
-        public string Name;
-        public int Length;
-        public int Offset;
+        /// <summary>
+        /// Filename of the sound entry.
+        /// </summary>
+        public string Name { get; set; }
+        /// <summary>
+        /// Length of the data of the sound. 
+        /// </summary>
+        public int Length { get; set; }
+        /// <summary>
+        /// Offset in the file to the sound, starting from the end of the directory.
+        /// </summary>
+        public int Offset { get; set; }
+        /// <summary>
+        /// Pinned data to override this sound's contents. Normally null, but can be reassigned to replace this sound's data when saving.
+        /// </summary>
+        public byte[] Data { get; set; }
 
-        public byte[] Data;
-        public byte[] LocalName;
+        public byte[] LocalName { get; set; }
+
+        public int SaveLength
+        {
+            get
+            {
+                if (Data == null)
+                    return Length;
+                else return Data.Length;
+            }
+        }
     }
-    public class SNDFile
+    public class SNDFile : IDataFile
     {
         //public List<string> sounds = new List<string>();
         public List<SoundData> Sounds = new List<SoundData>();
         public Dictionary<string, int> SoundIDs = new Dictionary<string, int>();
         private long startptr = 0L;
-        private BinaryReader stream;
         private long soundptr = 0;
-        public string FileName; 
 
-        public void LoadDataFile(string name)
+        private Stream wrappedStream;
+        private long baseOffset;
+
+        /// <summary>
+        /// Reads the sound file from a given stream. 
+        /// </summary>
+        /// <param name="stream">The stream to load from. The stream must be both readable and seekable.</param>
+        public void Read(Stream stream)
         {
-            BinaryReader br = new BinaryReader(File.Open(name, FileMode.Open, FileAccess.Read, FileShare.Read));
+            wrappedStream = stream;
+
+            if (!stream.CanSeek)
+                throw new ArgumentException("SNDFile:Read: Passed stream must be seekable.");
+
+            BinaryReader br = new BinaryReader(stream);
+
+            //This is more of a "just in case" than an actual concern, but treat the current position in the stream as the "0 position"
+            baseOffset = stream.Position;
 
             int header = br.ReadInt32();
             //48 41 4D 21
@@ -60,7 +95,7 @@ namespace LibDescent.Data
                     throw new Exception("HAM header is not version 2");
                 }
                 soundptr = br.ReadInt32();
-                br.BaseStream.Seek(soundptr, SeekOrigin.Begin);
+                br.BaseStream.Seek(baseOffset + soundptr, SeekOrigin.Begin);
             }
 
             else if (header != 0x444E5344)
@@ -114,30 +149,90 @@ namespace LibDescent.Data
                 SoundIDs.Add(soundname, x);
             }
             startptr = br.BaseStream.Position;
-
-            stream = br;
-            //br.Close();
-            FileName = name;
         }
 
+        /// <summary>
+        /// Helper function to load a sound from the stream that the directory was read from.
+        /// The stream must have not been closed by the caller before calling this method.
+        /// </summary>
+        /// <param name="id">The number of the sound to load.</param>
+        /// <returns>The sound data as raw 8-bit PCM data.</returns>
         public byte[] LoadSound(int id)
         {
             int offset = Sounds[id].Offset;
             int len = Sounds[id].Length;
 
             byte[] data = new byte[len];
-            long loc = stream.BaseStream.Position;
-            stream.BaseStream.Seek(offset, SeekOrigin.Current);
-            data = stream.ReadBytes(len);
 
-            stream.BaseStream.Seek(loc, SeekOrigin.Begin);
+            long loc = wrappedStream.Position;
+            wrappedStream.Seek(offset, SeekOrigin.Current);
+            //data = wrappedStream.ReadBytes(len);
+            wrappedStream.Read(data, 0, len);
+
+            wrappedStream.Seek(loc + baseOffset, SeekOrigin.Begin);
 
             return data;
         }
 
-        public void CloseDataFile()
+        /// <summary>
+        /// Writes the sound file to the given stream. If the datafile was read from another stream, this stream must still be valid, unless all directory entries have Data set.
+        /// If the file wasn't read from a stream, Data must be set on all directory entries.
+        /// </summary>
+        /// <param name="stream">The stream to save to. This stream cannot be the stream the file was read from.</param>
+        public void Write(Stream stream)
         {
-            stream.Close();
+            //TODO: this kinda sucks
+            int[] oldOffsets = new int[Sounds.Count];
+            BinaryWriter bw = new BinaryWriter(stream);
+
+            bw.Write(0x444E5344); //header
+            bw.Write(1); //version
+            bw.Write(Sounds.Count);
+
+            int lastOffset = 0;
+
+            for (int i = 0; i < Sounds.Count; i++)
+            {
+                //TODO: I really need a library for handling C memory buffers
+                for (int j = 0; j < 8; j++)
+                {
+                    if (j < Sounds[i].Name.Length)
+                        bw.Write((byte)Sounds[i].Name[j]);
+                    else
+                        bw.Write((byte)0);
+                }
+                bw.Write(Sounds[i].SaveLength);
+                bw.Write(Sounds[i].SaveLength);
+                bw.Write(lastOffset);
+                oldOffsets[i] = Sounds[i].Offset;
+                Sounds[i].Offset = lastOffset;
+                lastOffset += Sounds[i].SaveLength;
+            }
+
+            //Actually write the data now
+            for (int i = 0; i < Sounds.Count; i++)
+            {
+                byte[] buffer;
+
+                //Has replacement data to write.
+                if (Sounds[i].Data != null)
+                {
+                    buffer = Sounds[i].Data;
+                }
+                else
+                {
+                    buffer = new byte[Sounds[i].Length];
+                    long loc = wrappedStream.Position;
+                    wrappedStream.Seek(oldOffsets[i], SeekOrigin.Current);
+                    wrappedStream.Read(buffer, 0, Sounds[i].Length);
+
+                    wrappedStream.Seek(loc + baseOffset, SeekOrigin.Begin);
+                }
+
+                bw.Write(buffer);
+            }
+
+            bw.Flush();
         }
     }
 }
