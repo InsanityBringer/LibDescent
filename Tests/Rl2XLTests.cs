@@ -16,7 +16,8 @@ namespace LibDescent.Tests
             {
                 // First case - test level (saved by DLE)
                 var hogFile = new HOGFile(TestUtils.GetResourceStream("d2x-xl.hog"));
-                var level = D2XXLLevel.CreateFromStream(hogFile.GetLumpAsStream("level3.rl2"));
+                //TODO: Magic number
+                var level = D2XXLLevel.CreateFromStream(hogFile.GetLumpAsStream(6));
                 yield return new TestFixtureData(level);
 
                 // Second case - output of D2XXLLevel.WriteToStream

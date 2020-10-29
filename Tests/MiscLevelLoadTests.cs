@@ -47,7 +47,8 @@ namespace LibDescent.Tests
         public void TestAutoD2XXLLevelLoad()
         {
             var hogFile = new HOGFile(TestUtils.GetResourceStream("d2x-xl.hog"));
-            ILevel level = LevelFactory.CreateFromStream(hogFile.GetLumpAsStream("level3.rl2"));
+            //TODO: Magic number
+            ILevel level = LevelFactory.CreateFromStream(hogFile.GetLumpAsStream(6));
             Assert.NotNull(level);
             Assert.IsInstanceOf<D2XXLLevel>(level);
         }
