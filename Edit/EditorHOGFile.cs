@@ -234,8 +234,11 @@ namespace LibDescent.Edit
                 }
 
                 //Dispose of the old stream, and open up the new file as the read stream
-                fileStream.Close();
-                fileStream.Dispose();
+                if (fileStream != null)
+                {
+                    fileStream.Close();
+                    fileStream.Dispose();
+                }
 
                 if (File.Exists(filename))
                 {
