@@ -185,6 +185,13 @@ namespace LibDescent.Data
             {
                 return ((DFlags & 64) != 0);
             }
+            set
+            {
+                if (value)
+                    DFlags |= 64;
+                else
+                    DFlags &= ~64;
+            }
         }
         public int Frame
         {
