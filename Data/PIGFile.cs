@@ -102,7 +102,7 @@ namespace LibDescent.Data
             for (int i = 1; i < Bitmaps.Count; i++)
             {
                 br.BaseStream.Seek(startptr + Bitmaps[i].Offset, SeekOrigin.Begin);
-                if ((Bitmaps[i].Flags & PIGImage.BM_FLAG_RLE) != 0)
+                if (Bitmaps[i].RLECompressed)
                 {
                     int compressedSize = br.ReadInt32();
                     Bitmaps[i].Data = br.ReadBytes(compressedSize - 4);

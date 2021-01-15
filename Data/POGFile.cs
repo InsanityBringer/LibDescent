@@ -29,8 +29,6 @@ namespace LibDescent.Data
 {
     public class POGFile : IDataFile
     {
-        private int header;
-        private int version;
         private int startptr;
 
         public List<PIGImage> Bitmaps { get; } = new List<PIGImage>();
@@ -38,10 +36,10 @@ namespace LibDescent.Data
         {
             BinaryReader br = new BinaryReader(stream);
 
-            header = br.ReadInt32();
-            version = br.ReadInt32();
+            uint header = br.ReadUInt32();
+            int version = br.ReadInt32();
 
-            if (header != 1196380228)
+            if (header != Util.MakeSig('D', 'P', 'O', 'G'))
             {
                 br.Dispose();
                 throw new InvalidDataException("POGFile::Read: POG file has bad header.");
@@ -90,7 +88,7 @@ namespace LibDescent.Data
             for (int i = 0; i < Bitmaps.Count; i++)
             {
                 br.BaseStream.Seek(startptr + Bitmaps[i].Offset, SeekOrigin.Begin);
-                if ((Bitmaps[i].Flags & PIGImage.BM_FLAG_RLE) != 0)
+                if (Bitmaps[i].RLECompressed)
                 {
                     int compressedSize = br.ReadInt32();
                     Bitmaps[i].Data = br.ReadBytes(compressedSize - 4);
@@ -104,7 +102,33 @@ namespace LibDescent.Data
 
         public void Write(Stream stream)
         {
-            throw new NotImplementedException();
+            BinaryWriter bw = new BinaryWriter(stream);
+            int offset = 0;
+            bw.Write(Util.MakeSig('D', 'P', 'O', 'G')); //signature
+            bw.Write(1); //version
+            bw.Write(Bitmaps.Count);
+
+            //Write replacements.
+            for (int i = 0; i < Bitmaps.Count; i++)
+            {
+                bw.Write(Bitmaps[i].ReplacementNum);
+            }
+
+            //Write signatures.
+            for (int i = 0; i < Bitmaps.Count; i++)
+            {
+                Bitmaps[i].Offset = offset;
+                offset += Bitmaps[i].GetSize();
+                Bitmaps[i].WriteImageHeader(bw);
+            }
+
+            //Write bitmap data.
+            for (int i = 0; i < Bitmaps.Count; i++)
+            {
+                Bitmaps[i].WriteImage(bw);
+            }
+            bw.Flush();
+            bw.Dispose();
         }
     }
 }

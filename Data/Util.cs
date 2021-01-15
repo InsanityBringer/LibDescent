@@ -147,5 +147,19 @@ namespace LibDescent.Data
             list.Clear();
             list.AddRange(array);
         }
+
+        /// <summary>
+        /// Makes a unsigned 32 bit integer representing a four character signature.
+        /// Caveat/TODO: All chars must be <256 for this to work properly.
+        /// </summary>
+        /// <param name="a">The first character of the signature.</param>
+        /// <param name="b">The second character of the signature.</param>
+        /// <param name="c">The third character of the signature.</param>
+        /// <param name="d">The fourth character of the signature.</param>
+        /// <returns>A uint representing the signature.</returns>
+        public static uint MakeSig(char a, char b, char c, char d)
+        {
+            return ((uint)d << 24) + ((uint)c << 16) + ((uint)b << 8) + a;
+        }
     }
 }
