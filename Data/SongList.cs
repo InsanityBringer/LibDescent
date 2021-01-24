@@ -30,7 +30,7 @@ namespace LibDescent.Data
         /// Initializes a new SongList instance by loading a song list from a file.
         /// </summary>
         /// <param name="filePath">The path of the file to load from.</param>
-        /// <returns>The loaded song list.</retur
+        /// <returns>The loaded song list.</returns>
         public static SongList Load(string filePath)
         {
             SongList songList = new SongList();
@@ -42,7 +42,7 @@ namespace LibDescent.Data
         /// Initializes a new SongList instance by loading a song list from a stream.
         /// </summary>
         /// <param name="stream">The stream to load from.</param>
-        /// <returns>The loaded song list.</retur
+        /// <returns>The loaded song list.</returns>
         public static SongList Load(Stream stream)
         {
             SongList songList = new SongList();
