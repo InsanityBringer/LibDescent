@@ -340,7 +340,7 @@ namespace LibDescent.Edit
                 {
                     img = BaseHAM.piggyFile.GetImage(AugmentFile.ObjBitmaps[i]);
                     if (!textureMapping.ContainsKey(img.Name))
-                        textureMapping.Add(img.Name, i + VHAMFile.N_D2_OBJBITMAPS);
+                        textureMapping.Add(img.Name, i + VHAMFile.NumDescent2ObjBitmaps);
                 }
             }
 
@@ -545,11 +545,11 @@ namespace LibDescent.Edit
                     if (ReplacedRobots[i].replacementID == id) return RobotNames[i];
                 }
             }
-            if (AugmentFile != null && id >= VHAMFile.N_D2_ROBOT_TYPES)
+            if (AugmentFile != null && id >= VHAMFile.NumDescent2RobotTypes)
             {
-                if (id - VHAMFile.N_D2_ROBOT_TYPES >= AugmentFile.RobotNames.Count)
+                if (id - VHAMFile.NumDescent2RobotTypes >= AugmentFile.RobotNames.Count)
                     return string.Format("Unallocated #{0}", id);
-                return AugmentFile.RobotNames[id - VHAMFile.N_D2_ROBOT_TYPES];
+                return AugmentFile.RobotNames[id - VHAMFile.NumDescent2RobotTypes];
             }
             if (id >= BaseHAM.RobotNames.Count)
                 return string.Format("Unallocated #{0}", id);
@@ -582,8 +582,8 @@ namespace LibDescent.Edit
 
         public string GetWeaponName(int id)
         {
-            if (AugmentFile != null && id >= VHAMFile.N_D2_WEAPON_TYPES)
-                return AugmentFile.WeaponNames[id - VHAMFile.N_D2_WEAPON_TYPES];
+            if (AugmentFile != null && id >= VHAMFile.NumDescent2WeaponTypes)
+                return AugmentFile.WeaponNames[id - VHAMFile.NumDescent2WeaponTypes];
             return BaseHAM.WeaponNames[id];
         }
 
@@ -612,11 +612,11 @@ namespace LibDescent.Edit
                     if (ReplacedModels[i].ReplacementID == id) return ModelNames[i];
                 }
             }
-            if (AugmentFile != null && id >= VHAMFile.N_D2_POLYGON_MODELS)
+            if (AugmentFile != null && id >= VHAMFile.NumDescent2Polymodels)
             {
-                if (id - VHAMFile.N_D2_POLYGON_MODELS >= AugmentFile.ModelNames.Count)
+                if (id - VHAMFile.NumDescent2Polymodels >= AugmentFile.ModelNames.Count)
                     return string.Format("Unallocated #{0}", id);
-                return AugmentFile.ModelNames[id - VHAMFile.N_D2_POLYGON_MODELS];
+                return AugmentFile.ModelNames[id - VHAMFile.NumDescent2Polymodels];
             }
             if (id >= BaseHAM.ModelNames.Count)
                 return string.Format("Unallocated #{0}", id);

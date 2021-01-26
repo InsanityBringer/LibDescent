@@ -37,16 +37,16 @@ namespace LibDescent.Data
 
         //ARGH
         //VHAM elements are loaded at fixed locations
-        public const int N_D2_ROBOT_TYPES = 66;
-        public const int N_D2_ROBOT_JOINTS = 1145;
-        public const int N_D2_POLYGON_MODELS = 166;
-        public const int N_D2_OBJBITMAPS = 422;
-        public const int N_D2_OBJBITMAPPTRS = 502;
-        public const int N_D2_WEAPON_TYPES = 62;
+        public const int NumDescent2RobotTypes = 66;
+        public const int NumDescent2Joints = 1145;
+        public const int NumDescent2Polymodels = 166;
+        public const int NumDescent2ObjBitmaps = 422;
+        public const int NumDescent2ObjBitmapPointers = 502;
+        public const int NumDescent2WeaponTypes = 62;
 
-        public int NumRobots { get { return Robots.Count + N_D2_ROBOT_TYPES; } }
-        public int NumWeapons { get { return Weapons.Count + N_D2_WEAPON_TYPES; } }
-        public int NumModels { get { return Models.Count + N_D2_POLYGON_MODELS; } }
+        public int NumRobots { get { return Robots.Count + NumDescent2RobotTypes; } }
+        public int NumWeapons { get { return Weapons.Count + NumDescent2WeaponTypes; } }
+        public int NumModels { get { return Models.Count + NumDescent2Polymodels; } }
 
         public VHAMFile()
         {
@@ -65,8 +65,8 @@ namespace LibDescent.Data
             br = new BinaryReader(stream);
 
             HAMDataReader bm = new HAMDataReader();
-            int sig = br.ReadInt32();
-            if (sig != 0x5848414D)
+            uint sig = br.ReadUInt32();
+            if (sig != Util.MakeSig('M', 'A', 'H', 'X'))
             {
                 br.Dispose();
                 throw new InvalidDataException("VHAMFile::Read: V-HAM file has bad header.");
@@ -75,20 +75,20 @@ namespace LibDescent.Data
             if (version != 1)
             {
                 br.Dispose();
-                throw new InvalidDataException(string.Format("VHAMFile::Read: V-HAM file has bad version. Got {0}, but expected 1", version));
+                throw new InvalidDataException(string.Format("VHAMFile::Read: V-HAM file has bad version. Got {0}, but expected 1.", version));
             }
 
             int numWeapons = br.ReadInt32();
             for (int i = 0; i < numWeapons; i++)
             {
                 Weapons.Add(bm.ReadWeapon(br));
-                Weapons[i].ID = i + N_D2_WEAPON_TYPES;
+                Weapons[i].ID = i + NumDescent2WeaponTypes;
             }
             int numRobots = br.ReadInt32();
             for (int i = 0; i < numRobots; i++)
             {
                 Robots.Add(bm.ReadRobot(br));
-                Robots[i].ID = i + N_D2_ROBOT_TYPES;
+                Robots[i].ID = i + NumDescent2RobotTypes;
             }
             int numJoints = br.ReadInt32();
             for (int i = 0; i < numJoints; i++)
@@ -104,7 +104,7 @@ namespace LibDescent.Data
             for (int i = 0; i < numModels; i++)
             {
                 Models.Add(bm.ReadPolymodelInfo(br));
-                Models[i].ID = i + N_D2_POLYGON_MODELS;
+                Models[i].ID = i + NumDescent2Polymodels;
             }
             for (int x = 0; x < numModels; x++)
             {
@@ -134,7 +134,64 @@ namespace LibDescent.Data
 
         public void Write(Stream stream)
         {
-            throw new NotImplementedException();
+            BinaryWriter bw = new BinaryWriter(stream);
+            HAMDataWriter writer = new HAMDataWriter();
+
+            bw.Write(Util.MakeSig('M', 'A', 'H', 'X')); //signature
+            bw.Write(1); //version
+
+            bw.Write(Weapons.Count);
+            foreach (Weapon weapon in Weapons)
+            {
+                writer.WriteWeapon(weapon, bw);
+            }
+            bw.Write(Robots.Count);
+            foreach (Robot robot in Robots)
+            {
+                writer.WriteRobot(robot, bw);
+            }
+            bw.Write(Joints.Count);
+            foreach (JointPos joint in Joints)
+            {
+                bw.Write(joint.JointNum);
+                bw.Write(joint.Angles.P);
+                bw.Write(joint.Angles.B);
+                bw.Write(joint.Angles.H);
+            }
+            bw.Write(Models.Count);
+
+            //Copy and paste festival
+            foreach (Polymodel model in Models)
+            {
+                writer.WritePolymodel(model, bw);
+            }
+            foreach (Polymodel model in Models)
+            {
+                bw.Write(model.InterpreterData);
+            }
+            foreach (Polymodel model in Models)
+            {
+                bw.Write(model.DyingModelnum);
+            }
+            foreach (Polymodel model in Models)
+            {
+                bw.Write(model.DeadModelnum);
+            }
+
+            bw.Write(ObjBitmaps.Count);
+            foreach (ushort bitmap in ObjBitmaps)
+            {
+                bw.Write(bitmap);
+            }
+
+            bw.Write(ObjBitmapPointers.Count);
+            foreach (ushort bitmap in ObjBitmapPointers)
+            {
+                bw.Write(bitmap);
+            }
+
+            bw.Flush();
+            bw.Dispose();
         }
     }
 }
