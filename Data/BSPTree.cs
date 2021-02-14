@@ -20,6 +20,9 @@
     SOFTWARE.
 */
 
+//Enable to diagonse the picking of an initial splitter for a subobject.
+//#define DEBUG_SPLITTER_DIAGONISTICS
+
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -108,10 +111,14 @@ namespace LibDescent.Data
 
     public class BSPTree
     {
+#if DEBUG_SPLITTER_DIAGONISTICS
+        int recursionLevel = 0;
+#endif
+
         public bool PointOnPlane(Vector3 point, Vector3 planePoint, Vector3 planeNorm)
         {
             Vector3 localPoint = point - planePoint;
-            return Math.Abs(Vector3.Dot(localPoint, planeNorm)) < .0001;
+            return Math.Abs(Vector3.Dot(localPoint, planeNorm)) < .001;
         }
 
         public bool PointInFront(Vector3 point, Vector3 planePoint, Vector3 planeNorm)
@@ -122,6 +129,15 @@ namespace LibDescent.Data
 
         public void BuildTree(BSPNode node, List<BSPFace> faces)
         {
+#if DEBUG_SPLITTER_DIAGONISTICS
+            if (recursionLevel == 0)
+            {
+                Console.WriteLine("----------------------------------------------");
+                Console.WriteLine("STARTING");
+                Console.WriteLine("----------------------------------------------");
+            }
+            recursionLevel++;
+#endif
             List<BSPFace> frontList = new List<BSPFace>();
             List<BSPFace> backList = new List<BSPFace>();
 
@@ -136,55 +152,113 @@ namespace LibDescent.Data
             {
                 foreach (BSPFace face in faces)
                 {
-                    if (face != node.Splitter) //splitter is classified separatley
-                        ClassifyFace(face, node.Splitter.Point, node.Splitter.Normal);
-                    else
-                        //[ISB] Fix bug with splitters ending up on both sides. Doom puts them in front implicity
-                        face.Classification = BSPClassification.Front;
-
-                    switch (face.Classification)
+                    if (face != node.Splitter) //splitter is classified and added later. 
                     {
-                        case BSPClassification.Front:
-                            frontList.Add(face);
-                            break;
-                        case BSPClassification.Back:
-                            backList.Add(face);
-                            break;
-                        case BSPClassification.Spanning:
-                            BSPFace frontFace = new BSPFace();
-                            BSPFace backFace = new BSPFace();
-                            if (face.TextureID == -1) // colored face
-                                frontFace.Color = backFace.Color = face.Color;
+                        ClassifyFace(face, node.Splitter.Point, node.Splitter.Normal);
+                        //else
+                        //    //[ISB] Fix bug with splitters ending up on both sides. Doom puts them in front implicity
+                        //    face.Classification = BSPClassification.Front;
 
-                            SplitPolygon(face, node.Splitter.Point, node.Splitter.Normal, ref frontFace, ref backFace);
+                        switch (face.Classification)
+                        {
+                            case BSPClassification.Front:
+                                frontList.Add(face);
+                                break;
+                            case BSPClassification.Back:
+                                backList.Add(face);
+                                break;
+                            case BSPClassification.Spanning:
+                                BSPFace frontFace = new BSPFace();
+                                BSPFace backFace = new BSPFace();
+                                if (face.TextureID == -1) // colored face
+                                    frontFace.Color = backFace.Color = face.Color;
+
+                                SplitPolygon(face, node.Splitter.Point, node.Splitter.Normal, ref frontFace, ref backFace);
 
 
-                            frontList.Add(frontFace);
-                            backList.Add(backFace);
-                            break;
+                                frontList.Add(frontFace);
+                                backList.Add(backFace);
+                                break;
 
-                        default:
-                            throw new Exception("BSPTree::BuildTree: Face has invalid classification.");
+                            default:
+                                throw new Exception("BSPTree::BuildTree: Face has invalid classification.");
+                        }
                     }
                 }
+
+                //Where does the splitter go?
+                //Try it in both the front and back. Whichever one generates the highest score fails.
+                int frontScore = 0;
+                int backScore = 0;
+                int tempScore;
+                List<BSPFace> faceTemp;
+
+                if (frontList.Count > 0)
+                {
+                    faceTemp = new List<BSPFace>(frontList);
+                    faceTemp.Add(node.Splitter);
+                    foreach (BSPFace face in faceTemp)
+                    {
+                        tempScore = EvalulateSplitter(faceTemp, face);
+                        if (tempScore != int.MaxValue && tempScore > frontScore)
+                            frontScore = tempScore;
+                    }
+                }
+                else
+                    frontScore = int.MaxValue;
+
+                if (backList.Count > 0)
+                {
+                    faceTemp = new List<BSPFace>(backList);
+                    faceTemp.Add(node.Splitter);
+                    foreach (BSPFace face in faceTemp)
+                    {
+                        tempScore = EvalulateSplitter(faceTemp, face);
+                        if (tempScore != int.MaxValue && tempScore > backScore)
+                            backScore = tempScore;
+                    }
+                }
+                else
+                    backScore = int.MaxValue;
+
+                if (frontScore > backScore)
+                    frontList.Add(node.Splitter);
+                else
+                    backList.Add(node.Splitter);
+
+#if DEBUG_SPLITTER_DIAGONISTICS
+                if (recursionLevel <= 2)
+                    Console.WriteLine("Frontlist:{0} Backlist:{1}, fs<bs:{2}", frontList.Count, backList.Count, frontScore < backScore);
+#endif
 
                 if (frontList.Count > 0)
                 {
                     BSPNode newNode = new BSPNode();
                     newNode.type = BSPNodeType.Node;
+
+#if DEBUG_SPLITTER_DIAGONISTICS
+                    if (recursionLevel <= 1)
+                        Console.WriteLine("Doing front.");
+#endif
                     BuildTree(newNode, frontList);
                     node.Front = newNode;
-
                 }
 
                 if (backList.Count > 0)
                 {
                     BSPNode newNode = new BSPNode();
                     newNode.type = BSPNodeType.Node;
+#if DEBUG_SPLITTER_DIAGONISTICS
+                    if (recursionLevel <= 1)
+                        Console.WriteLine("Doing back.");
+#endif
                     BuildTree(newNode, backList);
                     node.Back = newNode;
                 }
             }
+#if DEBUG_SPLITTER_DIAGONISTICS
+            recursionLevel--;
+#endif
         }
 
         public void ClassifyPoint(BSPVertex vert, Vector3 planePoint, Vector3 planeNorm)
@@ -230,7 +304,11 @@ namespace LibDescent.Data
             //int numVertsFront = 0, numVertsBack = 0;
             foreach (BSPFace face in faces)
             {
-                if (face == splitter) continue;
+                if (face == splitter) //Bugfix? Splitter is always on front side. 
+                {
+                    numFront++;
+                    continue;
+                }
                 ClassifyFace(face, splitter.Point, splitter.Normal);
                 switch (face.Classification)
                 {
@@ -260,15 +338,23 @@ namespace LibDescent.Data
                 }*/
             }
 
-            //int newFaces = (numFront + numBack) - faces.Count;
+            int newFaces = (numFront + numBack) - faces.Count;
 
             if (numSplits == 0 && (numFront == 0 || numBack == 0)) //If everything is on one side of this splitter, it has no value. 
             {
+#if DEBUG_SPLITTER_DIAGONISTICS
+                if (recursionLevel <= 2)
+                    Console.WriteLine("\tSplitter is not needed.");
+#endif
                 return int.MaxValue;
             }
-            return Math.Abs(numFront - numBack) + (numSplits * 6);
+#if DEBUG_SPLITTER_DIAGONISTICS
+            if (recursionLevel <= 2)
+                Console.WriteLine("\tSplitter score is {0} (Base:{1}, f:{2} b:{3} s:{4})", Math.Abs(numFront - numBack) + (numSplits * 8), faces.Count, numFront, numBack, numSplits);
+#endif
+            return Math.Abs(numFront - numBack) + (numSplits * 8);
             //return Math.Abs(numVertsFront - numVertsBack) + (numSplits * 6);
-            //return Math.Max(numFront, numBack) + (newFaces * 16);
+            //return Math.Max(numFront, numBack) + (newFaces * 24);
         }
 
         public BSPFace FindSplitter(List<BSPFace> faces, ref Vector3 planePoint, ref Vector3 planeNorm)
@@ -278,6 +364,10 @@ namespace LibDescent.Data
             int score;
             foreach (BSPFace potential in faces)
             {
+#if DEBUG_SPLITTER_DIAGONISTICS
+                if (recursionLevel <= 2)
+                    Console.WriteLine("Evalulating splitter {0}.", faces.IndexOf(potential));
+#endif
                 score = EvalulateSplitter(faces, potential);
                 if (score < bestScore)
                 {
@@ -290,6 +380,15 @@ namespace LibDescent.Data
                 planePoint = bestFace.Point;
                 planeNorm = bestFace.Normal;
             }
+#if DEBUG_SPLITTER_DIAGONISTICS
+            if (recursionLevel <= 2)
+            {
+                if (bestFace != null)
+                    Console.WriteLine("Best face is {0}.", faces.IndexOf(bestFace));
+                else
+                    Console.WriteLine("This object is convex.");
+            }
+#endif
             return bestFace;
         }
 
