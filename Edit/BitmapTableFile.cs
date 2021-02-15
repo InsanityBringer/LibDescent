@@ -50,13 +50,71 @@ namespace LibDescent.Edit
             "smissile.pof", "mmissile.pof", "cmissile.pof", "cmissile.pof", "laser1-1.pof", "laser1-2.pof", "laser4-1.pof", "laser4-2.pof",
             "mmissile.pof", "laser5-1.pof", "laser51s.pof", "laser52s.pof", "laser5-2.pof", "laser6-1.pof", "laser61s.pof", "laser62s.pof",
             "laser6-2.pof", "cmissile.pof", "cmissile.pof", "mercmiss.pof", "erthshkr.pof", "tracer.pof", "laser6-1.pof", "laser6-2.pof",
-            "cmissile.pof", "newbomb.pof", "erthbaby.pof", "mercmiss.pof", "smissile.pof", "erthshkr.pof", "erthbaby.pof", "cmissile.pof" };
+            "cmissile.pof", "newbomb.pof", "erthbaby.pof", "mercmiss.pof", "smissile.pof", "erthshkr.pof", "erthbaby.pof", "cmissile.pof",
+             "4bot24.pof", //also appended here because I can't remember if anything in vertigo uses old models. 
+            "15bot06.pof",
+            "arachnid.pof",
+            "8bot.pof",
+            "10botmax.pof",
+            "mbot1hb.pof",
+            "mbot2t.pof",
+            "logikill.pof",
+            "12bot19.pof",
+            "bossman7.pof",
+            "vboss2.pof",
+            "omega11.pof",
+            "cmissile.pof"};
 
         public static int[] pofIndicies = { 0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 14, 15, 16, 17, 18, 19, 20, 22, 23, 24, 25, 28, 29, 30, 31, 32, 33,
             34, 35, 36, 37, 38, 39, 40, 41, 42, 43, 44, 45, 46, 47, 48, 49, 51, 55, 56, 57, 58, 59, 60, 61, 62, 63, 64, 65, 66, 67, 68, 69, 70,
             71, 72, 73, 74, 75, 76, 77, 88, 89, 91, 92, 93, 94, 95, 96, 97, 98, 99, 100, 101, 102, 103, 104, 105, 106, 107, 108, 109, 110, 111, 112,
             113, 114, 115, 116, 117, 118, 119, 120, 121, 122, 123, 124, 125, 126, 127, 128, 129, 130, 131, 132, 134, 135, 143, 144, 145, 146, 147,
             148, 149, 150, 153, 154, 155, 159, 160 };
+
+        public static string[] vertPofNames = {
+            "4bot24.pof",
+            "15bot06.pof",
+            "arachnid.pof",
+            "8bot.pof",
+            "10botmax.pof",
+            "mbot1hb.pof",
+            "mbot2t.pof",
+            "logikill.pof",
+            "12bot19.pof",
+            "bossman7.pof",
+            "vboss2.pof",
+            "omega11.pof",
+            "cmissile.pof" };
+
+        public static string[] vertRobotNames = {
+            "4bot24",
+            "15bot06",
+            "arachnid",
+            "8bot",
+            "10botmax",
+            "mbot1hb",
+            "mbot2t",
+            "logikill",
+            "12bot19",
+            "bossman7",
+            "vboss2",
+            "omega1"
+        };
+
+        public static int[] vertPofIndicies = {
+            0,
+            1,
+            2,
+            3,
+            4,
+            5,
+            6,
+            7,
+            8,
+            9,
+            10,
+            11
+        };
 
         //TODO: This isn't internationalization safe, because c# makes it more painful than it needs to be to format something specifically
         public static string GenerateBitmapsTable(EditorHAMFile datafile, PIGFile piggyFile, SNDFile sndFile)
@@ -376,7 +434,7 @@ namespace LibDescent.Edit
                 if (weapon.Matter)
                     stringBuilder.Append("matter=1 ");
                 if (weapon.Bounce != 0)
-                    stringBuilder.AppendFormat("bounce={0} ", weapon.Bounce);
+                    stringBuilder.AppendFormat("bounce={0} ", (int)weapon.Bounce);
                 if (weapon.Children != -1)
                     stringBuilder.AppendFormat("children={0} ", weapon.Children);
                 stringBuilder.Append("strength=");
@@ -709,6 +767,265 @@ namespace LibDescent.Edit
             {
                 stringBuilder.Append("dead_pof=");
                 WriteModel(datafile, stringBuilder, model.DeadModelnum);
+            }
+        }
+
+        //disgusting hacks for vertigo. 
+        public static string WriteVertigoAdditions(EditorVHAMFile datafile, PIGFile piggyFile)
+        {
+            StringBuilder builder = new StringBuilder();
+            for (int i = 0; i < datafile.Robots.Count; i++)
+            {
+                TableWriteRobotV(datafile, builder, datafile.Robots[i], i);
+            }
+            for (int i = 0; i < datafile.Robots.Count; i++)
+            {
+                TableWriteRobotAIV(datafile, builder, datafile.Robots[i], i);
+            }
+            for (int i = 0; i < datafile.Weapons.Count; i++)
+            {
+                TableWriteWeaponV(datafile, builder, datafile.Weapons[i], piggyFile, i);
+            }
+
+            return builder.ToString();
+        }
+
+        private static void TableWriteRobotV(EditorVHAMFile datafile, StringBuilder stringBuilder, Robot robot, int id)
+        {
+            stringBuilder.Append("$ROBOT ");
+            WriteModelV(datafile, stringBuilder, robot.ModelNum);
+            stringBuilder.AppendFormat("name=\"{0}\" ", vertRobotNames[id]);
+            stringBuilder.AppendFormat("score_value={0} ", robot.ScoreValue);
+            stringBuilder.AppendFormat("mass={0} ", robot.Mass);
+            stringBuilder.AppendFormat("drag={0} ", robot.Drag);
+            stringBuilder.AppendFormat("exp1_vclip={0} ", robot.HitVClipNum);
+            stringBuilder.AppendFormat("exp1_sound={0} ", robot.HitSoundNum);
+            stringBuilder.AppendFormat("exp2_vclip={0} ", robot.DeathVClipNum);
+            stringBuilder.AppendFormat("exp2_sound={0} ", robot.DeathSoundNum);
+            stringBuilder.AppendFormat("lighting={0} ", robot.Lighting);
+            stringBuilder.AppendFormat("weapon_type={0} ", robot.WeaponType);
+            if (robot.WeaponTypeSecondary != -1)
+                stringBuilder.AppendFormat("weapon_type2={0} ", robot.WeaponTypeSecondary);
+            stringBuilder.AppendFormat("strength={0} ", (int)robot.Strength);
+            if (robot.ContainsType == 2)
+                stringBuilder.Append("contains_type=1 ");
+            stringBuilder.AppendFormat("contains_id={0} ", robot.ContainsID);
+            stringBuilder.AppendFormat("contains_count={0} ", robot.ContainsCount);
+            stringBuilder.AppendFormat("contains_prob={0} ", robot.ContainsProbability);
+            if (robot.AttackType != 0)
+                stringBuilder.Append("attack_type=1 ");
+            stringBuilder.AppendFormat("see_sound={0} ", robot.SeeSound);
+            stringBuilder.AppendFormat("attack_sound={0} ", robot.AttackSound);
+            if (robot.ClawSound != 190)
+                stringBuilder.AppendFormat("claw_sound={0} ", robot.ClawSound);
+            if (robot.CloakType != 0)
+                stringBuilder.AppendFormat("cloak_type={0} ", robot.CloakType);
+            if (robot.Glow != 0)
+            {
+                Fix glowval = robot.Glow / 16.0f;
+                stringBuilder.AppendFormat("glow={0} ", glowval);
+            }
+            if (robot.LightCast != 0)
+                stringBuilder.AppendFormat("lightcast={0} ", robot.LightCast);
+            if (robot.DeathExplosionRadius != 0)
+                stringBuilder.AppendFormat("badass={0} ", robot.DeathExplosionRadius);
+            if (robot.DeathRollTime != 0)
+                stringBuilder.AppendFormat("death_roll={0} ", robot.DeathRollTime);
+            if (robot.DeathRollSound != 185)
+                stringBuilder.AppendFormat("deathroll_sound={0} ", robot.DeathRollSound);
+            if (robot.Thief)
+                stringBuilder.Append("thief=1 ");
+            if (robot.Kamikaze != 0)
+                stringBuilder.Append("kamikaze=1 ");
+            if (robot.Companion)
+                stringBuilder.Append("companion=1 ");
+            if (robot.Pursuit != 0)
+                stringBuilder.AppendFormat("pursuit={0} ", robot.Pursuit);
+            if (robot.SmartBlobsOnDeath != 0)
+                stringBuilder.AppendFormat("smart_blobs={0} ", robot.SmartBlobsOnDeath);
+            if (robot.SmartBlobsOnHit != 0)
+                stringBuilder.AppendFormat("energy_blobs={0} ", robot.SmartBlobsOnHit);
+            if (robot.EnergyDrain != 0)
+                stringBuilder.AppendFormat("energy_drain={0} ", robot.EnergyDrain);
+            if (robot.BossFlag != 0)
+                stringBuilder.AppendFormat("boss={0} ", robot.BossFlag);
+            if ((robot.Flags & 1) != 0)
+                stringBuilder.Append("big_radius=1 ");
+            if (robot.Aim != 255)
+            {
+                stringBuilder.AppendFormat("aim={0:F2} ", robot.Aim / 255.0f);
+            }
+            if (robot.Behavior >= RobotAIType.Still && robot.Behavior != RobotAIType.Normal)
+                stringBuilder.AppendFormat("behavior={0} ", AIBehaviors[(int)robot.Behavior - 0x80]);
+            stringBuilder.Append("\n");
+        }
+
+        private static void TableWriteRobotAIV(EditorVHAMFile datafile, StringBuilder stringBuilder, Robot robot, int id)
+        {
+            stringBuilder.AppendFormat("$ROBOT_AI {0} ", id + VHAMFile.NumDescent2RobotTypes);
+            for (int i = 0; i < 5; i++)
+            {
+                stringBuilder.AppendFormat("{0} ", (int)(Math.Acos(robot.FieldOfView[i]) * 180.0d / Math.PI));
+            }
+            for (int i = 0; i < 5; i++)
+            {
+                stringBuilder.AppendFormat("{0} ", robot.FiringWait[i]);
+            }
+            for (int i = 0; i < 5; i++)
+            {
+                stringBuilder.AppendFormat("{0} ", robot.FiringWaitSecondary[i]);
+            }
+            for (int i = 0; i < 5; i++)
+            {
+                stringBuilder.AppendFormat("{0} ", robot.RapidfireCount[i]);
+            }
+            for (int i = 0; i < 5; i++)
+            {
+                stringBuilder.AppendFormat("{0} ", robot.TurnTime[i]);
+            }
+            for (int i = 0; i < 5; i++)
+            {
+                stringBuilder.AppendFormat("{0} ", robot.MaxSpeed[i]);
+            }
+            for (int i = 0; i < 5; i++)
+            {
+                stringBuilder.AppendFormat("{0} ", robot.CircleDistance[i]);
+            }
+            for (int i = 0; i < 5; i++)
+            {
+                stringBuilder.AppendFormat("{0} ", robot.EvadeSpeed[i]);
+            }
+            stringBuilder.AppendFormat(" ;{0}", vertRobotNames[id]);
+            stringBuilder.Append("\n");
+        }
+
+        private static void TableWriteWeaponV(EditorVHAMFile datafile, StringBuilder stringBuilder, Weapon weapon, PIGFile piggyFile, int id)
+        {
+            if (weapon.RenderType == 0)
+                stringBuilder.Append("$WEAPON_UNUSED ");
+            else
+            {
+                stringBuilder.Append("$WEAPON ");
+                if (weapon.RenderType == WeaponRenderType.Sprite)
+                {
+                    stringBuilder.AppendFormat("blob_bmp={0}.bbm ", piggyFile.Bitmaps[weapon.Bitmap].Name);
+                }
+                else if (weapon.RenderType == WeaponRenderType.Object)
+                {
+                    stringBuilder.Append("weapon_pof=");
+                    WriteModelV(datafile, stringBuilder, weapon.ModelNum);
+                    if (weapon.ModelNumInner != -1)
+                    {
+                        stringBuilder.Append("weapon_pof_inner=");
+                        WriteModelV(datafile, stringBuilder, weapon.ModelNumInner);
+                    }
+                    stringBuilder.AppendFormat("lw_ratio={0} ", weapon.POLenToWidthRatio);
+                }
+                else if (weapon.RenderType == WeaponRenderType.VClip)
+                {
+                    stringBuilder.AppendFormat("weapon_vclip={0} ", weapon.WeaponVClip);
+                }
+                else if (weapon.RenderType == WeaponRenderType.Invisible)
+                {
+                    stringBuilder.AppendFormat("none_bmp={0}.bbm ", piggyFile.Bitmaps[weapon.Bitmap].Name);
+                }
+                stringBuilder.AppendFormat("mass={0} ", weapon.Mass);
+                stringBuilder.AppendFormat("drag={0} ", weapon.Drag);
+                stringBuilder.AppendFormat("thrust={0} ", weapon.Thrust);
+                if (weapon.Matter)
+                    stringBuilder.Append("matter=1 ");
+                if (weapon.Bounce != 0)
+                    stringBuilder.AppendFormat("bounce={0} ", (int)weapon.Bounce);
+                if (weapon.Children != -1)
+                    stringBuilder.AppendFormat("children={0} ", weapon.Children);
+                stringBuilder.Append("strength=");
+                for (int i = 0; i < 5; i++)
+                    stringBuilder.AppendFormat("{0} ", weapon.Strength[i]);
+                stringBuilder.Append("speed=");
+                for (int i = 0; i < 5; i++)
+                    stringBuilder.AppendFormat("{0} ", weapon.Speed[i]);
+                if (weapon.SpeedVariance != 128)
+                    stringBuilder.AppendFormat("speedvar={0} ", weapon.SpeedVariance);
+                stringBuilder.AppendFormat("blob_size={0} ", weapon.BlobSize);
+                stringBuilder.AppendFormat("flash_vclip={0} ", weapon.MuzzleFlashVClip);
+                stringBuilder.AppendFormat("flash_size={0} ", weapon.FlashSize);
+                if (weapon.FiringSound != 0)
+                    stringBuilder.AppendFormat("flash_sound={0} ", weapon.FiringSound);
+                stringBuilder.AppendFormat("robot_hit_vclip={0} ", weapon.RobotHitVClip);
+                stringBuilder.AppendFormat("wall_hit_vclip={0} ", weapon.WallHitVClip);
+                stringBuilder.AppendFormat("robot_hit_sound={0} ", weapon.RobotHitSound);
+                stringBuilder.AppendFormat("wall_hit_sound={0} ", weapon.WallHitSound);
+                stringBuilder.AppendFormat("impact_size={0} ", weapon.ImpactSize);
+                if (weapon.AfterburnerSize != 0)
+                    stringBuilder.AppendFormat("afterburner_size={0:F2} ", weapon.AfterburnerSize / 16.0f);
+                stringBuilder.AppendFormat("energy_usage={0} ", weapon.EnergyUsage);
+                stringBuilder.AppendFormat("ammo_usage={0} ", weapon.AmmoUsage);
+                stringBuilder.AppendFormat("fire_wait={0} ", weapon.FireWait);
+                stringBuilder.AppendFormat("lifetime={0} ", weapon.Lifetime);
+                stringBuilder.AppendFormat("lightcast={0} ", weapon.Light);
+                if (weapon.DamageRadius != 0)
+                    stringBuilder.AppendFormat("damage_radius={0} ", weapon.DamageRadius);
+                if (weapon.MultiDamageScale.Value != 65536)
+                    stringBuilder.AppendFormat("multi_damage_scale={0} ", weapon.MultiDamageScale);
+                stringBuilder.AppendFormat("fire_count={0} ", weapon.FireCount);
+                stringBuilder.AppendFormat("flash_vclip={0} ", weapon.MuzzleFlashVClip);
+                if (weapon.Persistent)
+                    stringBuilder.Append("persistent=1");
+                if (weapon.HomingFlag)
+                    stringBuilder.Append("homing=1 ");
+                if (weapon.Flags != 0)
+                    stringBuilder.Append("placable=1 ");
+                if (weapon.Flash != 0)
+                    stringBuilder.AppendFormat("flash={0} ", weapon.Flash);
+                if (weapon.CockpitPicture != 0)
+                    stringBuilder.AppendFormat("picture={0}.bbm ", piggyFile.Bitmaps[weapon.CockpitPicture].Name);
+                if (weapon.HiresCockpitPicture != 0)
+                    stringBuilder.AppendFormat("hires_picture={0}.bbm ", piggyFile.Bitmaps[weapon.HiresCockpitPicture].Name);
+
+                //stringBuilder.AppendFormat(" ;{0}", datafile.WeaponNames[id]);
+
+            }
+            stringBuilder.Append("\n");
+        }
+
+        private static void WriteModelV(EditorVHAMFile datafile, StringBuilder stringBuilder, int id, bool hack = false)
+        {
+            if (id < 0)
+            {
+                stringBuilder.Append("fixme.pof ");
+                return;
+            }
+            Polymodel model = datafile.GetModel(id);
+            //stringBuilder.AppendFormat("model{0}.pof ", id);
+            stringBuilder.AppendFormat("{0} ", pofNames[id]);
+            if (!hack)
+            {
+                foreach (string texture in model.TextureList)
+                {
+                    if (datafile.BaseHAM.EClipNameMapping.ContainsKey(texture.ToLower()))
+                    {
+                        stringBuilder.AppendFormat("%{0} ", datafile.BaseHAM.EClipNameMapping[texture.ToLower()].ID);
+                    }
+                    else
+                    {
+                        stringBuilder.AppendFormat("{0}.bbm ", texture);
+                    }
+                }
+            }
+            if (model.DyingModelnum != -1)
+            {
+                stringBuilder.Append("dying_pof=");
+                WriteModelV(datafile, stringBuilder, model.DyingModelnum, true);
+            }
+            if (model.SimplerModels != 0)
+            {
+                stringBuilder.Append("simple_model=");
+                WriteModelV(datafile, stringBuilder, model.SimplerModels - 1);
+            }
+            if (model.DeadModelnum != -1)
+            {
+                stringBuilder.Append("dead_pof=");
+                WriteModelV(datafile, stringBuilder, model.DeadModelnum);
             }
         }
     }
