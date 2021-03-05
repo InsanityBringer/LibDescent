@@ -229,17 +229,17 @@ namespace LibDescent.Data
         {
             return new FixMatrix(
                 right: new FixVector(
-                    this.Forward.Z * other.Forward.X + this.Up.Z * other.Forward.Y + this.Right.Z * other.Forward.Z,
-                    this.Forward.Z * other.Up.X + this.Up.Z * other.Up.Y + this.Right.Z * other.Up.Z,
-                    this.Forward.Z * other.Right.X + this.Up.Z * other.Right.Y + this.Right.Z * other.Right.Z),
+                    this.Right.X * other.Right.X + this.Up.X * other.Right.Y + this.Forward.X * other.Right.Z,
+                    this.Right.Y * other.Right.X + this.Up.Y * other.Right.Y + this.Forward.Y * other.Right.Z,
+                    this.Right.Z * other.Right.X + this.Up.Z * other.Right.Y + this.Forward.Z * other.Right.Z),
                 up: new FixVector(
-                    this.Forward.Y * other.Forward.X + this.Up.Y * other.Forward.Y + this.Right.Y * other.Forward.Z,
-                    this.Forward.Y * other.Up.X + this.Up.Y * other.Up.Y + this.Right.Y * other.Up.Z,
-                    this.Forward.Y * other.Right.X + this.Up.Y * other.Right.Y + this.Right.Y * other.Right.Z),
+                    this.Right.X * other.Up.X + this.Up.X * other.Up.Y + this.Forward.X * other.Up.Z,
+                    this.Right.Y * other.Up.X + this.Up.Y * other.Up.Y + this.Forward.Y * other.Up.Z,
+                    this.Right.Z * other.Up.X + this.Up.Z * other.Up.Y + this.Forward.Z * other.Up.Z),
                 forward: new FixVector(
-                    this.Forward.X * other.Forward.X + this.Up.X * other.Forward.Y + this.Right.X * other.Forward.Z,
-                    this.Forward.X * other.Up.X + this.Up.X * other.Up.Y + this.Right.X * other.Up.Z,
-                    this.Forward.X * other.Right.X + this.Up.X * other.Right.Y + this.Right.X * other.Right.Z)
+                    this.Right.X * other.Forward.X + this.Up.X * other.Forward.Y + this.Forward.X * other.Forward.Z,
+                    this.Right.Y * other.Forward.X + this.Up.Y * other.Forward.Y + this.Forward.Y * other.Forward.Z,
+                    this.Right.Z * other.Forward.X + this.Up.Z * other.Forward.Y + this.Forward.Z * other.Forward.Z)
             );
         }
         public FixMatrix Transpose()
