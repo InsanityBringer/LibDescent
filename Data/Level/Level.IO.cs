@@ -548,7 +548,9 @@ namespace LibDescent.Data
 
                 foreach (var segmentMatcenLink in _segmentMatcenLinks)
                 {
-                    segmentMatcenLink.Key.MatCenter = Level.MatCenters[(int)segmentMatcenLink.Value];
+                    //For some reason, many vanilla levels have weird matcen links. Bounds check them to be safe.
+                    if (segmentMatcenLink.Value < Level.MatCenters.Count)
+                        segmentMatcenLink.Key.MatCenter = Level.MatCenters[(int)segmentMatcenLink.Value];
                 }
             }
         }
