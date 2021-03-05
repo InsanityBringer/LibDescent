@@ -541,8 +541,8 @@ namespace LibDescent.Data
 
                     MatCenter matcen = new MatCenter(Level.Segments[segmentNum]);
                     matcen.InitializeSpawnedRobots(robotFlags);
-                    matcen.HitPoints = hitPoints;
-                    matcen.Interval = interval;
+                    matcen.HitPoints = new Fix(hitPoints);
+                    matcen.Interval = new Fix(interval);
                     AddMatcen(matcen);
                 }
 
