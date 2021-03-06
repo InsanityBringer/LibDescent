@@ -151,6 +151,18 @@ namespace LibDescent.Data
             hashCode = hashCode * -1521134295 + Z.GetHashCode();
             return hashCode;
         }
+
+        //[ISB] this seems slightly out of place here, but where else would it go?
+        public static Fix Dot3(Fix x, Fix y, Fix z, FixVector vec)
+        {
+            long q = 0;
+
+            q += x.MultiplyWithoutShift(vec.X);
+            q += y.MultiplyWithoutShift(vec.Y);
+            q += z.MultiplyWithoutShift(vec.Z);
+
+            return Fix.FixFromLong(q);
+        }
     }
 
     public struct FixMatrix
@@ -229,17 +241,18 @@ namespace LibDescent.Data
         {
             return new FixMatrix(
                 right: new FixVector(
-                    this.Right.X * other.Right.X + this.Up.X * other.Right.Y + this.Forward.X * other.Right.Z,
-                    this.Right.Y * other.Right.X + this.Up.Y * other.Right.Y + this.Forward.Y * other.Right.Z,
-                    this.Right.Z * other.Right.X + this.Up.Z * other.Right.Y + this.Forward.Z * other.Right.Z),
+                    FixVector.Dot3(Right.X, Up.X, Forward.X, other.Right),
+                    FixVector.Dot3(Right.Y, Up.Y, Forward.Y, other.Right),
+                    FixVector.Dot3(Right.Z, Up.Z, Forward.Z, other.Right)),
                 up: new FixVector(
-                    this.Right.X * other.Up.X + this.Up.X * other.Up.Y + this.Forward.X * other.Up.Z,
-                    this.Right.Y * other.Up.X + this.Up.Y * other.Up.Y + this.Forward.Y * other.Up.Z,
-                    this.Right.Z * other.Up.X + this.Up.Z * other.Up.Y + this.Forward.Z * other.Up.Z),
+                    FixVector.Dot3(Right.X, Up.X, Forward.X, other.Up),
+                    FixVector.Dot3(Right.Y, Up.Y, Forward.Y, other.Up),
+                    FixVector.Dot3(Right.Z, Up.Z, Forward.Z, other.Up)),
                 forward: new FixVector(
-                    this.Right.X * other.Forward.X + this.Up.X * other.Forward.Y + this.Forward.X * other.Forward.Z,
-                    this.Right.Y * other.Forward.X + this.Up.Y * other.Forward.Y + this.Forward.Y * other.Forward.Z,
-                    this.Right.Z * other.Forward.X + this.Up.Z * other.Forward.Y + this.Forward.Z * other.Forward.Z)
+                    FixVector.Dot3(Right.X, Up.X, Forward.X, other.Forward),
+                    FixVector.Dot3(Right.Y, Up.Y, Forward.Y, other.Forward),
+
+                    FixVector.Dot3(Right.Z, Up.Z, Forward.Z, other.Forward))
             );
         }
         public FixMatrix Transpose()

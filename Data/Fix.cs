@@ -74,6 +74,26 @@ namespace LibDescent.Data
         public static bool operator >(Fix a, Fix b) => a.value > b.value;
         public static bool operator >=(Fix a, Fix b) => a.value >= b.value;
 
+        public long MultiplyWithoutShift(Fix b)
+        {
+            return (long)Value * b.Value;
+        }
+
+        public static Fix FixFromLong(long q)
+        {
+            int v = (int)(q >> 16);
+            int vh = (int)(q >> 48);
+
+            bool signb = vh < 0;
+            bool signv = v < 0;
+            if (signb != signv)
+            {
+                v = 0x7FFFFFFF;
+                if (signb) v = -v;
+            }
+            return new Fix(v);
+        }
+
         public override string ToString()
         {
             return ((double)this).ToString("0.####", System.Globalization.CultureInfo.InvariantCulture);
