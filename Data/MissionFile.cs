@@ -366,7 +366,7 @@ namespace LibDescent.Data
                     writer.WriteLine(level);
                 if (SecretLevels.Count > 0)
                 {
-                    WriteProperty(writer, "num_secrets", Levels.Count.ToString());
+                    WriteProperty(writer, "num_secrets", SecretLevels.Count.ToString());
                     foreach (MissionSecretLevel slevel in SecretLevels)
                         writer.WriteLine(slevel.LevelName + "," + slevel.StartingLevel);
                 }
