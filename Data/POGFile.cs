@@ -27,7 +27,7 @@ using System.IO;
 
 namespace LibDescent.Data
 {
-    public class POGFile : IDataFile
+    public class POGFile : IDataFile, IImageProvider
     {
         private int startptr;
 

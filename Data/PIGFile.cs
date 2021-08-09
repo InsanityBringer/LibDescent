@@ -26,9 +26,9 @@ using System.IO;
 
 namespace LibDescent.Data
 {
-    public class PIGFile : IDataFile
+    public class PIGFile : IDataFile, IImageProvider
     {
-        public List<PIGImage> Bitmaps { get; private set; }
+        public List<PIGImage> Bitmaps { get; }
         private long startptr = 0L;
         private int header, version;
 

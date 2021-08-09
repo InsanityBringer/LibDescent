@@ -28,13 +28,13 @@ using System.Linq;
 
 namespace LibDescent.Data
 {
-    public class Descent1PIGFile
+    public class Descent1PIGFile : IDataFile, IImageProvider, ISoundProvider
     {
         private int DataPointer;
         private bool big;
         public bool LoadData { get; private set; }
-        public List<PIGImage> Bitmaps { get; private set; }
-        public List<SoundData> PIGSounds { get; private set; }
+        public List<PIGImage> Bitmaps { get; }
+        public List<SoundData> Sounds { get; }
 
         /// <summary>
         /// Amount of textures considered used by this PIG file.
@@ -51,7 +51,7 @@ namespace LibDescent.Data
         /// <summary>
         /// List of sound IDs.
         /// </summary>
-        public byte[] Sounds { get; private set; }
+        public byte[] SoundIDs { get; private set; }
         /// <summary>
         /// List to remap given sounds into other sounds when Descent is run in low memory mode.
         /// </summary>
@@ -173,7 +173,7 @@ namespace LibDescent.Data
         {
             Textures = new ushort[800];
             TMapInfo = new TMAPInfo[800];
-            Sounds = new byte[250];
+            SoundIDs = new byte[250];
             AltSounds = new byte[250];
             VClips = new VClip[70];
             EClips = new EClip[60];
@@ -195,7 +195,7 @@ namespace LibDescent.Data
             reactor = new Reactor();
 
             Bitmaps = new List<PIGImage>();
-            PIGSounds = new List<SoundData>();
+            Sounds = new List<SoundData>();
 
             this.big = macPig;
             this.LoadData = loadData;
@@ -226,7 +226,7 @@ namespace LibDescent.Data
                     TMapInfo[i] = reader.ReadTMAPInfoDescent1(br);
                 }
 
-                Sounds = br.ReadBytes(250);
+                SoundIDs = br.ReadBytes(250);
                 AltSounds = br.ReadBytes(250);
 
                 numVClips = br.ReadInt32(); //this value is bogus. rip
@@ -350,7 +350,7 @@ namespace LibDescent.Data
                 }
 
                 //heh
-                Sounds = br.ReadBytes(250);
+                SoundIDs = br.ReadBytes(250);
                 AltSounds = br.ReadBytes(250);
 
                 numObjects = br.ReadInt32();
@@ -468,7 +468,7 @@ namespace LibDescent.Data
                 sound.LocalName = localNameBytes;
                 sound.Offset = offset;
                 sound.Length = num1;
-                PIGSounds.Add(sound);
+                Sounds.Add(sound);
             }
             
             int basePointer = (int)br.BaseStream.Position;
@@ -487,13 +487,13 @@ namespace LibDescent.Data
                 }
             }
 
-            for (int i = 0; i < PIGSounds.Count; i++)
+            for (int i = 0; i < Sounds.Count; i++)
             {
-                br.BaseStream.Seek(basePointer + PIGSounds[i].Offset, SeekOrigin.Begin);
+                br.BaseStream.Seek(basePointer + Sounds[i].Offset, SeekOrigin.Begin);
 
-                var soundBytes = br.ReadBytes(PIGSounds[i].Length);
+                var soundBytes = br.ReadBytes(Sounds[i].Length);
 
-                var ps = PIGSounds[i];
+                var ps = Sounds[i];
 
                 ps.Data = soundBytes;
             }
@@ -501,7 +501,7 @@ namespace LibDescent.Data
             br.Dispose();
         }
 
-        public int Write(Stream stream)
+        public void Write(Stream stream)
         {
             DescentWriter descentWriter = new DescentWriter(stream);
             HAMDataWriter writer = new HAMDataWriter();
@@ -522,7 +522,7 @@ namespace LibDescent.Data
                 this.WriteTMAPInfoDescent1(descentWriter, TMapInfo[i]);
             }
 
-            descentWriter.Write(Sounds);
+            descentWriter.Write(SoundIDs);
 
             descentWriter.Write(AltSounds);
 
@@ -652,7 +652,7 @@ namespace LibDescent.Data
             }
 
             //heh
-            descentWriter.Write(Sounds, 0, 250);
+            descentWriter.Write(SoundIDs, 0, 250);
             descentWriter.Write(AltSounds, 0, 250);
 
             descentWriter.WriteInt32(numObjects);
@@ -701,7 +701,7 @@ namespace LibDescent.Data
             descentWriter.BaseStream.Seek(DataPointer, SeekOrigin.Begin);
 
             descentWriter.WriteInt32(Bitmaps.Count - 1); // Ignore the bogus one
-            descentWriter.WriteInt32(PIGSounds.Count);
+            descentWriter.WriteInt32(Sounds.Count);
 
             int dynamicOffset = 0;
 
@@ -721,9 +721,9 @@ namespace LibDescent.Data
                 dynamicOffset += bitmap.GetSize();
             }
 
-            for (int i = 0; i < PIGSounds.Count; i++)
+            for (int i = 0; i < Sounds.Count; i++)
             {
-                var sound = PIGSounds[i];
+                var sound = Sounds[i];
 
                 //var nameBytes = NameHelper.GetNameBytes(sound.name, 8);
                 descentWriter.Write(sound.LocalName, 0, 8);
@@ -740,12 +740,10 @@ namespace LibDescent.Data
                 Bitmaps[i].WriteImage(descentWriter);
             }
 
-            for (int i = 0; i < PIGSounds.Count; i++)
+            for (int i = 0; i < Sounds.Count; i++)
             {
-                descentWriter.Write(PIGSounds[i].Data);
+                descentWriter.Write(Sounds[i].Data);
             }
-
-            return 0;
         }
 
         public void WriteTMAPInfoDescent1(DescentWriter bw, TMAPInfo tMAPInfo)
@@ -901,6 +899,5 @@ namespace LibDescent.Data
             writer.WriteFix(weapon.DamageRadius);
             writer.WriteUInt16(weapon.CockpitPicture);
         }
-
     }
 }

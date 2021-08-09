@@ -57,10 +57,10 @@ namespace LibDescent.Data
             }
         }
     }
-    public class SNDFile : IDataFile
+    public class SNDFile : IDataFile, ISoundProvider
     {
         //public List<string> sounds = new List<string>();
-        public List<SoundData> Sounds = new List<SoundData>();
+        public List<SoundData> Sounds { get; } = new List<SoundData>();
         public Dictionary<string, int> SoundIDs = new Dictionary<string, int>();
         private long startptr = 0L;
         private long soundptr = 0;
