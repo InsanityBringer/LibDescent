@@ -43,9 +43,9 @@ namespace LibDescent.Data
         /// </summary>
         public Fix Damage { get; set; }
         /// <summary>
-        /// EClip associated with this 
+        /// EClip associated with this TMAPInfo, -1 if none.
         /// </summary>
-        public short EClipNum { get; set; }
+        public short EClipNum { get; set; } = -1;
         /// <summary>
         /// ID of the texture changed to when shot, -1 if indestructable.
         /// </summary>
