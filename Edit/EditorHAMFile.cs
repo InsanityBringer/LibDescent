@@ -1026,6 +1026,9 @@ namespace LibDescent.Edit
                 int lastShipmodel = PlayerShip.ModelNum;
                 if (Models[PlayerShip.ModelNum].DyingModelnum != -1)
                     lastShipmodel = Models[PlayerShip.ModelNum].DyingModelnum;
+                else if (Models[PlayerShip.ModelNum].SimplerModels != 0)
+                    lastShipmodel = Models[PlayerShip.ModelNum].SimplerModels - 1;
+
                 for (int i = 0; i < Models.Count; i++)
                 {
                     model = Models[i];
