@@ -1034,7 +1034,7 @@ namespace LibDescent.Edit
                     model = Models[i];
                     model.FirstTexture = (ushort)lastObjectBitmapPointer;
                     model.NumTextures = (byte)model.TextureList.Count;
-                    if (i == lastShipmodel)
+                    if (i == lastShipmodel && i != PlayerShip.ModelNum)
                     {
                         //Inject multiplayer bitmaps
                         FirstMultiBitmapNum = lastObjectBitmapPointer;
@@ -1078,6 +1078,18 @@ namespace LibDescent.Edit
                             ObjBitmaps.Add((ushort)(piggyFile.GetBitmapIDFromName("glow04"))); ObjBitmapPointers.Add((ushort)(ObjBitmaps.Count - 1));
                             ObjBitmaps.Add((ushort)(piggyFile.GetBitmapIDFromName("rbot046"))); ObjBitmapPointers.Add((ushort)(ObjBitmaps.Count - 1));
                             lastObjectBitmapPointer += 2; lastObjectBitmap += 2;
+                        }
+
+                        //ugh
+                        if (i == lastShipmodel && i == PlayerShip.ModelNum)
+                        {
+                            //Inject multiplayer bitmaps
+                            FirstMultiBitmapNum = lastObjectBitmapPointer;
+                            for (int j = 0; j < 14; j++)
+                            {
+                                ObjBitmaps.Add((ushort)(multiplayerBitmaps[j])); ObjBitmapPointers.Add((ushort)(ObjBitmaps.Count - 1));
+                                lastObjectBitmap++; lastObjectBitmapPointer++;
+                            }
                         }
                     }
                 }
