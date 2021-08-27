@@ -380,19 +380,6 @@ namespace LibDescent.Edit
 
             BinaryReader br = new BinaryReader(stream);
             bool generateNameLists = true;
-            int chunkName;
-            while (br.BaseStream.Position <= br.BaseStream.Length - 4) //Still room for some chunks
-            {
-                chunkName = br.ReadInt32();
-                if (chunkName == 0x4E4D4148 && ReadNamefile(br) != -1)
-                {
-                    generateNameLists = false;
-                }
-                else if (chunkName == 0x4E50524F)
-                {
-                    ReadOrphanedModels(br);
-                }
-            }
 
             if (generateNameLists)
                 GenerateDefaultNamelists();
@@ -859,14 +846,6 @@ namespace LibDescent.Edit
 
             CreateDataLists();
             BaseFile.Write(stream);
-
-            if (ExportExtraData)
-            {
-                BinaryWriter bw = new BinaryWriter(stream);
-                SaveNamefile(bw);
-                WriteOrphanedModels(bw);
-                bw.Dispose();
-            }
         }
 
         private void CreateDataLists()

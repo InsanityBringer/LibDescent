@@ -355,9 +355,16 @@ namespace LibDescent.Data
                 ExitModelnum = br.ReadInt32();
                 DestroyedExitModelnum = br.ReadInt32();
             }
-            for (int x = 0; x < 2600; x++)
+            for (int x = 0; x < 2620; x++)
             {
-                BitmapXLATData[x] = br.ReadUInt16();
+                try
+                {
+                    BitmapXLATData[x] = br.ReadUInt16();
+                }
+                catch (EndOfStreamException) //Descent 2's official HAM files have only 2600 XLAT entries, but later versions of the game attempt to read 2620. 
+                {
+                    break;
+                }
             }
 
             if (Version < 3)
@@ -546,7 +553,7 @@ namespace LibDescent.Data
                 bw.Write(ExitModelnum);
                 bw.Write(DestroyedExitModelnum);
             }
-            for (int x = 0; x < 2600; x++)
+            for (int x = 0; x < 2620; x++)
             {
                 bw.Write(BitmapXLATData[x]);
             }
