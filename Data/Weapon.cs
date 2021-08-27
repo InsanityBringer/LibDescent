@@ -221,6 +221,11 @@ namespace LibDescent.Data
 
         public int ID;
 
+        /// <summary>
+        /// An optional element name for editors.
+        /// </summary>
+        public string Name { get; set; }
+
         public Weapon()
         {
             ModelNum = -1;
@@ -230,6 +235,7 @@ namespace LibDescent.Data
             SpeedVariance = 128;
             FireCount = 1;
             Children = -1;
+            Name = "";
         }
 
         public void CopyDataFrom(Weapon other, IElementManager manager)

@@ -81,7 +81,10 @@ namespace LibDescent.Data
         /// Side number of segnum of the current one-shot animation, useless for definitions.
         /// </summary>
         public int SideNum { get; set; }
-
+        /// <summary>
+        /// An optional element name for editors.
+        /// </summary>
+        public string Name { get; set; }
         public EClip()
         {
             ExplosionVClip = -1;
@@ -89,6 +92,7 @@ namespace LibDescent.Data
             CriticalClip = -1;
             DestroyedBitmapNum = -1;
             SoundNum = -1;
+            Name = "";
         }
     }
 }

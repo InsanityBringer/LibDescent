@@ -40,5 +40,9 @@ namespace LibDescent.Data
         /// Directions of all the reactor's guns.
         /// </summary>
         public FixVector[] GunDirs { get; } = new FixVector[8];
+        /// <summary>
+        /// An optional element name for editors.
+        /// </summary>
+        public string Name { get; set; } = "";
     }
 }

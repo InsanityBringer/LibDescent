@@ -481,7 +481,7 @@ namespace LibDescent.Edit
                 if (weapon.HiresCockpitPicture != 0)
                     stringBuilder.AppendFormat("hires_picture={0}.bbm ", piggyFile.Bitmaps[weapon.HiresCockpitPicture].Name);
 
-                stringBuilder.AppendFormat(" ;{0}", datafile.WeaponNames[id]);
+                stringBuilder.AppendFormat(" ;{0}", datafile.Weapons[id].Name);
 
             }
             stringBuilder.Append("\n");

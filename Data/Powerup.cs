@@ -40,6 +40,10 @@ namespace LibDescent.Data
         /// Amount of light cast by this powerup.
         /// </summary>
         public Fix Light { get; set; }
+        /// <summary>
+        /// An optional element name for editors.
+        /// </summary>
+        public string Name { get; set; } = "";
 
         public int ID;
     }

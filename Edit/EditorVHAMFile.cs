@@ -18,11 +18,6 @@ namespace LibDescent.Edit
         public List<ushort> ObjBitmaps { get; private set; }
         public List<ushort> ObjBitmapPointers { get; private set; }
 
-        //Namelists
-        public List<string> RobotNames = new List<string>();
-        public List<string> WeaponNames = new List<string>();
-        public List<string> ModelNames = new List<string>();
-
         public EditorVHAMFile(VHAMFile baseFile, EditorHAMFile baseHAM)
         {
             BaseFile = baseFile;
@@ -57,15 +52,15 @@ namespace LibDescent.Edit
             {
                 for (int i = 0; i < Weapons.Count; i++)
                 {
-                    WeaponNames.Add(String.Format("New Weapon {0}", i + 1));
+                    Weapons[i].Name = String.Format("New Weapon {0}", i + 1);
                 }
                 for (int i = 0; i < Robots.Count; i++)
                 {
-                    RobotNames.Add(String.Format("New Robot {0}", i + 1));
+                    Robots[i].Name = String.Format("New Robot {0}", i + 1);
                 }
                 for (int i = 0; i < Models.Count; i++)
                 {
-                    ModelNames.Add(String.Format("New Model {0}", i + 1));
+                    Models[i].Name = String.Format("New Model {0}", i + 1);
                 }
             }
         }
@@ -155,7 +150,7 @@ namespace LibDescent.Edit
                 clip = BaseHAM.EClips[i];
                 if (clip.ChangingObjectTexture != -1)
                 {
-                    EClipNames.Add(clip.ChangingObjectTexture, BaseHAM.EClipNames[i]);
+                    EClipNames.Add(clip.ChangingObjectTexture, clip.Name);
                 }
             }
             ushort bitmap; string name;
@@ -255,27 +250,27 @@ namespace LibDescent.Edit
         public string GetRobotName(int id)
         {
             if (id >= 0 && id < BaseHAM.Robots.Count && id < VHAMFile.NumDescent2RobotTypes)
-                return BaseHAM.RobotNames[id];
+                return BaseHAM.Robots[id].Name;
             else if (id >= VHAMFile.NumDescent2RobotTypes)
-                return RobotNames[id - VHAMFile.NumDescent2RobotTypes];
+                return Robots[id - VHAMFile.NumDescent2RobotTypes].Name;
             return "<undefined>";
         }
 
         public string GetWeaponName(int id)
         {
             if (id >= 0 && id < BaseHAM.Weapons.Count && id < VHAMFile.NumDescent2WeaponTypes)
-                return BaseHAM.WeaponNames[id];
+                return BaseHAM.Weapons[id].Name;
             else if (id >= VHAMFile.NumDescent2WeaponTypes)
-                return WeaponNames[id - VHAMFile.NumDescent2WeaponTypes];
+                return Weapons[id - VHAMFile.NumDescent2WeaponTypes].Name;
             return "<undefined>";
         }
 
         public string GetModelName(int id)
         {
             if (id >= 0 && id < BaseHAM.Models.Count && id < VHAMFile.NumDescent2Polymodels)
-                return BaseHAM.ModelNames[id];
+                return BaseHAM.Models[id].Name;
             else if (id >= VHAMFile.NumDescent2Polymodels)
-                return ModelNames[id - VHAMFile.NumDescent2Polymodels];
+                return Models[id - VHAMFile.NumDescent2Polymodels].Name;
             return "<undefined>";
         }
 
@@ -384,7 +379,7 @@ namespace LibDescent.Edit
             {
                 clip = BaseHAM.EClips[i];
                 if (clip.ChangingObjectTexture != -1)
-                    objectBitmapMapping.Add(BaseHAM.EClipNames[i], clip.ChangingObjectTexture);
+                    objectBitmapMapping.Add(clip.Name, clip.ChangingObjectTexture);
             }
 
             Polymodel model;

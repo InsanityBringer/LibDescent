@@ -52,6 +52,10 @@ namespace LibDescent.Data
         /// Light cast by the VClip. Only used in certain contexts.
         /// </summary>
         public Fix LightValue { get; set; }
+        /// <summary>
+        /// An optional element name for editors.
+        /// </summary>
+        public string Name { get; set; } = "";
 
         //Flag properties
         /// <summary>

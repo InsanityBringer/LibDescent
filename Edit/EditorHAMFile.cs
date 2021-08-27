@@ -113,14 +113,7 @@ namespace LibDescent.Edit
         public Dictionary<string, int> ObjBitmapMapping { get; private set; }
 
         //Nametables.
-        public List<string> VClipNames { get; private set; }
-        public List<string> EClipNames { get; private set; }
-        public List<string> RobotNames { get; private set; }
-        public List<string> WeaponNames { get; private set; }
-        public List<string> ModelNames { get; private set; }
         public List<string> SoundNames { get; private set; }
-        public List<string> ReactorNames { get; private set; }
-        public List<string> PowerupNames { get; private set; }
 
         private int NumRobotJoints;
 
@@ -154,14 +147,7 @@ namespace LibDescent.Edit
             Powerups = new List<Powerup>();
             BitmapXLATData = new ushort[2620];
 
-            VClipNames = new List<string>();
-            EClipNames = new List<string>();
-            RobotNames = new List<string>();
-            WeaponNames = new List<string>();
-            ModelNames = new List<string>();
             SoundNames = new List<string>();
-            ReactorNames = new List<string>();
-            PowerupNames = new List<string>();
         }
 
         public EditorHAMFile(PIGFile piggyFile) : this(new HAMFile(), piggyFile)
@@ -172,97 +158,10 @@ namespace LibDescent.Edit
         // EDITING
         //---------------------------------------------------------------------
 
-        public int AddElement(HAMType type)
-        {
-            switch (type)
-            {
-                case HAMType.EClip:
-                    EClip eclip = new EClip();
-                    eclip.ID = EClips.Count;
-                    EClips.Add(eclip);
-                    EClipNames.Add(string.Format("NewEClip{0}", eclip.ID));
-                    return eclip.ID;
-                case HAMType.Robot:
-                    Robot robot = new Robot();
-                    robot.ID = Robots.Count;
-                    Robots.Add(robot);
-                    RobotNames.Add(string.Format("New Robot #{0}", robot.ID));
-                    return robot.ID;
-                case HAMType.Weapon:
-                    Weapon weapon = new Weapon();
-                    weapon.ID = Weapons.Count;
-                    Weapons.Add(weapon);
-                    WeaponNames.Add(string.Format("New Weapon #{0}", weapon.ID));
-                    return weapon.ID;
-                case HAMType.Model:
-                    Polymodel model = new Polymodel();
-                    model.ExpandSubmodels();
-                    model.ID = Models.Count;
-                    Models.Add(model);
-                    ModelNames.Add(string.Format("New Polymodel #{0}", model.ID));
-                    return model.ID;
-            }
-            return -1;
-        }
-
-        //If you call this function, you're a masochist or don't know what you're doing tbh.
+        //This is all done with transactions now...
         public int DeleteElement(HAMType type, int slot)
         {
-            Console.WriteLine("DeleteElement: STUB");
-            /*
-            switch (type)
-            {
-                case HAMType.EClip:
-                    {
-                        EClip eclip = EClips[slot];
-                        int refCount = eclip.References.Count;
-                        if (refCount > 0)
-                            return -1;
-                        EClips.RemoveAt(slot);
-                        EClipNameMapping.Remove(EClipNames[slot]);
-                        EClipNames.RemoveAt(slot);
-                        //eclip.ClearReferences(this);
-                        RenumberElements(type);
-                        return EClips.Count;
-                    }
-                case HAMType.Robot:
-                    {
-                        Robot robot = Robots[slot];
-                        int refCount = robot.References.Count;
-                        if (refCount > 0)
-                            return -1;
-                        Robots.RemoveAt(slot);
-                        RobotNames.RemoveAt(slot);
-                        //robot.ClearReferences(this);
-                        RenumberElements(type);
-                        return Robots.Count;
-                    }
-                case HAMType.Weapon:
-                    {
-                        Weapon weapon = Weapons[slot];
-                        int refCount = weapon.References.Count;
-                        if (refCount > 0)
-                            return -1;
-                        Weapons.RemoveAt(slot);
-                        WeaponNames.RemoveAt(slot);
-                        //weapon.ClearReferences(this);
-                        RenumberElements(type);
-                        return Weapons.Count;
-                    }
-                case HAMType.Model:
-                    {
-                        Polymodel model = PolygonModels[slot];
-                        int refCount = model.References.Count;
-                        if (refCount > 0)
-                            return -1;
-                        PolygonModels.RemoveAt(slot);
-                        ModelNames.RemoveAt(slot);
-                        //model.ClearReferences(this);
-                        RenumberElements(type);
-                        return PolygonModels.Count;
-                    }
-            }
-            */
+            throw new NotImplementedException("whyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyy");
             return -1;
         }
 
@@ -271,25 +170,25 @@ namespace LibDescent.Edit
             switch (type)
             {
                 case HAMType.VClip:
-                    VClipNames[element] = newName;
+                    VClips[element].Name = newName;
                     return;
                 case HAMType.EClip:
-                    EClipNames[element] = newName;
+                    EClips[element].Name = newName;
                     return;
                 case HAMType.Robot:
-                    RobotNames[element] = newName;
+                    Robots[element].Name = newName;
                     return;
                 case HAMType.Weapon:
-                    WeaponNames[element] = newName;
+                    Weapons[element].Name = newName;
                     return;
                 case HAMType.Sound:
                     SoundNames[element] = newName;
                     return;
                 case HAMType.Model:
-                    ModelNames[element] = newName;
+                    Models[element].Name = newName;
                     return;
                 case HAMType.Powerup:
-                    PowerupNames[element] = newName;
+                    Powerups[element].Name = newName;
                     return;
             }
         }
@@ -630,8 +529,8 @@ namespace LibDescent.Edit
                 clip = EClips[i];
                 if (clip.ChangingObjectTexture != -1)
                 {
-                    EClipNames.Add(clip.ChangingObjectTexture, this.EClipNames[i]);
-                    ObjBitmapMapping.Add(this.EClipNames[i], clip.ChangingObjectTexture);
+                    EClipNames.Add(clip.ChangingObjectTexture, this.EClips[i].Name);
+                    ObjBitmapMapping.Add(this.EClips[i].Name, clip.ChangingObjectTexture);
                 }
             }
             ushort bitmap; string name;
@@ -693,134 +592,45 @@ namespace LibDescent.Edit
 
         public int ReadNamefile(BinaryReader br)
         {
-            try
-            {
-                int ver = br.ReadInt32();
-                if (/*sig != 0x4E4D4148 ||*/ver < 1 || ver > 2)
-                {
-                    return -1;
-                }
-                int VClipsCount = br.ReadInt32();
-                int EClipsCount = br.ReadInt32();
-                int RobotsCount = br.ReadInt32();
-                int WeaponsCount = br.ReadInt32();
-                int SoundsCount = br.ReadInt32();
-                int PolymodelCount = br.ReadInt32();
-                int PowerupsCount = br.ReadInt32();
-                int ReactorsCount = Reactors.Count;
-                if (ver == 2)
-                    ReactorsCount = br.ReadInt32();
-
-                if (VClipsCount != VClips.Count || EClipsCount != EClips.Count || RobotsCount != Robots.Count || WeaponsCount != Weapons.Count ||
-                    SoundsCount != Sounds.Count || PolymodelCount != Models.Count || PowerupsCount != Powerups.Count || ReactorsCount != Reactors.Count)
-                {
-                    return -1; //okay something went really wrong
-                }
-                for (int i = 0; i < VClips.Count; i++)
-                    VClipNames.Add(br.ReadString());
-                for (int i = 0; i < EClips.Count; i++)
-                    EClipNames.Add(br.ReadString());
-                for (int i = 0; i < Robots.Count; i++)
-                    RobotNames.Add(br.ReadString());
-                for (int i = 0; i < Weapons.Count; i++)
-                    WeaponNames.Add(br.ReadString());
-                for (int i = 0; i < Sounds.Count; i++)
-                    SoundNames.Add(br.ReadString());
-                for (int i = 0; i < Models.Count; i++)
-                    ModelNames.Add(br.ReadString());
-                for (int i = 0; i < Powerups.Count; i++)
-                    PowerupNames.Add(br.ReadString());
-                if (ver >= 2)
-                    for (int i = 0; i < Reactors.Count; i++)
-                        ReactorNames.Add(br.ReadString());
-                else
-                    for (int i = 0; i < Reactors.Count; i++)
-                        ReactorNames.Add(ElementLists.GetReactorName(i));
-            }
-            catch (Exception) //godawful error handling
-            {
-                return -1;
-            }
-
+            //TODO: New text format here
             return 0;
         }
 
         private int ReadOrphanedModels(BinaryReader br)
         {
-            //4F 52 50 4E
-
-            try
-            {
-                int numOrphaned = 0;
-                Polymodel model;
-                int version = br.ReadInt32();
-                if (version != 1) return -1; //how
-                numOrphaned = br.ReadInt32();
-                int orphanedID;
-                for (int i = 0; i < numOrphaned; i++)
-                {
-                    orphanedID = br.ReadInt32();
-                    model = Models[orphanedID];
-                    model.NumGuns = br.ReadInt32();
-                    for (int j = 0; j < model.NumGuns; j++)
-                    {
-                        model.GunSubmodels[j] = br.ReadInt32();
-                        model.GunPoints[j].X = new Fix(br.ReadInt32());
-                        model.GunPoints[j].Y = new Fix(br.ReadInt32());
-                        model.GunPoints[j].Z = new Fix(br.ReadInt32());
-                        model.GunDirs[j].X = new Fix(br.ReadInt32());
-                        model.GunDirs[j].Y = new Fix(br.ReadInt32());
-                        model.GunDirs[j].Z = new Fix(br.ReadInt32());
-                    }
-                    model.IsAnimated = br.ReadBoolean();
-                    if (model.IsAnimated)
-                    {
-                        for (int j = 0; j < 10; j++)
-                        {
-                            for (int k = 0; k < 5; k++)
-                            {
-                                model.AnimationMatrix[j, k].P = br.ReadInt16();
-                                model.AnimationMatrix[j, k].B = br.ReadInt16();
-                                model.AnimationMatrix[j, k].H = br.ReadInt16();
-                            }
-                        }
-                    }
-                }
-            }
-            catch (Exception)
-            {
-                return -1;
-            }
-
+            //TODO: new text format here
             return 0;
         }
 
+        /// <summary>
+        /// Generate default name lists, based on Descent 2's HAM file. Must be called after reading the data file. 
+        /// </summary>
         public void GenerateDefaultNamelists()
         {
             for (int i = 0; i < BaseFile.VClips.Count; i++)
-                VClipNames.Add(ElementLists.GetVClipName(i));
+                VClips[i].Name = ElementLists.GetVClipName(i);
             for (int i = 0; i < BaseFile.EClips.Count; i++)
-                EClipNames.Add(ElementLists.GetEClipName(i));
+                EClips[i].Name = ElementLists.GetEClipName(i);
             for (int i = 0; i < BaseFile.Robots.Count; i++)
-                RobotNames.Add(ElementLists.GetRobotName(i));
+                Robots[i].Name = ElementLists.GetRobotName(i);
             for (int i = 0; i < BaseFile.Weapons.Count; i++)
-                WeaponNames.Add(ElementLists.GetWeaponName(i));
+                Weapons[i].Name = ElementLists.GetWeaponName(i);
             for (int i = 0; i < BaseFile.Sounds.Count; i++)
                 SoundNames.Add(ElementLists.GetSoundName(i));
             if (BaseFile.Version >= 3)
             {
                 for (int i = 0; i < BaseFile.Models.Count; i++)
-                    ModelNames.Add(ElementLists.GetModelName(i));
+                    Models[i].Name = ElementLists.GetModelName(i);
             }
             else
             {
                 for (int i = 0; i < BaseFile.Models.Count; i++)
-                    ModelNames.Add(ElementLists.GetDemoModelName(i));
+                    Models[i].Name = ElementLists.GetDemoModelName(i);
             }
             for (int i = 0; i < BaseFile.Powerups.Count; i++)
-                PowerupNames.Add(ElementLists.GetPowerupName(i));
+                Powerups[i].Name = ElementLists.GetPowerupName(i);
             for (int i = 0; i < BaseFile.Reactors.Count; i++)
-                ReactorNames.Add(ElementLists.GetReactorName(i));
+                Reactors[i].Name = ElementLists.GetReactorName(i);
         }
 
         //---------------------------------------------------------------------
@@ -1111,9 +921,9 @@ namespace LibDescent.Edit
             for (int i = 0; i < EClips.Count; i++)
             {
                 clip = EClips[i];
-                if (objectBitmapMapping.ContainsKey(EClipNames[i].ToLower()))
+                if (objectBitmapMapping.ContainsKey(EClips[i].Name.ToLower()))
                 {
-                    clip.ChangingObjectTexture = (short)objectBitmapMapping[EClipNames[i].ToLower()];
+                    clip.ChangingObjectTexture = (short)objectBitmapMapping[EClips[i].Name.ToLower()];
                     ObjBitmaps[clip.ChangingObjectTexture] = (ushort)(clip.Clip.Frames[0]);
                 }
             }
@@ -1121,76 +931,13 @@ namespace LibDescent.Edit
 
         public int SaveNamefile(BinaryWriter bw)
         {
-            //48 41 4D 4E
-            bw.Write(0x4E4D4148); //HAMN
-            bw.Write(2); //version. in case i fuck something up
-            //Write out the counts for safety. 
-            bw.Write(VClips.Count);
-            bw.Write(EClips.Count);
-            bw.Write(Robots.Count);
-            bw.Write(Weapons.Count);
-            bw.Write(Sounds.Count);
-            bw.Write(Models.Count);
-            bw.Write(Powerups.Count);
-            bw.Write(Reactors.Count);
-            foreach (string name in VClipNames)
-                bw.Write(name);
-            foreach (string name in EClipNames)
-                bw.Write(name);
-            foreach (string name in RobotNames)
-                bw.Write(name);
-            foreach (string name in WeaponNames)
-                bw.Write(name);
-            foreach (string name in SoundNames)
-                bw.Write(name);
-            foreach (string name in ModelNames)
-                bw.Write(name);
-            foreach (string name in PowerupNames)
-                bw.Write(name);
-            foreach (string name in ReactorNames)
-                bw.Write(name);
-
+            //TODO: New text format
             return 0;
         }
 
         private int WriteOrphanedModels(BinaryWriter bw)
         {
-            //4F 52 50 4E
-
-            Polymodel model;
-            bw.Write(0x4E50524F); //ORPH
-            bw.Write(1);
-            bw.Write(Models.Count);
-            for (int i = 0; i < Models.Count; i++)
-            {
-                model = Models[i];
-                bw.Write(i);
-                bw.Write(model.NumGuns);
-                for (int j = 0; j < model.NumGuns; j++)
-                {
-                    bw.Write(model.GunSubmodels[j]);
-                    bw.Write(model.GunPoints[j].X.Value);
-                    bw.Write(model.GunPoints[j].Y.Value);
-                    bw.Write(model.GunPoints[j].Z.Value);
-                    bw.Write(model.GunDirs[j].X.Value);
-                    bw.Write(model.GunDirs[j].Y.Value);
-                    bw.Write(model.GunDirs[j].Z.Value);
-                }
-                bw.Write(model.IsAnimated);
-                if (model.IsAnimated)
-                {
-                    for (int j = 0; j < 10; j++)
-                    {
-                        for (int k = 0; k < 5; k++)
-                        {
-                            bw.Write(model.AnimationMatrix[j, k].P);
-                            bw.Write(model.AnimationMatrix[j, k].B);
-                            bw.Write(model.AnimationMatrix[j, k].H);
-                        }
-                    }
-                }
-            }
-
+            //TODO: New text format
             return 0;
         }
 

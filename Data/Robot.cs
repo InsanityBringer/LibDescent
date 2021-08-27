@@ -306,11 +306,17 @@ namespace LibDescent.Data
         public int replacementID;
         public int ID;
 
+        /// <summary>
+        /// An optional element name for editors.
+        /// </summary>
+        public string Name { get; set; }
+
         public Robot()
         {
             Always0xABCD = 0xABCD;
             ContainsType = 7;
             WeaponTypeSecondary = -1;
+            Name = "";
         }
 
         public Robot(Robot other)

@@ -217,6 +217,10 @@ namespace LibDescent.Data
         public int BaseTexture { get; set; }
 
         public int ID;
+        /// <summary>
+        /// An optional element name for editors.
+        /// </summary>
+        public string Name { get; set; } = "";
 
         public Polymodel(int numSubobjects)
         {

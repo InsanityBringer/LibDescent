@@ -19,9 +19,6 @@ namespace LibDescent.Edit
         public List<ReplacedBitmapElement> ReplacedObjBitmaps { get; private set; }
         public List<ReplacedBitmapElement> ReplacedObjBitmapPtrs { get; private set; }
 
-        public List<string> RobotNames { get; private set; }
-        public List<string> ModelNames { get; private set; }
-
         public EditorHXMFile(HXMFile baseFile, EditorHAMFile baseHAM)
         {
             this.BaseFile = baseFile;
@@ -31,9 +28,6 @@ namespace LibDescent.Edit
             ReplacedModels = new List<Polymodel>();
             ReplacedObjBitmaps = new List<ReplacedBitmapElement>();
             ReplacedObjBitmapPtrs = new List<ReplacedBitmapElement>();
-
-            RobotNames = new List<string>();
-            ModelNames = new List<string>();
         }
 
         public EditorHXMFile(EditorHAMFile baseHAM) : this(new HXMFile(), baseHAM)
@@ -87,7 +81,7 @@ namespace LibDescent.Edit
                 clip = BaseHAM.EClips[i];
                 if (clip.ChangingObjectTexture != -1)
                 {
-                    EClipNames.Add(clip.ChangingObjectTexture, BaseHAM.EClipNames[i]);
+                    EClipNames.Add(clip.ChangingObjectTexture, clip.Name);
                 }
             }
             ushort bitmap; string name;
@@ -204,32 +198,17 @@ namespace LibDescent.Edit
         {
             for (int i = 0; i < ReplacedRobots.Count; i++)
             {
-                RobotNames.Add(string.Format("Replaced Robot {0}", i));
+                ReplacedRobots[i].Name = string.Format("Replaced Robot {0}", i);
             }
             for (int i = 0; i < ReplacedModels.Count; i++)
             {
-                ModelNames.Add(string.Format("Replaced Model {0}", i));
+                ReplacedModels[i].Name = string.Format("Replaced Model {0}", i);
             }
         }
 
         //---------------------------------------------------------------------
         // UTILITY FUNCTIONS
         //---------------------------------------------------------------------
-
-        public int AddRobot()
-        {
-            ReplacedRobots.Add(new Robot());
-            RobotNames.Add("New Robot");
-            return ReplacedRobots.Count - 1;
-        }
-
-        public int AddModel()
-        {
-            Polymodel newModel = new Polymodel();
-            ReplacedModels.Add(newModel);
-            ModelNames.Add("New Model");
-            return ReplacedModels.Count - 1;
-        }
 
         /// <summary>
         /// Counts the amount of textures present in a model that aren't present in the parent file.
@@ -331,7 +310,7 @@ namespace LibDescent.Edit
             {
                 clip = BaseHAM.EClips[i];
                 if (clip.ChangingObjectTexture != -1)
-                    textureMapping.Add(BaseHAM.EClipNames[i], clip.ChangingObjectTexture);
+                    textureMapping.Add(clip.Name, clip.ChangingObjectTexture);
             }
             //If augment file, add augment obj bitmaps
             if (AugmentFile != null)
@@ -542,18 +521,18 @@ namespace LibDescent.Edit
             {
                 for (int i = 0; i < ReplacedRobots.Count; i++)
                 {
-                    if (ReplacedRobots[i].replacementID == id) return RobotNames[i];
+                    if (ReplacedRobots[i].replacementID == id) return ReplacedRobots[i].Name;
                 }
             }
             if (AugmentFile != null && id >= VHAMFile.NumDescent2RobotTypes)
             {
-                if (id - VHAMFile.NumDescent2RobotTypes >= AugmentFile.RobotNames.Count)
+                if (id - VHAMFile.NumDescent2RobotTypes >= AugmentFile.Robots.Count)
                     return string.Format("Unallocated #{0}", id);
-                return AugmentFile.RobotNames[id - VHAMFile.NumDescent2RobotTypes];
+                return AugmentFile.Robots[id - VHAMFile.NumDescent2RobotTypes].Name;
             }
-            if (id >= BaseHAM.RobotNames.Count)
+            if (id >= BaseHAM.Robots.Count)
                 return string.Format("Unallocated #{0}", id);
-            return BaseHAM.RobotNames[id];
+            return BaseHAM.Robots[id].Name;
         }
 
         /// <summary>
@@ -583,8 +562,8 @@ namespace LibDescent.Edit
         public string GetWeaponName(int id)
         {
             if (AugmentFile != null && id >= VHAMFile.NumDescent2WeaponTypes)
-                return AugmentFile.WeaponNames[id - VHAMFile.NumDescent2WeaponTypes];
-            return BaseHAM.WeaponNames[id];
+                return AugmentFile.Weapons[id - VHAMFile.NumDescent2WeaponTypes].Name;
+            return BaseHAM.Weapons[id].Name;
         }
 
         public Weapon GetWeapon(int id)
@@ -609,18 +588,18 @@ namespace LibDescent.Edit
             {
                 for (int i = 0; i < ReplacedModels.Count; i++)
                 {
-                    if (ReplacedModels[i].ReplacementID == id) return ModelNames[i];
+                    if (ReplacedModels[i].ReplacementID == id) return ReplacedModels[i].Name;
                 }
             }
             if (AugmentFile != null && id >= VHAMFile.NumDescent2Polymodels)
             {
-                if (id - VHAMFile.NumDescent2Polymodels >= AugmentFile.ModelNames.Count)
+                if (id - VHAMFile.NumDescent2Polymodels >= AugmentFile.Models.Count)
                     return string.Format("Unallocated #{0}", id);
-                return AugmentFile.ModelNames[id - VHAMFile.NumDescent2Polymodels];
+                return AugmentFile.Models[id - VHAMFile.NumDescent2Polymodels].Name;
             }
-            if (id >= BaseHAM.ModelNames.Count)
+            if (id >= BaseHAM.Models.Count)
                 return string.Format("Unallocated #{0}", id);
-            return BaseHAM.ModelNames[id];
+            return BaseHAM.Models[id].Name;
         }
 
         public Polymodel GetModel(int id)
