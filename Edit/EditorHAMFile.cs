@@ -515,6 +515,12 @@ namespace LibDescent.Edit
                 if (weapon.Children < -1 || weapon.Children >= Weapons.Count)
                     weapon.Children = -1;
             }
+
+            for (int i = 0; i < 2620; i++)
+            {
+                if (BitmapXLATData[i] > piggyFile.Bitmaps.Count)
+                    BitmapXLATData[i] = 0;
+            }
         }
         /// <summary>
         /// Transfers the gun information from the player ship to a Polymodel instance.
