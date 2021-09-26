@@ -129,7 +129,7 @@ namespace LibDescent.Data
         /// <summary>
         /// The player ship.
         /// </summary>
-        public Ship PlayerShip;
+        public Ship PlayerShip { get; set; } = new Ship();
         /// <summary>
         /// Number of Cockpits considered used by this PIG file.
         /// </summary>

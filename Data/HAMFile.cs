@@ -107,7 +107,7 @@ namespace LibDescent.Data
         /// <summary>
         /// The player ship.
         /// </summary>
-        public Ship PlayerShip;
+        public Ship PlayerShip { get; set; } = new Ship();
         /// <summary>
         /// List of piggy IDs for all heads-up display modes.
         /// </summary>
