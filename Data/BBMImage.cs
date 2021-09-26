@@ -43,7 +43,7 @@ namespace LibDescent.Data
         /// <summary>
         /// The type of this BBM image.
         /// </summary>
-        public BBMType Type { get; private set; }
+        public BBMType Type { get; protected set; } //[ISB] ew, didn't really want ot make this protected but ABMImage::Read needs to access it. 
         /// <summary>
         /// Number of bitplanes. Always 8 for Descent images.
         /// </summary>
@@ -86,7 +86,7 @@ namespace LibDescent.Data
                 Palette[i] = new Color(i == TransparentColor ? 0 : 255, i, i, i);
         }
 
-        private void ReadBMHD(BinaryReaderBE br)
+        protected void ReadBMHD(BinaryReaderBE br)
         {
             Width = br.ReadInt16();
             Height = br.ReadInt16();
@@ -94,7 +94,8 @@ namespace LibDescent.Data
             NumPlanes = br.ReadByte();
             Mask = (BBMMask)br.ReadByte();
             Compression = (BBMCompression)br.ReadByte();
-            /* pad = */ br.ReadByte();
+            /* pad = */
+            br.ReadByte();
             TransparentColor = br.ReadInt16();
             short aspectRatio = br.ReadInt16();
             short pageWidth = br.ReadInt16();
@@ -111,7 +112,7 @@ namespace LibDescent.Data
                 Palette[i] = new Color(Mask == BBMMask.TransparentColor && i == TransparentColor ? 0 : 255, Palette[i].R, Palette[i].G, Palette[i].B);
         }
 
-        private void ReadCMAP(BinaryReaderBE br, uint length)
+        protected void ReadCMAP(BinaryReaderBE br, uint length)
         {
             int nColors = (int)(length / 3);
             for (int i = 0; i < nColors; ++i)
@@ -170,7 +171,7 @@ namespace LibDescent.Data
             Data = newData;
         }
 
-        private void ReadBODY(BinaryReaderBE br, uint length)
+        protected void ReadBODY(BinaryReaderBE br, uint length)
         {
             int stride, depth;
             switch (Type)
@@ -213,7 +214,7 @@ namespace LibDescent.Data
                     {
                         int rowPixelsEnd = -(stride & 1), runLength;
                         byte rleByte, runByte;
-                        for (int rowPixels = stride, plane = 0; i < inData.Length && j < Data.Length; )
+                        for (int rowPixels = stride, plane = 0; i < inData.Length && j < Data.Length;)
                         {
                             if (rowPixels == rowPixelsEnd)
                             {
@@ -267,7 +268,7 @@ namespace LibDescent.Data
         /// Loads a BBM image from a stream.
         /// </summary>
         /// <param name="stream">The stream to load from.</param>
-        public void Read(Stream stream)
+        public virtual void Read(Stream stream)
         {
             using (BinaryReaderBE br = new BinaryReaderBE(stream))
             {
@@ -671,5 +672,161 @@ namespace LibDescent.Data
     internal enum PackBitsType : byte
     {
         Literal, Repeat
+    }
+
+    public class ABMImage : BBMImage
+    {
+        public List<byte[]> Frames { get; private set; } = new List<byte[]>();
+
+        public ABMImage() : base()
+        {
+        }
+
+        public ABMImage(short w, short h) : base(w, h)
+        {
+        }
+
+        private void ReadANHD(BinaryReaderBE br)
+        {
+            byte deltaMode = br.ReadByte();
+            if (deltaMode != 0)
+                throw new ArgumentException("Only replace delta supported in ABM files");
+            byte mask = br.ReadByte();
+            short xorw = br.ReadInt16();
+            short xorh = br.ReadInt16();
+            short xorx = br.ReadInt16();
+            short xory = br.ReadInt16();
+            int absTime = br.ReadInt32();
+            int relTime = br.ReadInt32();
+            byte interleave = br.ReadByte();
+            byte pad = br.ReadByte();
+            int flags = br.ReadInt32();
+            br.ReadBytes(16); //padding
+        }
+
+        public override void Read(Stream stream)
+        {
+            //TODO: This only losely conforms to the ABM specification, enough to load images exported by D2W.
+            //I should be able to at least improve it to the same parity level of Descent's own ABM importer. 
+            using (BinaryReaderBE br = new BinaryReaderBE(stream))
+            {
+                stream.Seek(0, SeekOrigin.Begin);
+                if (Encoding.ASCII.GetString(br.ReadBytes(4)) != "FORM")
+                    throw new ArgumentException("Not a valid .ABM");
+                int dataSize = br.ReadInt32();
+
+                string formatID = Encoding.ASCII.GetString(br.ReadBytes(4));
+                if (formatID != "ANIM")
+                    throw new ArgumentException("Unsupported .ABM format");
+
+                //Read the first embedded image
+                if (Encoding.ASCII.GetString(br.ReadBytes(4)) != "FORM")
+                    throw new ArgumentException("Not a valid .BBM in .ABM");
+                int bbmDataSize = br.ReadInt32();
+                long bbmHeaderStart = br.BaseStream.Position;
+
+                string bbmFormatID = Encoding.ASCII.GetString(br.ReadBytes(4));
+                if (bbmFormatID == "PBM ")
+                    Type = BBMType.PBM;
+                else if (bbmFormatID == "ILBM")
+                    Type = BBMType.ILBM;
+                else
+                    throw new ArgumentException("Unsupported .BBM format in .ABM");
+
+                if (Encoding.ASCII.GetString(br.ReadBytes(4)) != "BMHD")
+                    throw new ArgumentException("Invalid BBM embedded in ABM");
+                int headerSize = br.ReadInt32();
+                ReadBMHD(br);
+
+                string chunkID;
+                uint lenChunk;
+                while (br.BaseStream.Position < bbmHeaderStart + bbmDataSize)
+                {
+                    chunkID = Encoding.ASCII.GetString(br.ReadBytes(4));
+                    if (chunkID.Length < 4) break;
+                    lenChunk = br.ReadUInt32();
+
+                    switch (chunkID)
+                    {
+                        case "CMAP": // palette
+                            ReadCMAP(br, lenChunk);
+                            break;
+                        case "BODY": // image data
+                            try
+                            {
+                                ReadBODY(br, lenChunk);
+                            }
+                            catch (IndexOutOfRangeException)
+                            {
+                                throw new EndOfStreamException();
+                            }
+                            break;
+                        case "TINY": // thumbnail
+                        case "GRAB": // cursor info
+                        case "CRNG": // color range
+                        default:
+                            br.BaseStream.Seek(lenChunk, SeekOrigin.Current);
+                            break;
+                    }
+
+                    if ((lenChunk & 1) != 0)
+                        br.ReadByte(); // skip one pad byte
+                }
+
+                Frames.Add(Data);
+                //Read embedded frames
+                while (true)
+                {
+                    string frameID = Encoding.ASCII.GetString(br.ReadBytes(4));
+                    if (frameID.Length < 4) break; //got all the frames
+
+                    if (frameID != "FORM")
+                        throw new ArgumentException("Not a valid .ABM frame");
+                    int frameDataSize = br.ReadInt32();
+                    long frameHeaderStart = br.BaseStream.Position;
+
+                    string frameFormatID = Encoding.ASCII.GetString(br.ReadBytes(4));
+                    if (frameFormatID == "PBM ")
+                        Type = BBMType.PBM;
+                    else if (frameFormatID == "ILBM")
+                        Type = BBMType.ILBM;
+                    else
+                        throw new ArgumentException("Unsupported .BBM format in .ABM frame");
+
+                    while (br.BaseStream.Position < frameDataSize + frameHeaderStart)
+                    {
+                        chunkID = Encoding.ASCII.GetString(br.ReadBytes(4));
+                        if (chunkID.Length < 4) break;
+                        lenChunk = br.ReadUInt32();
+
+                        switch (chunkID)
+                        {
+                            case "ANHD": // animation header
+                                ReadANHD(br);
+                                break;
+                            case "BODY": // image data
+                                try
+                                {
+                                    ReadBODY(br, lenChunk);
+                                }
+                                catch (IndexOutOfRangeException)
+                                {
+                                    throw new EndOfStreamException();
+                                }
+                                break;
+
+                            default:
+                                br.BaseStream.Seek(lenChunk, SeekOrigin.Current);
+                                break;
+                        }
+
+                        if ((lenChunk & 1) != 0)
+                            br.ReadByte(); // skip one pad byte
+                    }
+
+                    Frames.Add(Data);
+                }
+            }
+        }
     }
 }
