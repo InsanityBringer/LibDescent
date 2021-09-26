@@ -97,7 +97,6 @@ namespace LibDescent.Data
                             submodel.Offset = ReadVector(br);
                             submodel.Radius = new Fix(br.ReadInt32());
                             submodel.Pointer = br.ReadInt32();
-                            model.Submodels.Add(submodel);
                             if (submodel.Parent != 255)
                             {
                                 model.Submodels[submodel.Parent].Children.Add(submodel);
