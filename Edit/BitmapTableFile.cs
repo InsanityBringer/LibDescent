@@ -137,7 +137,7 @@ namespace LibDescent.Edit
                 TableWriteReactor(datafile, stringBuilder, reactor);
             }
             TableWritePlayerShip(datafile, stringBuilder, datafile.PlayerShip, piggyFile);
-            for (int i = 0; i < datafile.Sounds.Count; i++)
+            for (int i = 0; i < datafile.Sounds.Length; i++)
                 TableWriteSound(datafile, stringBuilder, i, sndFile);
             //stringBuilder.Append("\n");
             TableWriteCockpits(datafile, stringBuilder, piggyFile); //stringBuilder.Append("\n");
@@ -469,7 +469,7 @@ namespace LibDescent.Edit
                 stringBuilder.AppendFormat("fire_count={0} ", weapon.FireCount);
                 stringBuilder.AppendFormat("flash_vclip={0} ", weapon.MuzzleFlashVClip);
                 if (weapon.Persistent)
-                    stringBuilder.Append("persistent=1");
+                    stringBuilder.Append("persistent=1 ");
                 if (weapon.HomingFlag)
                     stringBuilder.Append("homing=1 ");
                 if (weapon.Flags != 0)
