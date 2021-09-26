@@ -53,11 +53,11 @@ namespace LibDescent.Data
         /// <summary>
         /// List of sound IDs.
         /// </summary>
-        public List<byte> Sounds { get; private set; }
+        public byte[] Sounds { get; private set; } = new byte[254];
         /// <summary>
         /// List to remap given sounds into other sounds when Descent is run in low memory mode.
         /// </summary>
-        public List<byte> AltSounds { get; private set; }
+        public byte[] AltSounds { get; private set; } = new byte[254];
         /// <summary>
         /// List of all VClip animations.
         /// </summary>
@@ -137,8 +137,6 @@ namespace LibDescent.Data
         {
             Textures = new List<ushort>();
             TMapInfo = new List<TMAPInfo>();
-            Sounds = new List<byte>();
-            AltSounds = new List<byte>();
             VClips = new List<VClip>();
             EClips = new List<EClip>();
             WClips = new List<WClip>();
@@ -192,13 +190,16 @@ namespace LibDescent.Data
             }
             
             int NumSounds = br.ReadInt32();
+            if (NumSounds > 254)
+                throw new InvalidDataException("HAM file specifies more than 254 sounds.");
+
             for (int x = 0; x < NumSounds; x++)
             {
-                Sounds.Add(br.ReadByte());
+                Sounds[x] = br.ReadByte();
             }
             for (int x = 0; x < NumSounds; x++)
             {
-                AltSounds.Add(br.ReadByte());
+                AltSounds[x] = br.ReadByte();
             }
             
             int NumVClips = br.ReadInt32();
@@ -401,13 +402,14 @@ namespace LibDescent.Data
                 writer.WriteTMAPInfo(texture, bw);
             }
 
-            bw.Write(Sounds.Count);
-            for (int x = 0; x < Sounds.Count; x++)
+            //Always write 254 sounds, for convenience. 
+            bw.Write(254);
+            for (int x = 0; x < Sounds.Length; x++)
             {
                 byte sound = Sounds[x];
                 bw.Write(sound);
             }
-            for (int x = 0; x < Sounds.Count; x++)
+            for (int x = 0; x < Sounds.Length; x++)
             {
                 byte sound = AltSounds[x];
                 bw.Write(sound);

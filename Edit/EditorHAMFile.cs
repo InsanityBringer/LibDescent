@@ -28,11 +28,11 @@ namespace LibDescent.Edit
         /// <summary>
         /// List of sound IDs.
         /// </summary>
-        public List<byte> Sounds { get; private set; }
+        public byte[] Sounds { get; private set; } = new byte[254];
         /// <summary>
         /// List to remap given sounds into other sounds when Descent is run in low memory mode.
         /// </summary>
-        public List<byte> AltSounds { get; private set; }
+        public byte[] AltSounds { get; private set; } = new byte[254];
         /// <summary>
         /// List of all VClip animations.
         /// </summary>
@@ -129,8 +129,6 @@ namespace LibDescent.Edit
 
             Textures = new List<ushort>();
             TMapInfo = new List<TMAPInfo>();
-            Sounds = new List<byte>();
-            AltSounds = new List<byte>();
             VClips = new List<VClip>();
             EClips = new List<EClip>();
             WClips = new List<WClip>();
@@ -229,10 +227,10 @@ namespace LibDescent.Edit
                 Textures.Add(texture);
             foreach (TMAPInfo tmapInfo in BaseFile.TMapInfo)
                 TMapInfo.Add(tmapInfo);
-            foreach (byte sound in BaseFile.Sounds)
-                Sounds.Add(sound);
-            foreach (byte sound in BaseFile.AltSounds)
-                AltSounds.Add(sound);
+
+            Array.Copy(BaseFile.Sounds, Sounds, 254);
+            Array.Copy(BaseFile.AltSounds, AltSounds, 254);
+
             foreach (VClip clip in BaseFile.VClips)
                 VClips.Add(clip);
             foreach (EClip clip in BaseFile.EClips)
@@ -319,12 +317,12 @@ namespace LibDescent.Edit
             }
             foreach (VClip clip in VClips)
             {
-                if (clip.SoundNum < -1 || clip.SoundNum >= Sounds.Count)
+                if (clip.SoundNum < -1 || clip.SoundNum >= Sounds.Length)
                     clip.SoundNum = -1;
             }
             foreach (EClip clip in EClips)
             {
-                if (clip.SoundNum < -1 || clip.SoundNum >= Sounds.Count)
+                if (clip.SoundNum < -1 || clip.SoundNum >= Sounds.Length)
                     clip.SoundNum = -1;
                 if (clip.ExplosionEClip < -1 || clip.ExplosionEClip >= EClips.Count)
                     clip.ExplosionEClip = -1;
@@ -335,9 +333,9 @@ namespace LibDescent.Edit
             }
             foreach (WClip clip in WClips)
             {
-                if (clip.OpenSound < -1 || clip.OpenSound >= Sounds.Count)
+                if (clip.OpenSound < -1 || clip.OpenSound >= Sounds.Length)
                     clip.OpenSound = -1;
-                if (clip.CloseSound < -1 || clip.CloseSound >= Sounds.Count)
+                if (clip.CloseSound < -1 || clip.CloseSound >= Sounds.Length)
                     clip.CloseSound = -1;
                 for (int i = 0; i < 50; i++)
                 {
@@ -347,11 +345,11 @@ namespace LibDescent.Edit
             }
             foreach (Robot robot in Robots)
             {
-                if (robot.HitSoundNum < -1 || robot.HitSoundNum >= Sounds.Count)
+                if (robot.HitSoundNum < -1 || robot.HitSoundNum >= Sounds.Length)
                     robot.HitSoundNum = -1;
                 if (robot.HitVClipNum < -1 || robot.HitVClipNum >= VClips.Count)
                     robot.HitVClipNum = -1;
-                if (robot.DeathSoundNum < -1 || robot.DeathSoundNum >= Sounds.Count)
+                if (robot.DeathSoundNum < -1 || robot.DeathSoundNum >= Sounds.Length)
                     robot.DeathSoundNum = -1;
                 if (robot.DeathVClipNum < -1 || robot.DeathVClipNum >= VClips.Count)
                     robot.DeathVClipNum = -1;
@@ -374,15 +372,15 @@ namespace LibDescent.Edit
                     if (robot.ContainsID < 0 || robot.ContainsID > Powerups.Count)
                         robot.ContainsID = 0;
                 }
-                if (robot.SeeSound < 0 || robot.SeeSound >= Sounds.Count)
+                if (robot.SeeSound < 0 || robot.SeeSound >= Sounds.Length)
                     robot.SeeSound = 0;
-                if (robot.AttackSound < 0 || robot.AttackSound >= Sounds.Count)
+                if (robot.AttackSound < 0 || robot.AttackSound >= Sounds.Length)
                     robot.AttackSound = 0;
-                if (robot.ClawSound < 0 || robot.ClawSound >= Sounds.Count)
+                if (robot.ClawSound < 0 || robot.ClawSound >= Sounds.Length)
                     robot.ClawSound = 0;
-                if (robot.TauntSound < 0 || robot.TauntSound >= Sounds.Count)
+                if (robot.TauntSound < 0 || robot.TauntSound >= Sounds.Length)
                     robot.TauntSound = 0;
-                if (robot.DeathRollSound < 0 || robot.DeathRollSound >= Sounds.Count)
+                if (robot.DeathRollSound < 0 || robot.DeathRollSound >= Sounds.Length)
                     robot.DeathRollSound = 0;
                 if (robot.Behavior != 0 && (robot.Behavior < RobotAIType.Still || robot.Behavior > RobotAIType.Follow)) //0 required for demo data
                     robot.Behavior = RobotAIType.Still;
@@ -404,11 +402,11 @@ namespace LibDescent.Edit
                 if (weapon.WeaponVClip < -1 || weapon.WeaponVClip >= VClips.Count)
                     weapon.WeaponVClip = -1;
 
-                if (weapon.FiringSound < -1 || weapon.FiringSound >= Sounds.Count)
+                if (weapon.FiringSound < -1 || weapon.FiringSound >= Sounds.Length)
                     weapon.FiringSound = -1;
-                if (weapon.RobotHitSound < -1 || weapon.RobotHitSound >= Sounds.Count)
+                if (weapon.RobotHitSound < -1 || weapon.RobotHitSound >= Sounds.Length)
                     weapon.RobotHitSound = -1;
-                if (weapon.WallHitSound < -1 || weapon.WallHitSound >= Sounds.Count)
+                if (weapon.WallHitSound < -1 || weapon.WallHitSound >= Sounds.Length)
                     weapon.WallHitSound = -1;
 
                 if (weapon.Children < -1 || weapon.Children >= Weapons.Count)
@@ -615,7 +613,7 @@ namespace LibDescent.Edit
                 Robots[i].Name = ElementLists.GetRobotName(i);
             for (int i = 0; i < BaseFile.Weapons.Count; i++)
                 Weapons[i].Name = ElementLists.GetWeaponName(i);
-            for (int i = 0; i < BaseFile.Sounds.Count; i++)
+            for (int i = 0; i < BaseFile.Sounds.Length; i++)
                 SoundNames.Add(ElementLists.GetSoundName(i));
             if (BaseFile.Version >= 3)
             {
@@ -673,12 +671,12 @@ namespace LibDescent.Edit
             BaseFile.TMapInfo.Clear();
             foreach (TMAPInfo tmapInfo in TMapInfo)
                 BaseFile.TMapInfo.Add(tmapInfo);
-            BaseFile.Sounds.Clear();
-            foreach (byte sound in Sounds)
-                BaseFile.Sounds.Add(sound);
-            BaseFile.AltSounds.Clear();
-            foreach (byte sound in AltSounds)
-                BaseFile.AltSounds.Add(sound);
+
+            for (int i = 0; i < 254; i++)
+                BaseFile.Sounds[i] = Sounds[i];
+
+            for (int i = 0; i < 254; i++)
+                BaseFile.AltSounds[i] = AltSounds[i];
             BaseFile.VClips.Clear();
             foreach (VClip clip in VClips)
                 BaseFile.VClips.Add(clip);
