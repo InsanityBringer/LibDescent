@@ -30,11 +30,9 @@ namespace LibDescent.Data
     {
         public List<PIGImage> Bitmaps { get; }
         private long startptr = 0L;
-        private int header, version;
 
         public PIGFile()
         {
-            version = 2;
             Bitmaps = new List<PIGImage>(2620);
             //Init a bogus texture for all piggyfiles
             PIGImage bogusTexture = new PIGImage(64, 64, 0, 0, 0, 0, "bogus", 0);
@@ -56,8 +54,8 @@ namespace LibDescent.Data
         {
             BinaryReader br = new BinaryReader(stream);
 
-            header = br.ReadInt32();
-            version = br.ReadInt32();
+            int header = br.ReadInt32();
+            int version = br.ReadInt32();
 
             if (header != 1195987024)
             {
@@ -121,8 +119,8 @@ namespace LibDescent.Data
         {
             BinaryWriter bw = new BinaryWriter(stream);
             int offset = 0;
-            bw.Write(header);
-            bw.Write(version);
+            bw.Write(1195987024);
+            bw.Write(2);
             bw.Write(Bitmaps.Count-1); //Start from 1 to avoid writing the bogus image
             for (int i = 1; i < Bitmaps.Count; i++)
             {
