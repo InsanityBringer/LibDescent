@@ -49,7 +49,7 @@ namespace LibDescent.Data
         /// <summary>
         /// ID of the texture changed to when shot, -1 if indestructable.
         /// </summary>
-        public short DestroyedID { get; set; }
+        public short DestroyedID { get; set; } = -1;
         /// <summary>
         /// Amount the texture slides in the U axis per second, in 8:8 fixed.
         /// </summary>
