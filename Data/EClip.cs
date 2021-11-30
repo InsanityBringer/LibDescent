@@ -92,6 +92,7 @@ namespace LibDescent.Data
             CriticalClip = -1;
             DestroyedBitmapNum = -1;
             SoundNum = -1;
+            ChangingObjectTexture = ChangingWallTexture = -1;
             Name = "";
         }
     }
