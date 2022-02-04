@@ -81,7 +81,7 @@ namespace LibDescent.Edit
                 clip = BaseHAM.EClips[i];
                 if (clip.ChangingObjectTexture != -1)
                 {
-                    EClipNames.Add(clip.ChangingObjectTexture, clip.Name);
+                    EClipNames.Add(clip.ChangingObjectTexture, clip.Name.ToLower());
                 }
             }
             ushort bitmap; string name;
@@ -303,14 +303,14 @@ namespace LibDescent.Edit
             {
                 img = BaseHAM.piggyFile.GetImage(BaseHAM.BaseFile.ObjBitmaps[i]);
                 if (!img.IsAnimated && !textureMapping.ContainsKey(img.Name))
-                    textureMapping.Add(img.Name, i);
+                    textureMapping.Add(img.Name.ToLower(), i);
             }
             //Add EClip names
             for (int i = 0; i < BaseHAM.EClips.Count; i++)
             {
                 clip = BaseHAM.EClips[i];
                 if (clip.ChangingObjectTexture != -1)
-                    textureMapping.Add(clip.Name, clip.ChangingObjectTexture);
+                    textureMapping.Add(clip.Name.ToLower(), clip.ChangingObjectTexture);
             }
             //If augment file, add augment obj bitmaps
             if (AugmentFile != null)
@@ -318,8 +318,8 @@ namespace LibDescent.Edit
                 for (int i = 0; i < AugmentFile.ObjBitmaps.Count; i++)
                 {
                     img = BaseHAM.piggyFile.GetImage(AugmentFile.ObjBitmaps[i]);
-                    if (!textureMapping.ContainsKey(img.Name))
-                        textureMapping.Add(img.Name, i + VHAMFile.NumDescent2ObjBitmaps);
+                    if (!textureMapping.ContainsKey(img.Name.ToLower()))
+                        textureMapping.Add(img.Name.ToLower(), i + VHAMFile.NumDescent2ObjBitmaps);
                 }
             }
 
@@ -340,7 +340,7 @@ namespace LibDescent.Edit
                 //Find the unique textures in this model
                 for (int j = 0; j < model.TextureList.Count; j++)
                 {
-                    texName = model.TextureList[j];
+                    texName = model.TextureList[j].ToLower();
                     if (!textureMapping.ContainsKey(texName))
                         newTextures.Add(BaseHAM.piggyFile.GetBitmapIDFromName(texName));
                 }
@@ -362,8 +362,8 @@ namespace LibDescent.Edit
             {
                 bm = ReplacedObjBitmaps[i];
                 img = BaseHAM.piggyFile.GetImage(bm.Data);
-                if (!textureMapping.ContainsKey(img.Name))
-                    textureMapping.Add(img.Name, bm.ReplacementID);
+                if (!textureMapping.ContainsKey(img.Name.ToLower()))
+                    textureMapping.Add(img.Name.ToLower(), bm.ReplacementID);
             }
 
             //Final stage: generate new ObjBitmapPointers
@@ -374,9 +374,10 @@ namespace LibDescent.Edit
 
                 foreach (string texture in model.TextureList)
                 {
+                    string ltexture = texture.ToLower();
                     ReplacedBitmapElement elem;
-                    if (textureMapping.ContainsKey(texture))
-                        elem.Data = (ushort)textureMapping[texture];
+                    if (textureMapping.ContainsKey(ltexture))
+                        elem.Data = (ushort)textureMapping[ltexture];
                     else
                         elem.Data = 0;
                     elem.ReplacementID = replacedNum;

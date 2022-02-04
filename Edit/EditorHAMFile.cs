@@ -527,8 +527,8 @@ namespace LibDescent.Edit
                 clip = EClips[i];
                 if (clip.ChangingObjectTexture != -1)
                 {
-                    EClipNames.Add(clip.ChangingObjectTexture, this.EClips[i].Name);
-                    ObjBitmapMapping.Add(this.EClips[i].Name, clip.ChangingObjectTexture);
+                    EClipNames.Add(clip.ChangingObjectTexture, this.EClips[i].Name.ToLower());
+                    ObjBitmapMapping.Add(this.EClips[i].Name.ToLower(), clip.ChangingObjectTexture);
                 }
             }
             ushort bitmap; string name;
