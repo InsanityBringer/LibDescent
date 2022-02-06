@@ -116,8 +116,23 @@ namespace LibDescent.Data
             else
             {
                 //Get the child and remove it from the front
-                int child = data.ChildrenList[0];
-                data.ChildrenList.RemoveAt(0);
+                //int child = data.ChildrenList[0];
+                //data.ChildrenList.RemoveAt(0);
+
+                //Prefer closer objects first, to try to make sorting more reliable in complex situations. 
+                int childIndex = 0;
+                Fix bestLength = 32700.0;
+                for (int i = 0; i < data.ChildrenList.Count; i++)
+                {
+                    Fix dist = (currentModel.Submodels[data.ChildrenList[i]].Point - submodel.Point).Mag();
+                    if (dist < bestLength)
+                    {
+                        childIndex = i;
+                    }
+                }
+
+                int child = data.ChildrenList[childIndex];
+                data.ChildrenList.RemoveAt(childIndex);
 
                 //Generate a sortnorm instruction
                 MetaSortInstruction instruction = new MetaSortInstruction();
