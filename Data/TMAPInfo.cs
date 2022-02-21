@@ -19,6 +19,7 @@
     OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
     SOFTWARE.
 */
+using System;
 
 namespace LibDescent.Data
 {
@@ -61,7 +62,8 @@ namespace LibDescent.Data
         public int ID;
 
         //Descent 1 extra data
-        public byte[] filename { get; } = new byte[13];
+        //TODO: this needs to be a string
+        public byte[] filename { get; private set; } = new byte[13];
 
         //Flag properties
         /// <summary>
@@ -169,6 +171,14 @@ namespace LibDescent.Data
                 else
                     Flags = (byte)(Flags & ~TMI_GOAL_HOARD);
             }
+        }
+
+        public TMAPInfo Clone()
+        {
+            TMAPInfo info = (TMAPInfo)MemberwiseClone();
+            info.filename = new byte[13];
+            Array.Copy(filename, info.filename, 13);
+            return info;
         }
     }
 }

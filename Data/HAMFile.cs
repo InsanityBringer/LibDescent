@@ -154,6 +154,89 @@ namespace LibDescent.Data
             BitmapXLATData = new ushort[2620];
         }
 
+        /// <summary>
+        /// Creates a deep copy of the HAMFile. 
+        /// </summary>
+        /// <returns></returns>
+        public HAMFile Clone()
+        {
+            HAMFile datafile = (HAMFile)MemberwiseClone();
+            datafile.Textures = new List<ushort>();
+            foreach (ushort texture in Textures)
+                datafile.Textures.Add(texture);
+
+            datafile.TMapInfo = new List<TMAPInfo>();
+            foreach (TMAPInfo tmapInfo in TMapInfo)
+                datafile.TMapInfo.Add(tmapInfo.Clone());
+
+            datafile.Sounds = (byte[])Sounds.Clone();
+            datafile.AltSounds = (byte[])AltSounds.Clone();
+
+            datafile.VClips = new List<VClip>();
+            foreach (VClip clip in VClips)
+                datafile.VClips.Add(clip.Clone());
+
+            datafile.EClips = new List<EClip>();
+            foreach (EClip clip in EClips)
+                datafile.EClips.Add(clip.Clone());
+
+            datafile.WClips = new List<WClip>();
+            foreach (WClip clip in WClips)
+                datafile.WClips.Add(clip.Clone());
+
+            datafile.Robots = new List<Robot>();
+            foreach (Robot robot in Robots)
+                datafile.Robots.Add(robot.Clone());
+
+            datafile.Joints = new List<JointPos>();
+            foreach (JointPos joint in Joints)
+                datafile.Joints.Add(joint); //This doesn't need a clone since JointPos is a structure
+
+            datafile.Weapons = new List<Weapon>();
+            foreach (Weapon weapon in Weapons)
+                datafile.Weapons.Add(weapon.Clone());
+
+            datafile.Models = new List<Polymodel>();
+            foreach (Polymodel model in Models)
+                datafile.Models.Add(model.Clone());
+
+            datafile.Gauges = new List<ushort>();
+            foreach (ushort gauge in Gauges)
+                datafile.Gauges.Add(gauge);
+
+            datafile.GaugesHires = new List<ushort>();
+            foreach (ushort gauge in GaugesHires)
+                datafile.GaugesHires.Add(gauge);
+
+            datafile.ObjBitmaps = new List<ushort>();
+            foreach (ushort bitmap in ObjBitmaps)
+                datafile.ObjBitmaps.Add(bitmap);
+
+            datafile.ObjBitmapPointers = new List<ushort>();
+            foreach (ushort bitmap in ObjBitmapPointers)
+                datafile.ObjBitmapPointers.Add(bitmap);
+
+            datafile.PlayerShip = PlayerShip.Clone();
+
+            datafile.Cockpits = new List<ushort>();
+            foreach (ushort cockpit in Cockpits)
+                datafile.Cockpits.Add(cockpit);
+
+            datafile.Reactors = new List<Reactor>();
+            foreach (Reactor reactor in Reactors)
+                datafile.Reactors.Add(reactor.Clone());
+
+            datafile.Powerups = new List<Powerup>();
+            foreach (Powerup powerup in Powerups)
+                datafile.Powerups.Add(powerup.Clone());
+
+            datafile.BitmapXLATData = (ushort[])BitmapXLATData.Clone();
+            if (sounddata != null)
+                datafile.sounddata = (byte[])sounddata.Clone();
+
+            return datafile;
+        }
+
         public void Read(Stream stream)
         {
             BinaryReader br;

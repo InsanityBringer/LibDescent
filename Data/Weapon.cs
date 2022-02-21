@@ -157,11 +157,11 @@ namespace LibDescent.Data
         /// <summary>
         /// How much damage it can inflict
         /// </summary>
-        public Fix[] Strength { get; } = new Fix[5];
+        public Fix[] Strength { get; private set; } = new Fix[5];
         /// <summary>
         /// How fast it can move, difficulty level based.
         /// </summary>
-        public Fix[] Speed { get; } = new Fix[5];
+        public Fix[] Speed { get; private set; } = new Fix[5];
         /// <summary>
         /// How much mass it has
         /// </summary>
@@ -217,7 +217,7 @@ namespace LibDescent.Data
             }
         }
 
-        public byte[] Padding { get; set; }
+        public byte[] Padding { get; set; } = new byte[3];
 
         public int ID;
 
@@ -238,50 +238,22 @@ namespace LibDescent.Data
             Name = "";
         }
 
-        public void CopyDataFrom(Weapon other, IElementManager manager)
+        public Weapon Clone()
         {
-            RenderType = other.RenderType;
-            ModelNum = other.ModelNum;
-            ModelNumInner = other.ModelNumInner;
-            MuzzleFlashVClip = other.MuzzleFlashVClip;
-            RobotHitVClip = other.RobotHitVClip;
-            FiringSound = other.FiringSound;
-            WallHitVClip = other.WallHitVClip;
-            FireCount = other.FireCount;
-            RobotHitSound = other.RobotHitSound;
-            AmmoUsage = other.AmmoUsage;
-            WeaponVClip = other.WeaponVClip;
-            WallHitSound = other.WallHitSound;
-            Bounce = other.Bounce;
-            SpeedVariance = other.SpeedVariance;
-            Flash = other.Flash;
-            AfterburnerSize = other.AfterburnerSize;
-            Children = other.Children;
-            EnergyUsage = other.EnergyUsage;
-            FireWait = other.FireWait;
-            MultiDamageScale = other.MultiDamageScale;
-            Destroyable = other.Destroyable;
-            Matter = other.Matter;
-            HomingFlag = other.HomingFlag;
-            Flags = other.Flags;
-            Bitmap = other.Bitmap;
-            BlobSize = other.BlobSize;
-            FlashSize = other.FlashSize;
-            ImpactSize = other.ImpactSize;
-            Mass = other.Mass;
-            Drag = other.Drag;
-            Thrust = other.Thrust;
-            POLenToWidthRatio = other.POLenToWidthRatio;
-            Light = other.Light;
-            Lifetime = other.Lifetime;
-            DamageRadius = other.DamageRadius;
-            CockpitPicture = other.CockpitPicture;
-            HiresCockpitPicture = other.HiresCockpitPicture;
+            Weapon weapon = (Weapon)MemberwiseClone();
+
+            weapon.Strength = new Fix[5];
+            weapon.Speed = new Fix[5];
+            //TODO why do I still have this
+            weapon.Padding = new byte[3];
+
             for (int i = 0; i < 5; i++)
             {
-                Strength[i] = other.Strength[i];
-                Speed[i] = other.Speed[i];
+                weapon.Strength[i] = Strength[i];
+                weapon.Speed[i] = Speed[i];
             }
+
+            return weapon;
         }
     }
 }

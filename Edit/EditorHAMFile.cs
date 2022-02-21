@@ -152,16 +152,53 @@ namespace LibDescent.Edit
         {
         }
 
+        /// <summary>
+        /// Creates a deep copy of the EditorHAMFile.
+        /// </summary>
+        /// <returns></returns>
+        public EditorHAMFile Clone()
+        {
+            EditorHAMFile datafile = (EditorHAMFile)MemberwiseClone();
+            datafile.BaseFile = BaseFile.Clone();
+
+            //CreateLocalLists and TranslateData will create deep copies of the generated lists, but new lists still need to be created
+            datafile.EClipNameMapping = new Dictionary<string, EClip>();
+            datafile.ObjBitmapMapping = new Dictionary<string, int>();
+            datafile.multiplayerBitmaps = new ushort[multiplayerBitmaps.Length];
+            datafile.Textures = new List<ushort>();
+            datafile.TMapInfo = new List<TMAPInfo>();
+            datafile.VClips = new List<VClip>();
+            datafile.EClips = new List<EClip>();
+            datafile.WClips = new List<WClip>();
+            datafile.Robots = new List<Robot>();
+            datafile.Joints = new List<JointPos>();
+            datafile.Weapons = new List<Weapon>();
+            datafile.Models = new List<Polymodel>();
+            datafile.Gauges = new List<ushort>();
+            datafile.GaugesHires = new List<ushort>();
+            datafile.ObjBitmaps = new List<ushort>();
+            datafile.ObjBitmapPointers = new List<ushort>();
+            datafile.Cockpits = new List<ushort>();
+            datafile.Reactors = new List<Reactor>();
+            datafile.Powerups = new List<Powerup>();
+            datafile.BitmapXLATData = new ushort[2620];
+            datafile.Sounds = new byte[254];
+            datafile.AltSounds = new byte[254];
+            datafile.SoundNames = new List<string>();
+
+            datafile.CreateLocalLists();
+            datafile.TranslateData();
+
+            foreach (string name in SoundNames)
+                datafile.SoundNames.Add(name);
+
+            return datafile;
+        }
+
+
         //---------------------------------------------------------------------
         // EDITING
         //---------------------------------------------------------------------
-
-        //This is all done with transactions now...
-        public int DeleteElement(HAMType type, int slot)
-        {
-            throw new NotImplementedException("whyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyy");
-            return -1;
-        }
 
         public void UpdateName(HAMType type, int element, string newName)
         {

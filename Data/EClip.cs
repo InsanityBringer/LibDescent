@@ -28,7 +28,7 @@ namespace LibDescent.Data
         /// <summary>
         /// Embedded vclip, contains information about the animation itself.
         /// </summary>
-        public VClip Clip { get; } = new VClip();
+        public VClip Clip { get; private set; } = new VClip();
         /// <summary>
         /// Time left for the current animation frame, useless for definitons.
         /// </summary>
@@ -85,15 +85,14 @@ namespace LibDescent.Data
         /// An optional element name for editors.
         /// </summary>
         public string Name { get; set; }
-        public EClip()
+
+        public EClip Clone()
         {
-            ExplosionVClip = -1;
-            ExplosionEClip = -1;
-            CriticalClip = -1;
-            DestroyedBitmapNum = -1;
-            SoundNum = -1;
-            ChangingObjectTexture = ChangingWallTexture = -1;
-            Name = "";
+            EClip clip = (EClip)MemberwiseClone();
+
+            clip.Clip = clip.Clip.Clone();
+
+            return clip;
         }
     }
 }

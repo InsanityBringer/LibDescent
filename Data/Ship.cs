@@ -63,11 +63,22 @@ namespace LibDescent.Data
         /// <summary>
         /// Positions of the ship's guns.
         /// </summary>
-        public FixVector[] GunPoints { get; } = new FixVector[8];
+        public FixVector[] GunPoints { get; private set; } = new FixVector[8];
         /// <summary>
         /// Marker model dropped by this ship. 
         /// </summary>
         public int MarkerModel { get; set; }
+
+        public Ship Clone()
+        {
+            Ship ship = (Ship)MemberwiseClone();
+
+            ship.GunPoints = new FixVector[8];
+            for (int i = 0; i < 8; i++)
+                ship.GunPoints[i] = GunPoints[i];
+
+            return ship;
+        }
 
         public void UpdateShip(int field, int data)
         {

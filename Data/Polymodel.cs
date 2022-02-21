@@ -278,6 +278,12 @@ namespace LibDescent.Data
             ID = other.ID;
         }
 
+        public Polymodel Clone()
+        {
+            //this isn't strictly needed due to the "copy constructor" but consistiency.
+            return new Polymodel(this);
+        }
+
         /// <summary>
         /// Initalizes a object to have MAX_SUBMODELS submodels and MAX_GUNS guns.
         /// </summary>

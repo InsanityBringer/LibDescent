@@ -387,6 +387,11 @@ namespace LibDescent.Data
             Always0xABCD = 0xABCD;
         }
 
+        public Robot Clone()
+        {
+            return new Robot(this);
+        }
+
         public void ClearAndUpdateDropReference(int v)
         {
             //[ISB] this doesn't really need to exist but may as well..

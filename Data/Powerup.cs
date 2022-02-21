@@ -46,5 +46,10 @@ namespace LibDescent.Data
         public string Name { get; set; } = "";
 
         public int ID;
+
+        public Powerup Clone()
+        {
+            return (Powerup)MemberwiseClone();
+        }
     }
 }
