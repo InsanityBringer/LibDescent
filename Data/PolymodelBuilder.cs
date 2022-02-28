@@ -31,6 +31,7 @@ namespace LibDescent.Data
     {
         Polymodel currentModel;
         List<BSPModel> submodels;
+        int vertexOffset = 0;
         public void RebuildModel (Polymodel model)
         {
             currentModel = model;
@@ -77,13 +78,13 @@ namespace LibDescent.Data
             //global scratch space.
             var data = new byte[1024 * 1024];
 
-            for (int i = 0; i < bspModels.Count; i++)
+            /*for (int i = 0; i < bspModels.Count; i++)
             {
                 bspModels[i].CompileInterpreterData(vertexOffset);
                 vertexOffset += bspModels[i].NumVertices;
                 if (vertexOffset > 1000)
                     throw new ArgumentException("Model has too many vertices after partitioning.");
-            }
+            }*/
 
             MetaInstructionBase hierarchy = this.GetHierarchy(0);
             hierarchy.Write(data, ref offset);
@@ -105,6 +106,8 @@ namespace LibDescent.Data
             //Check if no children. If not, we're done.
             if (data.ChildrenList.Count == 0)
             {
+                data.CompileInterpreterData(vertexOffset);
+                vertexOffset += data.NumVertices;
                 MetaModelInstruction instruction = new MetaModelInstruction()
                 {
                     Model = submodel,

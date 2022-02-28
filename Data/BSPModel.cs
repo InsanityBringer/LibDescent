@@ -45,6 +45,7 @@ namespace LibDescent.Data
         public List<int> ChildrenList { get; } = new List<int>();
 
         private int mVertexOffset;
+        private bool mCompiled = false;
 
         public BSPModel(int id)
         {
@@ -54,6 +55,9 @@ namespace LibDescent.Data
 
         public void CompileInterpreterData(int vertexOffset)
         {
+            if (mCompiled) return;
+
+            mCompiled = true;
             //one MB of scratch space
             byte[] data = new byte[1024 * 1024];
             int offset = 0;
