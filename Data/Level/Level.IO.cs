@@ -1720,8 +1720,7 @@ namespace LibDescent.Data
                     }
                 }
             }
-            fileInfo.reactorTriggersSize = (Level.ReactorTriggerTargets.Count > 0) ?
-                (int)writer.BaseStream.Position - fileInfo.reactorTriggersOffset : 0;
+            fileInfo.reactorTriggersSize = 42; //Ports like DXX-Rebirth always validate that this size is 42, even if there isn't a reactor trigger block at all. 
 
             // Matcens
             var matcens = Level.GetRobotMatCenters();
