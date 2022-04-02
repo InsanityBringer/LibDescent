@@ -177,7 +177,7 @@ namespace LibDescent.Data
                 // Store the end position
                 int endPosition = modelDataOffset;
 
-                if (frontOffset > short.MaxValue || backOffset > short.MaxValue || modelDataOffset < 0)
+                if (frontOffsetValue > short.MaxValue || backOffsetValue > short.MaxValue || modelDataOffset < 0)
                     throw new ArgumentException("Model is too complex: 32KB displacement limit exceeded.");
 
                 // Correct the back offset

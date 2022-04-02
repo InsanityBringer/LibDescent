@@ -405,11 +405,11 @@ namespace LibDescent.Data
             PolymodelBuilder.SetFixVector(data, ref offset, Normal);
             PolymodelBuilder.SetFixVector(data, ref offset, Point);
 
-            short frontOffset = (short)offset;
-            PolymodelBuilder.SetShort(data, ref offset, frontOffset); // fix the back offset later
+            int frontOffset = offset;
+            PolymodelBuilder.SetShort(data, ref offset, 12345); // fix the back offset later
 
-            short backOffset = (short)offset;
-            PolymodelBuilder.SetShort(data, ref offset, backOffset); // fix the front offset later
+            int backOffset = offset;
+            PolymodelBuilder.SetShort(data, ref offset, 12345); // fix the front offset later
 
             // End
             PolymodelBuilder.SetShort(data, ref offset, ModelOpCode.End); // END opcode
@@ -424,6 +424,9 @@ namespace LibDescent.Data
 
             // store current position
             int endPosition = offset;
+
+            if (frontOffsetValue > short.MaxValue || backOffsetValue > short.MaxValue)
+                throw new ArgumentException("Model is too complex: 32KB displacement limit exceeded when compiling subobjects.");
 
             offset = frontOffset;
             PolymodelBuilder.SetShort(data, ref offset, (short)frontOffsetValue);
