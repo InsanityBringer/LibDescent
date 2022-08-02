@@ -156,7 +156,7 @@ namespace LibDescent.Edit
             foreach (PropertyChangeEventHandler EventHandler in this.Leaves) // call listeners
                 EventHandler(this, e);
             foreach (PropertyNameNode n in this.Children)
-                n?.CallAllRecursive(basePath + "." + this.Name, e.NewValue, GetPropertyValueUncached, false);
+                n?.CallAllRecursive(e.PropertyName, e.NewValue, GetPropertyValueUncached, false);
         }
 
         public void Dispose()
