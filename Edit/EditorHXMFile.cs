@@ -522,7 +522,7 @@ namespace LibDescent.Edit
             {
                 for (int i = 0; i < ReplacedRobots.Count; i++)
                 {
-                    if (ReplacedRobots[i].replacementID == id) return ReplacedRobots[i].Name;
+                    if (ReplacedRobots[i].replacementID == id) return $"New robot {id}"; //return ReplacedRobots[i].Name;
                 }
             }
             if (AugmentFile != null && id >= VHAMFile.NumDescent2RobotTypes)
@@ -589,7 +589,7 @@ namespace LibDescent.Edit
             {
                 for (int i = 0; i < ReplacedModels.Count; i++)
                 {
-                    if (ReplacedModels[i].ReplacementID == id) return ReplacedModels[i].Name;
+                    if (ReplacedModels[i].ReplacementID == id) return $"New model {id}"; //return ReplacedModels[i].Name;
                 }
             }
             if (AugmentFile != null && id >= VHAMFile.NumDescent2Polymodels)
