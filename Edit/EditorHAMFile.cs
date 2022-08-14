@@ -961,6 +961,10 @@ namespace LibDescent.Edit
                     clip.ChangingObjectTexture = (short)objectBitmapMapping[EClips[i].Name.ToLower()];
                     ObjBitmaps[clip.ChangingObjectTexture] = (ushort)(clip.Clip.Frames[0]);
                 }
+                else
+                {
+                    clip.ChangingObjectTexture = -1;
+                }
             }
         }
 

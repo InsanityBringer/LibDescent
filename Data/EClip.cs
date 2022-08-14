@@ -38,13 +38,13 @@ namespace LibDescent.Data
         /// </summary>
         public int FrameCount { get; set; }
         /// <summary>
-        /// Which element of Textures array to replace.
+        /// Which element of the Textures array to replace, -1 if not replacing any.
         /// </summary>
-        public short ChangingWallTexture { get; set; }
+        public short ChangingWallTexture { get; set; } = -1;
         /// <summary>
-        /// Which element of ObjBitmapPtrs array to replace.
+        /// Which element of the ObjBitmapPtrs array to replace, -1 if not replacing any.
         /// </summary>
-        public short ChangingObjectTexture { get; set; }
+        public short ChangingObjectTexture { get; set; } = -1;
         /// <summary>
         /// Temporary flags for the animation, useless for definitions.
         /// </summary>
