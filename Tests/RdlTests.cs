@@ -258,6 +258,8 @@ namespace LibDescent.Tests
             Assert.AreEqual(WallFlags.DoorLocked, level.Walls[0].Flags);
             Assert.AreEqual(WallState.DoorClosed, level.Walls[0].State);
             Assert.AreEqual(WallKeyFlags.None, level.Walls[0].Keys);
+            Assert.IsNull(level.Walls[0].LinkedWall);
+            Assert.IsNull(level.Walls[1].LinkedWall);
 
             // Wall 2 is an energy center sparkle effect
             Assert.AreEqual(WallType.Illusion, level.Walls[2].Type);
