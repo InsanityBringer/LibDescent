@@ -181,7 +181,7 @@ namespace LibDescent.Data
         /// <param name="height">Height of the bitmap data.</param>
         /// <param name="buffer">The source bitmap data.</param>
         /// <param name="big">Set to true if any encoded scanline exceeds 255 bytes wide, and needs the BM_FLAG_RLE_BIG bit set.</param>
-        /// <param name="oversized">Set to true if the length of the encoded data is too wide</param>
+        /// <param name="oversized">Set to true if the length of the compressed data is larger than the uncompressed data.</param>
         /// <returns>The bitmap data, RLE compressed.</returns>
         /// <exception cref="System.ArgumentException">Thrown when the width of the data is less than 4 pixels wide.</exception>
         public static byte[] EncodeImage(int width, int height, byte[] buffer, out bool big, out bool oversized)
