@@ -156,6 +156,12 @@ namespace LibDescent.Data
                 }
             }
         }
+
+        /// <summary>
+        /// Is true when the image is RLE compressed but the data is larger than it would be uncompressed. 
+        /// </summary>
+        public bool RLEOversize => RLECompressed && Data.Length > Width * Height;
+
         /// <summary>
         /// Gets whether or not the data is compressed and the image is wider than 255 pixels.
         /// </summary>
@@ -183,7 +189,7 @@ namespace LibDescent.Data
         {
             get
             {
-                return ((DFlags & 64) != 0);
+                return (DFlags & 64) != 0;
             }
             set
             {
@@ -378,7 +384,8 @@ namespace LibDescent.Data
         private void CompressImage()
         {
             bool big;
-            byte[] newdata = RLEEncoder.EncodeImage(Width, Height, Data, out big);
+            bool oversize;
+            byte[] newdata = RLEEncoder.EncodeImage(Width, Height, Data, out big, out oversize);
             if (big) RLECompressedBig = true;
             Data = newdata;
         }

@@ -174,10 +174,21 @@ namespace LibDescent.Data
             output[destPointer++] = 0xE0;
         }
 
-        public static byte[] EncodeImage(int width, int height, byte[] buffer, out bool big)
+        /// <summary>
+        /// Performs RLE compression on bitmap data.
+        /// </summary>
+        /// <param name="width">Width of the bitmap data.</param>
+        /// <param name="height">Height of the bitmap data.</param>
+        /// <param name="buffer">The source bitmap data.</param>
+        /// <param name="big">Set to true if any encoded scanline exceeds 255 bytes wide, and needs the BM_FLAG_RLE_BIG bit set.</param>
+        /// <param name="oversized">Set to true if the length of the encoded data is too wide</param>
+        /// <returns>The bitmap data, RLE compressed.</returns>
+        /// <exception cref="System.ArgumentException">Thrown when the width of the data is less than 4 pixels wide.</exception>
+        public static byte[] EncodeImage(int width, int height, byte[] buffer, out bool big, out bool oversized)
         {
             big = false;
-            if (width < 4) throw new System.Exception("Image is too narrow to encode.");
+            oversized = false;
+            if (width < 4) throw new System.ArgumentException("Attempted to RLE compress an image that is less than 4 pixels wide.");
             short[] linesizes = new short[height];
 
             byte[][] scanlines = new byte[height][];
@@ -195,7 +206,7 @@ namespace LibDescent.Data
             int baseOffset = height * (big ? 2 : 1);
             for (int y = 0; y < height; y++)
             {
-                if (baseOffset + linesizes[y] > width * height) throw new Exception("Image cannot compress efficiently.");
+                if (baseOffset + linesizes[y] > width * height) oversized = true;
                 compressedScanlines[y] = new byte[linesizes[y]];
                 EncodeScanline(scanlines[y], compressedScanlines[y]);
 
