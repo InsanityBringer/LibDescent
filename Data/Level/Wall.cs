@@ -85,6 +85,7 @@ namespace LibDescent.Data
         public List<(ITrigger trigger, uint targetNum)> ControllingTriggers { get; } = new List<(ITrigger, uint)>();
 
         public Fix HitPoints { get; set; }
+        public Wall LinkedWall { get; set; }
         public WallFlags Flags { get; set; }
         public WallState State { get; set; }
         public byte DoorClipNumber { get; set; }
