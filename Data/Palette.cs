@@ -39,7 +39,7 @@ namespace LibDescent.Data
 
         public Palette(byte[] data, bool rescale = true)
         {
-            if (data.Length <= 768)
+            if (data.Length < 768)
                 throw new ArgumentException("palette must be at least 768 bytes long");
 
             byte r, g, b;
