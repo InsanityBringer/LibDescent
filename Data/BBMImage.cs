@@ -30,16 +30,16 @@ namespace LibDescent.Data
     /// <summary>
     /// Represents an image in the BBM format (PBM/ILBM).
     /// </summary>
-    public class BBMImage
+    public class BBMImage : IIndexedImage
     {
         /// <summary>
         /// The width of the image in pixels.
         /// </summary>
-        public short Width { get; private set; }
+        public int Width { get; private set; }
         /// <summary>
         /// The height of the image in pixels.
         /// </summary>
-        public short Height { get; private set; }
+        public int Height { get; private set; }
         /// <summary>
         /// The type of this BBM image.
         /// </summary>

@@ -28,7 +28,7 @@ namespace LibDescent.Data
     /// <summary>
     /// Represents a PCX image.
     /// </summary>
-    public class PCXImage
+    public class PCXImage : IIndexedImage
     {
         /// <summary>
         /// The version of PC Paintbrush; only supported version is 5.
@@ -69,7 +69,7 @@ namespace LibDescent.Data
         /// <summary>
         /// The 256-color palette.
         /// </summary>
-        public Color[] Palette;
+        public Color[] Palette { get; set; }
         /// <summary>
         /// Number of bit-planes. Only 1 supported.
         /// </summary>
@@ -77,7 +77,7 @@ namespace LibDescent.Data
         /// <summary>
         /// The decoded image data with one byte per pixel.
         /// </summary>
-        public byte[] Data;
+        public byte[] Data { get; set; }
 
         public byte[] rawData;
 
