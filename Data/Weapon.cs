@@ -253,6 +253,8 @@ namespace LibDescent.Data
                 weapon.Speed[i] = Speed[i];
             }
 
+            weapon.Name = Name;
+
             return weapon;
         }
     }

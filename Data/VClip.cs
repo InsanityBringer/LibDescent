@@ -85,6 +85,7 @@ namespace LibDescent.Data
 
             clip.Frames = new ushort[30];
             Array.Copy(Frames, clip.Frames, 30);
+            clip.Name = Name;
 
             return clip;
         }

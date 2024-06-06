@@ -276,6 +276,7 @@ namespace LibDescent.Data
 
             BaseTexture = other.BaseTexture;
             ID = other.ID;
+            Name = other.Name;
         }
 
         public Polymodel Clone()

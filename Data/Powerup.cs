@@ -49,7 +49,9 @@ namespace LibDescent.Data
 
         public Powerup Clone()
         {
-            return (Powerup)MemberwiseClone();
+            Powerup powerup = (Powerup)MemberwiseClone();
+            powerup.Name = Name;
+            return powerup;
         }
     }
 }

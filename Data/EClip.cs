@@ -91,6 +91,7 @@ namespace LibDescent.Data
             EClip clip = (EClip)MemberwiseClone();
 
             clip.Clip = clip.Clip.Clone();
+            clip.Name = Name;
 
             return clip;
         }

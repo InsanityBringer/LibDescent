@@ -385,6 +385,8 @@ namespace LibDescent.Data
             Aim = other.Aim;
 
             Always0xABCD = 0xABCD;
+
+            Name = other.Name;
         }
 
         public Robot Clone()

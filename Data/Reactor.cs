@@ -58,6 +58,8 @@ namespace LibDescent.Data
                 reactor.GunDirs[i] = GunDirs[i];
             }
 
+            reactor.Name = Name;
+
             return reactor;
         }
     }
