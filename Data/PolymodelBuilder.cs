@@ -31,6 +31,7 @@ namespace LibDescent.Data
     {
         Polymodel currentModel;
         List<BSPModel> submodels;
+        int vertexOffset = 0;
         public void RebuildModel (Polymodel model)
         {
             currentModel = model;
@@ -77,13 +78,13 @@ namespace LibDescent.Data
             //global scratch space.
             var data = new byte[1024 * 1024];
 
-            for (int i = 0; i < bspModels.Count; i++)
+            /*for (int i = 0; i < bspModels.Count; i++)
             {
                 bspModels[i].CompileInterpreterData(vertexOffset);
                 vertexOffset += bspModels[i].NumVertices;
                 if (vertexOffset > 1000)
                     throw new ArgumentException("Model has too many vertices after partitioning.");
-            }
+            }*/
 
             MetaInstructionBase hierarchy = this.GetHierarchy(0);
             hierarchy.Write(data, ref offset);
@@ -105,6 +106,8 @@ namespace LibDescent.Data
             //Check if no children. If not, we're done.
             if (data.ChildrenList.Count == 0)
             {
+                data.CompileInterpreterData(vertexOffset);
+                vertexOffset += data.NumVertices;
                 MetaModelInstruction instruction = new MetaModelInstruction()
                 {
                     Model = submodel,
@@ -116,8 +119,23 @@ namespace LibDescent.Data
             else
             {
                 //Get the child and remove it from the front
-                int child = data.ChildrenList[0];
-                data.ChildrenList.RemoveAt(0);
+                //int child = data.ChildrenList[0];
+                //data.ChildrenList.RemoveAt(0);
+
+                //Prefer closer objects first, to try to make sorting more reliable in complex situations. 
+                int childIndex = 0;
+                Fix bestLength = 32700.0;
+                for (int i = 0; i < data.ChildrenList.Count; i++)
+                {
+                    Fix dist = (currentModel.Submodels[data.ChildrenList[i]].Point - submodel.Point).Mag();
+                    if (dist < bestLength)
+                    {
+                        childIndex = i;
+                    }
+                }
+
+                int child = data.ChildrenList[childIndex];
+                data.ChildrenList.RemoveAt(childIndex);
 
                 //Generate a sortnorm instruction
                 MetaSortInstruction instruction = new MetaSortInstruction();
@@ -387,11 +405,11 @@ namespace LibDescent.Data
             PolymodelBuilder.SetFixVector(data, ref offset, Normal);
             PolymodelBuilder.SetFixVector(data, ref offset, Point);
 
-            short frontOffset = (short)offset;
-            PolymodelBuilder.SetShort(data, ref offset, frontOffset); // fix the back offset later
+            int frontOffset = offset;
+            PolymodelBuilder.SetShort(data, ref offset, 12345); // fix the back offset later
 
-            short backOffset = (short)offset;
-            PolymodelBuilder.SetShort(data, ref offset, backOffset); // fix the front offset later
+            int backOffset = offset;
+            PolymodelBuilder.SetShort(data, ref offset, 12345); // fix the front offset later
 
             // End
             PolymodelBuilder.SetShort(data, ref offset, ModelOpCode.End); // END opcode
@@ -406,6 +424,9 @@ namespace LibDescent.Data
 
             // store current position
             int endPosition = offset;
+
+            if (frontOffsetValue > short.MaxValue || backOffsetValue > short.MaxValue)
+                throw new ArgumentException("Model is too complex: 32KB displacement limit exceeded when compiling subobjects.");
 
             offset = frontOffset;
             PolymodelBuilder.SetShort(data, ref offset, (short)frontOffsetValue);

@@ -94,6 +94,7 @@ namespace LibDescent.Data
         private Dictionary<Side, uint> _sideWallLinks = new Dictionary<Side, uint>();
         private Dictionary<Segment, uint> _segmentMatcenLinks = new Dictionary<Segment, uint>();
         private Dictionary<Wall, byte> _wallTriggerLinks = new Dictionary<Wall, byte>();
+        private Dictionary<Wall, uint> _wallLinkedWalls = new Dictionary<Wall, uint>();
 
         protected abstract ILevel Level { get; }
 
@@ -454,7 +455,9 @@ namespace LibDescent.Data
 
                         Wall wall = new Wall(side);
                         wall.HitPoints = new Fix(reader.ReadInt32());
-                        _ = reader.ReadInt32(); // opposite wall - will recalculate
+                        var linkedWall = reader.ReadInt32();
+                        if (linkedWall != -1)
+                            _wallLinkedWalls[wall] = (uint)linkedWall;
                         wall.Type = (WallType)reader.ReadByte();
                         wall.Flags = (WallFlags)((_fileInfo.version < 37) ? reader.ReadByte() : reader.ReadUInt16());
                         wall.State = (WallState)reader.ReadByte();
@@ -469,6 +472,11 @@ namespace LibDescent.Data
                         wall.CloakOpacity = reader.ReadByte();
                         Level.Walls.Add(wall);
                     }
+                }
+
+                foreach (var wallLinkedWall in _wallLinkedWalls)
+                {
+                    wallLinkedWall.Key.LinkedWall = Level.Walls[(int)wallLinkedWall.Value];
                 }
 
                 foreach (var sideWallLink in _sideWallLinks)
@@ -1636,7 +1644,7 @@ namespace LibDescent.Data
                     writer.Write(Level.Segments.IndexOf(wall.Side.Segment));
                     writer.Write(wall.Side.SideNum);
                     writer.Write(wall.HitPoints.value);
-                    writer.Write(wall.OppositeWall != null ? Level.Walls.IndexOf(wall.OppositeWall) : -1);
+                    writer.Write(wall.LinkedWall != null ? Level.Walls.IndexOf(wall.LinkedWall) : -1);
                     writer.Write((byte)wall.Type);
                     if (GameDataVersion < 37)
                     {
@@ -1720,8 +1728,7 @@ namespace LibDescent.Data
                     }
                 }
             }
-            fileInfo.reactorTriggersSize = (Level.ReactorTriggerTargets.Count > 0) ?
-                (int)writer.BaseStream.Position - fileInfo.reactorTriggersOffset : 0;
+            fileInfo.reactorTriggersSize = 42; //Ports like DXX-Rebirth always validate that this size is 42, even if there isn't a reactor trigger block at all. 
 
             // Matcens
             var matcens = Level.GetRobotMatCenters();

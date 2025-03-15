@@ -25,13 +25,14 @@ using System.Collections.Generic;
 using System.Text;
 using System.IO;
 using System.Linq;
+using System.Xml.Linq;
 
 namespace LibDescent.Data
 {
     public class Descent1PIGFile : IDataFile, IImageProvider, ISoundProvider
     {
         private int DataPointer;
-        private bool big;
+        private readonly bool big;
         public bool LoadData { get; private set; }
         public List<PIGImage> Bitmaps { get; }
         public List<SoundData> Sounds { get; }
@@ -429,11 +430,27 @@ namespace LibDescent.Data
                 string imagename = new String(localname);
                 imagename = imagename.Trim(' ', '\0');
                 byte framedata = br.ReadByte();
-                byte lx = br.ReadByte();
-                byte ly = br.ReadByte();
+                int lx = br.ReadByte();
+                int ly = br.ReadByte();
                 byte flags = br.ReadByte();
                 byte average = br.ReadByte();
                 int offset = br.ReadInt32();
+
+                //This is one of the most annoying hacks I've comitted to LibDescent, but it's also a really stupid hack in the Mac code. 
+                if (big)
+                {
+                    if (imagename == "cockpit" || imagename == "rearview")
+                    {
+                        lx = 640; ly = 480;
+                        flags |= PIGImage.BM_FLAG_RLE_BIG;
+                        framedata &= 127; //The wide flag is set, so that needs to be filtered out. 
+                    }
+                    else if (imagename == "status")
+                    {
+                        lx = 640;
+                        framedata &= 127;
+                    }
+                }
 
                 PIGImage image = new PIGImage(lx, ly, framedata, flags, average, offset, imagename, big);
                 image.LocalName = localNameBytes;
@@ -710,11 +727,32 @@ namespace LibDescent.Data
                 var bitmap = Bitmaps[i];
 
                 descentWriter.Write(bitmap.LocalName, 0, 8);
+                //Part of the mac data hack, write these files with their old traits for safety. 
+                int width = bitmap.Width;
+                int height = bitmap.Height;
+                int flags = bitmap.Flags;
+                int dflags = bitmap.DFlags;
 
-                descentWriter.WriteByte((byte)bitmap.DFlags);
-                descentWriter.WriteByte((byte)bitmap.Width);
-                descentWriter.WriteByte((byte)bitmap.Height);
-                descentWriter.WriteByte((byte)bitmap.Flags);
+                if (big)
+                {
+                    if (bitmap.Name == "cockpit" || bitmap.Name == "rearview")
+                    {
+                        width = 640; height = 480;
+                        flags &= ~PIGImage.BM_FLAG_RLE_BIG;
+                        dflags |= 128;
+                    }
+                    else if (bitmap.Name == "status")
+                    {
+                        width = 640;
+                        flags &= ~PIGImage.BM_FLAG_RLE_BIG;
+                        dflags |= 128;
+                    }
+                }
+
+                descentWriter.WriteByte((byte)dflags);
+                descentWriter.WriteByte((byte)width);
+                descentWriter.WriteByte((byte)height);
+                descentWriter.WriteByte((byte)flags);
                 descentWriter.WriteByte((byte)bitmap.AverageIndex);
 
                 descentWriter.WriteInt32(dynamicOffset);

@@ -45,6 +45,7 @@ namespace LibDescent.Data
         public List<int> ChildrenList { get; } = new List<int>();
 
         private int mVertexOffset;
+        private bool mCompiled = false;
 
         public BSPModel(int id)
         {
@@ -54,6 +55,9 @@ namespace LibDescent.Data
 
         public void CompileInterpreterData(int vertexOffset)
         {
+            if (mCompiled) return;
+
+            mCompiled = true;
             //one MB of scratch space
             byte[] data = new byte[1024 * 1024];
             int offset = 0;
@@ -173,7 +177,7 @@ namespace LibDescent.Data
                 // Store the end position
                 int endPosition = modelDataOffset;
 
-                if (frontOffset > short.MaxValue || backOffset > short.MaxValue || modelDataOffset < 0)
+                if (frontOffsetValue > short.MaxValue || backOffsetValue > short.MaxValue || modelDataOffset < 0)
                     throw new ArgumentException("Model is too complex: 32KB displacement limit exceeded.");
 
                 // Correct the back offset

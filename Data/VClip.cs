@@ -19,6 +19,7 @@
     OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
     SOFTWARE.
 */
+using System;
 
 namespace LibDescent.Data
 {
@@ -47,7 +48,7 @@ namespace LibDescent.Data
         /// <summary>
         /// Piggy indexes of each frame of this VClip.
         /// </summary>
-        public ushort[] Frames { get; } = new ushort[30];
+        public ushort[] Frames { get; private set; } = new ushort[30];
         /// <summary>
         /// Light cast by the VClip. Only used in certain contexts.
         /// </summary>
@@ -77,6 +78,17 @@ namespace LibDescent.Data
         }
 
         public int ID;
+
+        public VClip Clone()
+        {
+            VClip clip = (VClip)MemberwiseClone();
+
+            clip.Frames = new ushort[30];
+            Array.Copy(Frames, clip.Frames, 30);
+            clip.Name = Name;
+
+            return clip;
+        }
 
         public void RemapVClip(int firstFrame, PIGFile piggyFile)
         {

@@ -385,6 +385,13 @@ namespace LibDescent.Data
             Aim = other.Aim;
 
             Always0xABCD = 0xABCD;
+
+            Name = other.Name;
+        }
+
+        public Robot Clone()
+        {
+            return new Robot(this);
         }
 
         public void ClearAndUpdateDropReference(int v)

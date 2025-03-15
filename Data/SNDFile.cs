@@ -61,7 +61,6 @@ namespace LibDescent.Data
     {
         //public List<string> sounds = new List<string>();
         public List<SoundData> Sounds { get; } = new List<SoundData>();
-        public Dictionary<string, int> SoundIDs = new Dictionary<string, int>();
         private long startptr = 0L;
         private long soundptr = 0;
 
@@ -144,9 +143,6 @@ namespace LibDescent.Data
                 sound.Offset = offset;
                 sound.Length = num1;
                 Sounds.Add(sound);
-
-                //sounds.Add(soundname);
-                SoundIDs.Add(soundname, x);
             }
             startptr = br.BaseStream.Position;
         }

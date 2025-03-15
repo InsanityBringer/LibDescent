@@ -1,5 +1,5 @@
 ﻿/*
-    Copyright (c) 2019 SaladBadger
+    Copyright (c) 2020 The LibDescent Team.
 
     Permission is hereby granted, free of charge, to any person obtaining a copy
     of this software and associated documentation files (the "Software"), to deal
@@ -22,36 +22,23 @@
 
 namespace LibDescent.Data
 {
-    public class Powerup
+    public interface IIndexedImage
     {
         /// <summary>
-        /// VClip number used for the sprite.
+        /// The width of the image in pixels.
         /// </summary>
-        public int VClipNum { get; set; }
+        int Width { get; }
         /// <summary>
-        /// Sound number played when the powerup is successfully collected.
+        /// The height of the image in pixels.
         /// </summary>
-        public int HitSound { get; set; }
+        int Height { get; }
         /// <summary>
-        /// Size of the powerup's sprite, in map units.
+        /// The palette used in ths image.
         /// </summary>
-        public Fix Size { get; set; }
+        Color[] Palette { get; }
         /// <summary>
-        /// Amount of light cast by this powerup.
+        /// The decoded pixel data in this image, with one byte per pixel.
         /// </summary>
-        public Fix Light { get; set; }
-        /// <summary>
-        /// An optional element name for editors.
-        /// </summary>
-        public string Name { get; set; } = "";
-
-        public int ID;
-
-        public Powerup Clone()
-        {
-            Powerup powerup = (Powerup)MemberwiseClone();
-            powerup.Name = Name;
-            return powerup;
-        }
+        byte[] Data { get; }
     }
 }

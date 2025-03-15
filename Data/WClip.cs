@@ -19,6 +19,7 @@
     OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
     SOFTWARE.
 */
+using System;
 
 namespace LibDescent.Data
 {
@@ -39,7 +40,7 @@ namespace LibDescent.Data
         /// <summary>
         /// Piggy indexes of each frame of this WClip.
         /// </summary>
-        public ushort[] Frames { get; } = new ushort[50];
+        public ushort[] Frames { get; private set; } = new ushort[50];
         /// <summary>
         /// Sound played when the door opens.
         /// </summary>
@@ -55,7 +56,7 @@ namespace LibDescent.Data
         /// <summary>
         /// (Unused) Filename this WClip was constructed from.
         /// </summary>
-        public char[] Filename { get; } = new char[13];
+        public char[] Filename { get; private set; } = new char[13];
         /// <summary>
         /// (Unused) Ask ISB why this is even here.
         /// </summary>
@@ -132,6 +133,17 @@ namespace LibDescent.Data
                 else
                     Flags &= ~WCF_HIDDEN;
             }
+        }
+
+        public WClip Clone()
+        {
+            WClip clip = (WClip)MemberwiseClone();
+            clip.Frames = new ushort[50];
+            Array.Copy(Frames, clip.Frames, 50);
+            clip.Filename = new char[13];
+            Array.Copy(Filename, clip.Filename, 13);
+
+            return clip;
         }
     }
 }

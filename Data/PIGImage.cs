@@ -156,6 +156,12 @@ namespace LibDescent.Data
                 }
             }
         }
+
+        /// <summary>
+        /// Is true when the image is RLE compressed but the data is larger than it would be uncompressed. 
+        /// </summary>
+        public bool RLEOversize => RLECompressed && Data.Length > Width * Height;
+
         /// <summary>
         /// Gets whether or not the data is compressed and the image is wider than 255 pixels.
         /// </summary>
@@ -183,7 +189,7 @@ namespace LibDescent.Data
         {
             get
             {
-                return ((DFlags & 64) != 0);
+                return (DFlags & 64) != 0;
             }
             set
             {
@@ -238,29 +244,15 @@ namespace LibDescent.Data
         /// <param name="averageIndex">Index of the image's average color in the palette.</param>
         /// <param name="dataOffset">Offset to the data in the source file.</param>
         /// <param name="name">Filename of the image.</param>
-        /// <param name="big">Set to true if the image should be resized for Mac Descent 1 PIGs.</param>
-        public PIGImage(int imageWidth, int imageHeight, byte dFlags, byte flags, byte averageIndex, int dataOffset, string name, bool big = false)
+        /// <param name="swap255">Set to true if pixels of palette index 255 and 0 should be swapped, for the Mac Descent 1 PIG file.</param>
+        public PIGImage(int imageWidth, int imageHeight, byte dFlags, byte flags, byte averageIndex, int dataOffset, string name, bool swap255 = false)
         {
             BaseWidth = imageWidth & 255; BaseHeight = imageHeight & 255; Flags = flags; AverageIndex = averageIndex; DFlags = dFlags; Offset = dataOffset; ExtraData = 0;
             Width = imageWidth; Height = imageHeight;
             if ((DFlags & 128) != 0)
                 Width += 256;
             Name = name;
-
-            //This is one of the monst annoying hacks I'm committing to Descent 2 Workshop
-            if (big)
-            {
-                Swap255 = true;
-                if (name == "cockpit" || name == "rearview")
-                {
-                    Width = 640; Height = 480;
-                    RLECompressedBig = true;
-                }
-                else if (name == "status")
-                {
-                    Width = 640;
-                }
-            }
+            Swap255 = swap255;
 
             ExtraData = (byte)((imageWidth >> 8) & 15);
             ExtraData |= (byte)((imageHeight >> 8 & 15) << 4);
@@ -378,7 +370,8 @@ namespace LibDescent.Data
         private void CompressImage()
         {
             bool big;
-            byte[] newdata = RLEEncoder.EncodeImage(Width, Height, Data, out big);
+            bool oversize;
+            byte[] newdata = RLEEncoder.EncodeImage(Width, Height, Data, out big, out oversize);
             if (big) RLECompressedBig = true;
             Data = newdata;
         }

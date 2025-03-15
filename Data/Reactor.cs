@@ -35,14 +35,32 @@ namespace LibDescent.Data
         /// <summary>
         /// Positions of all the reactor's guns.
         /// </summary>
-        public FixVector[] GunPoints { get; } = new FixVector[8];
+        public FixVector[] GunPoints { get; private set; } = new FixVector[8];
         /// <summary>
         /// Directions of all the reactor's guns.
         /// </summary>
-        public FixVector[] GunDirs { get; } = new FixVector[8];
+        public FixVector[] GunDirs { get; private set; } = new FixVector[8];
         /// <summary>
         /// An optional element name for editors.
         /// </summary>
         public string Name { get; set; } = "";
+
+        public Reactor Clone()
+        {
+            Reactor reactor = (Reactor)MemberwiseClone();
+
+            reactor.GunPoints = new FixVector[8];
+            reactor.GunDirs = new FixVector[8];
+
+            for (int i = 0; i < 8; i++)
+            {
+                reactor.GunPoints[i] = GunPoints[i];
+                reactor.GunDirs[i] = GunDirs[i];
+            }
+
+            reactor.Name = Name;
+
+            return reactor;
+        }
     }
 }
