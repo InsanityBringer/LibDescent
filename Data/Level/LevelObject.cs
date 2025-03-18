@@ -131,7 +131,7 @@ namespace LibDescent.Data
         {
             get
             {
-                if (RenderType == null)
+                if (MoveType == null)
                     return MovementTypeID.None;
                 return MoveType.Identifier;
             }
