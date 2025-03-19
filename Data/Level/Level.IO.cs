@@ -1696,38 +1696,35 @@ namespace LibDescent.Data
             fileInfo.linksSize = 0;
 
             // Reactor triggers
-            fileInfo.reactorTriggersOffset = (Level.ReactorTriggerTargets.Count > 0) ?
-                (int)writer.BaseStream.Position : -1;
-            fileInfo.reactorTriggersCount = (Level.ReactorTriggerTargets.Count > 0) ?
-                1 : 0;
-            if (Level.ReactorTriggerTargets.Count > 0)
-            {
-                writer.Write((short)Level.ReactorTriggerTargets.Count);
-                for (int targetNum = 0; targetNum < DescentLevelCommon.MaxReactorTriggerTargets; targetNum++)
-                {
-                    if (targetNum < Level.ReactorTriggerTargets.Count)
-                    {
-                        var segmentNum = Level.Segments.IndexOf(Level.ReactorTriggerTargets[targetNum].Segment);
-                        writer.Write((short)segmentNum);
-                    }
-                    else
-                    {
-                        writer.Write((short)0);
-                    }
-                }
+            fileInfo.reactorTriggersOffset =  (int)writer.BaseStream.Position;
+            fileInfo.reactorTriggersCount = 1;
 
-                for (int targetNum = 0; targetNum < DescentLevelCommon.MaxReactorTriggerTargets; targetNum++)
+            writer.Write((short)Level.ReactorTriggerTargets.Count);
+            for (int targetNum = 0; targetNum < DescentLevelCommon.MaxReactorTriggerTargets; targetNum++)
+            {
+                if (targetNum < Level.ReactorTriggerTargets.Count)
                 {
-                    if (targetNum < Level.ReactorTriggerTargets.Count)
-                    {
-                        writer.Write((short)Level.ReactorTriggerTargets[targetNum].SideNum);
-                    }
-                    else
-                    {
-                        writer.Write((short)0);
-                    }
+                    var segmentNum = Level.Segments.IndexOf(Level.ReactorTriggerTargets[targetNum].Segment);
+                    writer.Write((short)segmentNum);
+                }
+                else
+                {
+                    writer.Write((short)0);
                 }
             }
+
+            for (int targetNum = 0; targetNum < DescentLevelCommon.MaxReactorTriggerTargets; targetNum++)
+            {
+                if (targetNum < Level.ReactorTriggerTargets.Count)
+                {
+                    writer.Write((short)Level.ReactorTriggerTargets[targetNum].SideNum);
+                }
+                else
+                {
+                    writer.Write((short)0);
+                }
+            }
+
             fileInfo.reactorTriggersSize = 42; //Ports like DXX-Rebirth always validate that this size is 42, even if there isn't a reactor trigger block at all. 
 
             // Matcens
