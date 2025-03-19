@@ -2056,7 +2056,6 @@ namespace LibDescent.Data
             _pofFiles.Add("robot09.pof");
             _pofFiles.Add("robot09s.pof");
             _pofFiles.Add("robot17.pof");
-            _pofFiles.Add("robot17s.pof");
             _pofFiles.Add("robot22.pof");
             _pofFiles.Add("robot22s.pof");
             _pofFiles.Add("robot01.pof");
