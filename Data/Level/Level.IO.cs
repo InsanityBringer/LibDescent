@@ -2386,7 +2386,7 @@ namespace LibDescent.Data
             _pofFiles.Add("vboss2.pof");
             _pofFiles.Add("omega11.pof");
             _pofFiles.Add("cmissile.pof");
-            while (_pofFiles.Count() < 200) //Descent 2 MAX_MODELS for all versions I hope
+            while (_pofFiles.Count() < 199) //Descent 2 MAX_MODELS for all versions I hope
                 _pofFiles.Add("LIBDESCENT");
         }
 
