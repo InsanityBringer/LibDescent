@@ -469,7 +469,7 @@ namespace LibDescent.Data
                         wall.DoorClipNumber = reader.ReadByte();
                         wall.Keys = (WallKeyFlags)reader.ReadByte();
                         _ = reader.ReadByte(); // controlling trigger - will recalculate
-                        wall.CloakOpacity = reader.ReadByte();
+                        wall.CloakOpacityClamped = reader.ReadByte();
                         Level.Walls.Add(wall);
                     }
                 }
@@ -524,6 +524,11 @@ namespace LibDescent.Data
 
                     for (int targetNum = 0; targetNum < numReactorTriggerTargets; targetNum++)
                     {
+                        // Some levels (e.g. Vertigo level 10) have reactor triggers pointing to
+                        // invalid targets, so we need to validate them first
+                        if (targets[targetNum].segmentNum < 0 || targets[targetNum].segmentNum >= Level.Segments.Count ||
+                            targets[targetNum].sideNum < 0 || targets[targetNum].sideNum >= Level.Segments[targets[targetNum].segmentNum].Sides.Length)
+                        { continue; }
                         var side = Level.Segments[targets[targetNum].segmentNum].Sides[targets[targetNum].sideNum];
                         Level.ReactorTriggerTargets.Add(side);
                     }

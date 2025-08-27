@@ -1,5 +1,6 @@
 ﻿using LibDescent.Data;
 using NUnit.Framework;
+using System.IO;
 
 namespace LibDescent.Tests
 {
@@ -51,6 +52,24 @@ namespace LibDescent.Tests
             ILevel level = LevelFactory.CreateFromStream(hogFile.GetLumpAsStream(6));
             Assert.NotNull(level);
             Assert.IsInstanceOf<D2XXLLevel>(level);
+        }
+
+        [Test]
+        [Ignore("Non-portable because filePath must be set manually; intended for debugging.")]
+        public void TestLoadAllLevelsFromHog()
+        {
+            string filePath = "";
+            using var stream = new FileStream(filePath.Replace("\"", null), FileMode.Open, FileAccess.Read);
+            var hogFile = new HOGFile(stream);
+            for (int i = 0; i < hogFile.Lumps.Count; i++)
+            {
+                if (hogFile.Lumps[i].Name.ToLower().EndsWith(".rdl") || hogFile.Lumps[i].Name.ToLower().EndsWith(".rl2"))
+                {
+                    using var levelStream = hogFile.GetLumpAsStream(i);
+                    var level = LevelFactory.CreateFromStream(levelStream);
+                    Assert.Greater(level.Segments.Count, 0);
+                }
+            }
         }
     }
 }

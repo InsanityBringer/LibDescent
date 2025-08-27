@@ -106,6 +106,17 @@ namespace LibDescent.Data
                 cloakOpacity = value;
             }
         }
+        /// <summary>
+        /// Write-only version of CloakOpacity that clamps out-of-range inputs instead of throwing
+        /// an exception.
+        /// </summary>
+        public byte CloakOpacityClamped
+        {
+            set
+            {
+                CloakOpacity = (byte)(value > 31 ? 31 : value);
+            }
+        }
 
         #region Read-only convenience properties
         public Wall OppositeWall => Side?.GetJoinedSide()?.Wall;
