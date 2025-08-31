@@ -36,24 +36,26 @@ namespace LibDescent.Data
         /// <summary>
         /// Persistent stream to the HOG file, to allow loading lump data on demand.
         /// </summary>
-        private BinaryReader fileStream;
+        protected BinaryReader _fileStream;
+
         /// <summary>
         /// A list of all the HOG lumps.
         /// </summary>
         public List<HOGLump> Lumps { get; } = new List<HOGLump>();
 
         /// <summary>
-        /// The amount of lumps in the current HOG file.
+        /// The number of lumps in the current HOG file.
         /// </summary>
-        public int NumLumps { get { return Lumps.Count; } }
+        public int NumLumps => Lumps.Count;
 
         /// <summary>
         /// The format that the HOG file is encoded with.
         /// </summary>
-        public HOGFormat Format { get; set; }
+        public HOGFormat Format { get; private set; }
 
-        // mutexes/locks. acquiring order: hogFileLock, lumpLock, lumpNameLock.
-        private readonly object hogFileLock = new object();      // used when accessing/modifying file stream
+        // mutexes/locks. acquiring order: _hogFileLock, _lumpLock.
+        protected readonly object _hogFileLock = new object();  // used when accessing/modifying _fileStream
+        protected readonly object _lumpLock = new object();     // used when accessing/modifying Lumps
 
         public HOGFile() { }
 
@@ -67,87 +69,109 @@ namespace LibDescent.Data
         }
 
         /// <summary>
+        /// Creates a HOGFile instance, reading data from the specified file.
+        /// </summary>
+        /// <param name="filename">The name of the HOG file to read from.</param>
+        public HOGFile(string filename)
+        {
+            Read(File.Open(filename, FileMode.Open, FileAccess.Read, FileShare.Read));
+        }
+
+        /// <summary>
         /// Reads the data of a HOG file from a stream.
         /// </summary>
-        /// <param name="stream">The stream to read the HOG file from. The stream must be seekable</param>
+        /// <param name="stream">The stream to read the HOG file from. The stream must be seekable.</param>
         public void Read(Stream stream)
         {
-            lock (hogFileLock)
+            if (!stream.CanSeek)
             {
-                if (!stream.CanSeek)
-                    throw new ArgumentException("HOGFIle:Read: Passed stream must be seekable.");
+                throw new ArgumentException("HOGFile.Read: Passed stream must be seekable.");
+            }
 
-                BinaryReader br = new BinaryReader(stream);
-                fileStream = br;
-                Lumps.Clear();
-
-                char[] header = new char[3];
-                header[0] = (char)br.ReadByte();
-                header[1] = (char)br.ReadByte();
-                header[2] = (char)br.ReadByte();
-
-                var headerString = new string(header);
-                switch (headerString)
+            lock (_hogFileLock)
+            {
+                lock (_lumpLock)
                 {
-                    case "DHF":
-                        Format = HOGFormat.Standard;
-                        break;
-                    case "D2X":
-                        Format = HOGFormat.D2X_XL;
-                        break;
-                    default:
-                        throw new InvalidDataException($"Unrecognized HOG header \"{headerString}\"");
-                }
+                    _fileStream = new BinaryReader(stream);
+                    Lumps.Clear();
 
-                try
-                {
-                    while (true)
+                    string header = Encoding.ASCII.GetString(_fileStream.ReadBytes(3));
+                    switch (header)
                     {
-                        char[] filenamedata = new char[13];
-                        bool hashitnull = false;
-                        for (int x = 0; x < 13; x++)
-                        {
-                            char c = (char)br.ReadByte();
-                            if (c == 0)
-                            {
-                                hashitnull = true;
-                            }
-                            if (!hashitnull)
-                            {
-                                filenamedata[x] = c;
-                            }
-                        }
-                        string filename = new string(filenamedata);
-                        filename = filename.Trim(' ', '\0');
-                        int filesize = br.ReadInt32();
-                        if (Format == HOGFormat.D2X_XL && filesize < 0)
-                        {
-                            // D2X-XL format encodes "extended" lump headers with negative file sizes
-                            filesize = -filesize;
+                        case "DHF":
+                            Format = HOGFormat.Standard;
+                            break;
+                        case "D2X":
+                            Format = HOGFormat.D2X_XL;
+                            break;
+                        default:
+                            throw new InvalidDataException($"HOGFile.Read: Unrecognized HOG header \"{header}\"");
+                    }
 
-                            string longFilename = Encoding.ASCII.GetString(br.ReadBytes(256));
-                            if (longFilename.Contains("\0"))
+                    try
+                    {
+                        while (true)
+                        {
+                            string filename = Encoding.ASCII.GetString(_fileStream.ReadBytes(13)).Trim(' ', '\0');
+                            if (filename.Contains("\0"))
                             {
-                                longFilename = longFilename.Remove(longFilename.IndexOf('\0'));
+                                filename = filename.Remove(filename.IndexOf('\0'));
                             }
-                            longFilename = longFilename.Trim(' ');
-                            // No real reason to use short filename in this instance; just replace it
-                            filename = longFilename;
-                        }
-                        int offset = (int)br.BaseStream.Position;
-                        br.BaseStream.Seek(filesize, SeekOrigin.Current); //I hate hog files. Wads are cooler..
+                            int filesize = _fileStream.ReadInt32();
+                            if (Format == HOGFormat.D2X_XL && filesize < 0)
+                            {
+                                // D2X-XL format encodes "extended" lump headers with negative file sizes
+                                filesize = -filesize;
 
-                        HOGLump lump = new HOGLump(filename, filesize, offset);
-                        Lumps.Add(lump);
+                                var bytes = _fileStream.ReadBytes(256);
+                                string longFilename = Encoding.ASCII.GetString(bytes);
+                                if (longFilename.Contains("\0"))
+                                {
+                                    longFilename = longFilename.Remove(longFilename.IndexOf('\0'));
+                                }
+                                longFilename = longFilename.Trim(' ');
+                                // No real reason to use short filename in this instance; just replace it
+                                filename = longFilename;
+                            }
+                            uint offset = (uint)_fileStream.BaseStream.Position;
+                            _fileStream.BaseStream.Seek(filesize, SeekOrigin.Current); //I hate hog files. Wads are cooler..
+
+                            HOGLump lump = new HOGLump(this, filename, (uint)filesize, offset);
+                            Lumps.Add(lump);
+                        }
+                    }
+                    catch (EndOfStreamException)
+                    {
+                        //we got all the files
+                        //heh
+                        //i love hog
                     }
                 }
-                catch (EndOfStreamException)
-                {
-                    //we got all the files
-                    //heh
-                    //i love hog
-                    //classification now lives in EditorHOGFile since only editors care about it
-                }
+            }
+        }
+
+        /// <summary>
+        /// Writes the current contents of the HOG file to the given filename.
+        /// </summary>
+        /// <param name="filename">The name of the file to write to.</param>
+        public virtual void Write(string filename)
+        {
+            using (var fs = File.Open(filename, FileMode.Create, FileAccess.Write, FileShare.None))
+            {
+                Write(fs);
+            }
+        }
+
+        /// <summary>
+        /// Writes the current contents of the HOG file to the given filename.
+        /// </summary>
+        /// <param name="filename">The name of the file to write to.</param>
+        /// <param name="format">The format to write the HOG file in.</param>
+        public virtual void Write(string filename, HOGFormat format)
+        {
+            using (var fs = File.Open(filename, FileMode.Create, FileAccess.Write, FileShare.None))
+            {
+                Write(fs, format);
             }
         }
 
@@ -157,50 +181,94 @@ namespace LibDescent.Data
         /// <param name="stream">The stream to write the HOG file to.</param>
         public void Write(Stream stream)
         {
-            lock (hogFileLock)
+            Write(stream, Format);
+        }
+
+        /// <summary>
+        /// Writes the current contents of the HOG file to the given stream.
+        /// </summary>
+        /// <param name="stream">The stream to write the HOG file to.</param>
+        /// <param name="format">The format to write the HOG file in.</param>
+        public void Write(Stream stream, HOGFormat format)
+        {
+            using (BinaryWriter bw = new BinaryWriter(stream, Encoding.Default, true))
             {
-                BinaryWriter bw = new BinaryWriter(stream, Encoding.Default, true);
-
-                string headerString = (Format == HOGFormat.Standard) ? "DHF" : "D2X";
-                foreach (char character in headerString)
+                lock (_hogFileLock)
                 {
-                    bw.Write((byte)character);
-                }
+                    lock (_lumpLock)
+                    {
+                        string headerString = (format == HOGFormat.Standard) ? "DHF" : "D2X";
+                        bw.Write(Encoding.ASCII.GetBytes(headerString));
 
-                HOGLump lump;
-                for (int i = 0; i < Lumps.Count; i++)
-                {
-                    lump = Lumps[i];
-                    for (int c = 0; c < 13; c++)
-                    {
-                        if (c < lump.Name.Length)
-                            bw.Write((byte)lump.Name[c]);
-                        else
-                            bw.Write((byte)0);
+                        HOGLump lump;
+                        for (int i = 0; i < Lumps.Count; i++)
+                        {
+                            lump = Lumps[i];
+
+                            // Write the lump filename
+                            var filenameBuffer = new byte[13]; // automatically zero-initialized
+                            Encoding.ASCII.GetBytes(lump.Name.Substring(0, Math.Min(lump.Name.Length, 13)))
+                                .CopyTo(filenameBuffer, 0);
+                            bw.Write(filenameBuffer);
+
+                            if (Format == HOGFormat.Standard || lump.Name.Length <= 13)
+                            {
+                                bw.Write(lump.Size);
+                            }
+                            else // D2X-XL with long filename
+                            {
+                                bw.Write(-(int)lump.Size);
+                                var longFilenameBuffer = new byte[256]; // automatically zero-initialized
+                                // Cut off the last character if needed to ensure null-termination
+                                Encoding.ASCII.GetBytes(lump.Name.Substring(0, Math.Min(lump.Name.Length, 255)))
+                                    .CopyTo(longFilenameBuffer, 0);
+                                bw.Write(longFilenameBuffer);
+                            }
+
+                            // Write the lump data
+                            bw.Write(lump.Data);
+                        }
                     }
-                    if (Format == HOGFormat.Standard || lump.Name.Length <= 13)
-                    {
-                        bw.Write(lump.Size);
-                    }
-                    else // D2X-XL with long filename
-                    {
-                        bw.Write(-lump.Size);
-                        var longFilenameBuffer = new byte[256]; // automatically zero-initialized
-                        // Cut off the last character if needed to ensure null-termination
-                        Encoding.ASCII.GetBytes(lump.Name.Substring(0, Math.Min(lump.Name.Length, 255)))
-                            .CopyTo(longFilenameBuffer, 0);
-                        bw.Write(longFilenameBuffer);
-                    }
-                    if (lump.Offset == -1) //This lump has cached data
-                        bw.Write(lump.Data);
-                    else //This lump doesn't have cached data, and instead needs to be read from the old stream
-                    {
-                        byte[] data = GetLumpData(i);
-                        bw.Write(data);
-                    }
-                    lump.Offset = (int)bw.BaseStream.Position - lump.Size; //Update the offset for the new file
                 }
-                bw.Flush();
+            }
+        }
+
+        /// <summary>
+        /// Retrieves the index of the first lump with the specified filename.
+        /// </summary>
+        /// <param name="filename">The name of the lump to search for. The comparison is case-insensitive.</param>
+        /// <returns>The zero-based index of the lump that matches the specified filename, or -1 if
+        /// no lump with the specified filename exists.</returns>
+        public int GetLumpNum(string filename)
+        {
+            lock (_lumpLock)
+            {
+                return Lumps.FindIndex(lump => lump.Name.Equals(filename, StringComparison.OrdinalIgnoreCase));
+            }
+        }
+
+        /// <summary>
+        /// Retrieves a lump from the collection by its filename.
+        /// </summary>
+        /// <param name="filename">The name of the lump to retrieve. The comparison is case-insensitive.</param>
+        /// <returns>The <see cref="HOGLump"/> that matches the specified filename, or <see langword="null"/>
+        /// if no matching lump is found.</returns>
+        public HOGLump GetLump(string filename)
+        {
+            lock (_lumpLock)
+            {
+                return Lumps.FirstOrDefault(lump => lump.Name.Equals(filename, StringComparison.OrdinalIgnoreCase));
+            }
+        }
+
+        protected virtual void CheckFileStreamNotNull()
+        {
+            lock (_hogFileLock)
+            {
+                if (_fileStream == null)
+                {
+                    throw new InvalidOperationException("HOGFile.CheckFileStreamNotNull: HOG file stream is not available.");
+                }
             }
         }
 
@@ -211,15 +279,47 @@ namespace LibDescent.Data
         /// <returns>A byte[] array of the lump's data.</returns>
         public byte[] GetLumpData(int id)
         {
-            lock (hogFileLock)
+            lock (_lumpLock)
             {
                 if (id < 0 || id >= Lumps.Count) return null;
-                if (Lumps[id].Data != null)
-                    return Lumps[id].Data;
+                return Lumps[id].Data;
+            }
+        }
 
-                //CheckFileStreamNotNull(); //TODO: Need a way to check stream validity
-                fileStream.BaseStream.Seek(Lumps[id].Offset, SeekOrigin.Begin);
-                return fileStream.ReadBytes(Lumps[id].Size);
+        /// <summary>
+        /// Retrieves the raw data of a specified lump from the file.
+        /// </summary>
+        /// <param name="filename">The name of the lump to retrieve. The comparison is case-insensitive.</param>
+        /// <returns>A byte array containing the raw data of the specified lump, or <see langword="null"/>
+        /// if no matching lump is found.</returns>
+        public byte[] GetLumpData(string filename)
+        {
+            lock (_lumpLock)
+            {
+                var lump = GetLump(filename);
+                return lump?.Data;
+            }
+        }
+
+        /// <summary>
+        /// Gets the raw data of a given lump.
+        /// </summary>
+        /// <param name="lump">The lump to get the data of.</param>
+        /// <returns>A byte[] array of the lump's data.</returns>
+        public byte[] GetLumpData(HOGLump lump)
+        {
+            lock (_hogFileLock)
+            {
+                lock (_lumpLock)
+                {
+                    if (lump == null) return null;
+                    if (lump.HasCachedData) return lump.Data;
+                    if (!lump.Offset.HasValue) return null;
+
+                    CheckFileStreamNotNull();
+                    _fileStream.BaseStream.Seek(lump.Offset.Value, SeekOrigin.Begin);
+                    return _fileStream.ReadBytes((int)lump.Size);
+                }
             }
         }
 
@@ -230,8 +330,25 @@ namespace LibDescent.Data
         /// <returns>A stream containing the lump's data.</returns>
         public Stream GetLumpAsStream(int id)
         {
-            if (id < 0 || id >= Lumps.Count) return null;
-            byte[] data = GetLumpData(id);
+            lock (_lumpLock)
+            {
+                if (id < 0 || id >= Lumps.Count) return null;
+                byte[] data = Lumps[id].Data;
+                return new MemoryStream(data);
+            }
+        }
+
+        /// <summary>
+        /// Retrieves the data of the specified lump as a stream.
+        /// </summary>
+        /// <param name="filename">The name of the lump to retrieve.</param>
+        /// <returns>A <see cref="Stream"/> containing the data of the specified lump, or <see langword="null"/>
+        /// if the lump does not exist.</returns>
+        public Stream GetLumpAsStream(string filename)
+        {
+            var lump = GetLump(filename);
+            if (lump == null) return null;
+            byte[] data = lump.Data;
             return new MemoryStream(data);
         }
     }

@@ -52,6 +52,7 @@
 
   <ItemGroup>
     <ProjectReference Include="..\Data\LibDescent.Data.csproj" />
+    <ProjectReference Include="..\Edit\LibDescent.Edit.csproj" />
   </ItemGroup>
 
 </Project>
