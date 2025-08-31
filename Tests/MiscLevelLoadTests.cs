@@ -61,12 +61,11 @@ namespace LibDescent.Tests
             string filePath = "";
             using var stream = new FileStream(filePath.Replace("\"", null), FileMode.Open, FileAccess.Read);
             var hogFile = new HOGFile(stream);
-            for (int i = 0; i < hogFile.Lumps.Count; i++)
+            foreach (var lump in hogFile.Lumps)
             {
-                if (hogFile.Lumps[i].Name.ToLower().EndsWith(".rdl") || hogFile.Lumps[i].Name.ToLower().EndsWith(".rl2"))
+                if (lump.Name.ToLower().EndsWith(".rdl") || lump.Name.ToLower().EndsWith(".rl2"))
                 {
-                    using var levelStream = hogFile.GetLumpAsStream(i);
-                    var level = LevelFactory.CreateFromStream(levelStream);
+                    var level = LevelFactory.CreateFromStream(lump.DataAsStream);
                     Assert.Greater(level.Segments.Count, 0);
                 }
             }

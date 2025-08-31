@@ -127,38 +127,79 @@ namespace LibDescent.Data
         /// <summary>
         /// The file name associated with this lump.
         /// </summary>
-        public string Name;
+        public string Name { get; set; }
+
         /// <summary>
         /// The size of the data of this lump.
         /// </summary>
-        public int Size;
+        public uint Size
+        {
+            get
+            {
+                if (HasCachedData)
+                {
+                    return (uint)data.Length;
+                }
+                return size;
+            }
+        }
+
         /// <summary>
         /// The offset of this lump within the .HOG that it is contained in.
         /// </summary>
-        public int Offset;
+        public uint? Offset { get; set; }
+
         /// <summary>
         /// The raw data contained within this lump.
         /// </summary>
-        public byte[] Data; //Needed for imported items
+        public byte[] Data
+        {
+            get
+            {
+                if (HasCachedData)
+                {
+                    return data;
+                }
+                return owner.GetLumpData(this);
+            }
+            set => data = value;
+        }
+
+        /// <summary>
+        /// A stream allowing access to the raw data contained within this lump.
+        /// </summary>
+        public Stream DataAsStream => new MemoryStream(Data);
+
+        /// <summary>
+        /// Indicates whether the contents of the lump have been loaded into memory.
+        /// </summary>
+        public bool HasCachedData => data != null;
+
         /// <summary>
         /// The type of this lump, as detected from the data.
         /// </summary>
-        public LumpType Type;
+        public LumpType Type => IdentifyLump(Name, Data);
 
-        public HOGLump(string name, int size, int offset)
+        HOGFile owner;
+        private uint size;
+        private byte[] data; //Needed for imported items
+
+        public HOGLump(HOGFile owner, string name, uint size, uint offset)
         {
-            this.Name = name;
-            this.Size = size;
-            this.Offset = offset;
+            this.owner = owner;
+            Name = name;
+            this.size = size;
+            Offset = offset;
         }
 
         public HOGLump(string name, byte[] data)
         {
-            this.Name = name;
-            Size = data.Length;
-            Offset = -1;
-            this.Data = data;
-            Type = IdentifyLump(name, data);
+            if (data == null)
+            {
+                throw new ArgumentException("HOGLump: Data cannot be null.");
+            }
+            Name = name;
+            Data = data;
         }
 
         public static LumpType IdentifyLump(string name, byte[] data)
