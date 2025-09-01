@@ -31,7 +31,7 @@ namespace LibDescent.Data
         string LevelName { get; set; }
         List<LevelVertex> Vertices { get; }
         List<Segment> Segments { get; }
-        List<LevelObject> Objects { get; }
+        IReadOnlyList<ILevelObject> Objects { get; }
         List<Wall> Walls { get; }
         IReadOnlyList<ITrigger> Triggers { get; }
         List<Side> ReactorTriggerTargets { get; }
@@ -48,8 +48,6 @@ namespace LibDescent.Data
 
         public List<Segment> Segments { get; } = new List<Segment>();
 
-        public List<LevelObject> Objects { get; } = new List<LevelObject>();
-
         public List<Wall> Walls { get; } = new List<Wall>();
 
         public const int MaxReactorTriggerTargets = 10;
@@ -60,6 +58,8 @@ namespace LibDescent.Data
     {
         private DescentLevelCommon _commonData = new DescentLevelCommon();
 
+        public List<D1LevelObject> Objects { get; } = new List<D1LevelObject>();
+
         public List<D1Trigger> Triggers { get; } = new List<D1Trigger>();
 
         public List<MatCenter> MatCenters { get; } = new List<MatCenter>();
@@ -68,7 +68,7 @@ namespace LibDescent.Data
         public string LevelName { get => _commonData.LevelName; set => _commonData.LevelName = value; }
         public List<LevelVertex> Vertices => _commonData.Vertices;
         public List<Segment> Segments => _commonData.Segments;
-        public List<LevelObject> Objects => _commonData.Objects;
+        IReadOnlyList<ILevelObject> ILevel.Objects => Objects;
         public List<Wall> Walls => _commonData.Walls;
         IReadOnlyList<ITrigger> ILevel.Triggers => Triggers;
         public List<Side> ReactorTriggerTargets => _commonData.ReactorTriggerTargets;
@@ -89,6 +89,8 @@ namespace LibDescent.Data
     public class D2Level : ILevel
     {
         private DescentLevelCommon _commonData = new DescentLevelCommon();
+
+        public List<D2LevelObject> Objects { get; } = new List<D2LevelObject>();
 
         public List<D2Trigger> Triggers { get; } = new List<D2Trigger>();
 
@@ -122,7 +124,7 @@ namespace LibDescent.Data
         public string LevelName { get => _commonData.LevelName; set => _commonData.LevelName = value; }
         public List<LevelVertex> Vertices => _commonData.Vertices;
         public List<Segment> Segments => _commonData.Segments;
-        public List<LevelObject> Objects => _commonData.Objects;
+        IReadOnlyList<ILevelObject> ILevel.Objects => Objects;
         public List<Wall> Walls => _commonData.Walls;
         IReadOnlyList<ITrigger> ILevel.Triggers => Triggers;
         public List<Side> ReactorTriggerTargets => _commonData.ReactorTriggerTargets;
@@ -156,6 +158,8 @@ namespace LibDescent.Data
 
     public class D2XXLLevel : D2Level, ILevel
     {
+        public new List<D2XXLLevelObject> Objects { get; } = new List<D2XXLLevelObject>();
+
         public new List<D2XXLTrigger> Triggers { get; } = new List<D2XXLTrigger>();
 
         public new List<IMatCenter> MatCenters { get; } = new List<IMatCenter>();
@@ -194,6 +198,7 @@ namespace LibDescent.Data
         };
 
         #region ILevel implementation
+        IReadOnlyList<ILevelObject> ILevel.Objects => Objects;
         IReadOnlyList<ITrigger> ILevel.Triggers => Triggers;
         IReadOnlyList<IMatCenter> ILevel.MatCenters => MatCenters;
         #endregion

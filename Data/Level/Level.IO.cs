@@ -437,8 +437,8 @@ namespace LibDescent.Data
             reader.BaseStream.Seek(_fileInfo.objectsOffset, SeekOrigin.Begin);
             for (int i = 0; i < _fileInfo.objectsCount; i++)
             {
-                var levelObject = ReadObject(reader);
-                Level.Objects.Add(levelObject);
+                ILevelObject levelObject = ReadObject(reader);
+                AddObject(levelObject);
             }
 
             // Walls
@@ -568,25 +568,43 @@ namespace LibDescent.Data
             }
         }
 
-        private LevelObject ReadObject(BinaryReader reader)
+        private ILevelObject ReadObject(BinaryReader reader)
         {
-            var levelObject = new LevelObject();
-            levelObject.Type = (ObjectType)reader.ReadSByte();
+            ILevelObject levelObject;
+            switch (Level)
+            {
+                case D2XXLLevel _:
+                    levelObject = new D2XXLLevelObject();
+                    break;
+                case D2Level _:
+                    levelObject = new D2LevelObject();
+                    break;
+                case D1Level _:
+                    levelObject = new D1LevelObject();
+                    break;
+                default:
+                    throw new InvalidOperationException("Unsupported level type.");
+            }
+            levelObject.Type = ObjectTypeFactory.Create((ObjectTypeID)reader.ReadSByte());
             levelObject.SubtypeID = reader.ReadByte();
             levelObject.ControlType = ControlTypeFactory.NewControlType((ControlTypeID)reader.ReadByte());
             levelObject.MoveType = MovementTypeFactory.NewMovementType((MovementTypeID)reader.ReadByte());
             levelObject.RenderType = RenderTypeFactory.NewRenderType((RenderTypeID)reader.ReadByte());
             levelObject.Flags = reader.ReadByte();
-            levelObject.MultiplayerOnly = (_fileInfo.version > 37) ? (reader.ReadByte() > 0) : false;
-            levelObject.Segnum = reader.ReadInt16();
+            if (_fileInfo.version > 37)
+            {
+                (levelObject as D2XXLLevelObject).MultiplayerOnly = (reader.ReadByte() > 0);
+            }
+            var segnum = reader.ReadInt16();
+            levelObject.Segment = Level.Segments[segnum];
             levelObject.AttachedObject = -1;
             levelObject.Position = ReadFixVector(reader);
             levelObject.Orientation = ReadFixMatrix(reader);
             levelObject.Size = new Fix(reader.ReadInt32());
             levelObject.Shields = new Fix(reader.ReadInt32());
             levelObject.LastPos = ReadFixVector(reader);
-            levelObject.ContainsType = (ObjectType)reader.ReadByte();
-            levelObject.ContainsId = reader.ReadByte();
+            levelObject.ContainsType = ObjectTypeFactory.Create((ObjectTypeID)reader.ReadSByte());
+            levelObject.ContainsSubtypeID = reader.ReadByte();
             levelObject.ContainsCount = reader.ReadByte();
 
             switch (levelObject.MoveType)
@@ -799,6 +817,7 @@ namespace LibDescent.Data
         protected abstract void LoadVersionSpecificLevelInfo(BinaryReader reader);
         protected abstract void ReadXLSegmentData(BinaryReader reader, D2XXLSegment xlSegment);
         protected abstract void LoadVersionSpecificMineData(BinaryReader reader);
+        protected abstract void AddObject(ILevelObject levelObject);
         protected abstract ITrigger ReadTrigger(BinaryReader reader);
         protected abstract void AddTrigger(ITrigger trigger);
         protected abstract void ReadXLObjectTriggers(BinaryReader reader);
@@ -836,6 +855,11 @@ namespace LibDescent.Data
         protected override void ReadXLSegmentData(BinaryReader reader, D2XXLSegment xlSegment) { }
 
         protected override void LoadVersionSpecificMineData(BinaryReader reader) { }
+
+        protected override void AddObject(ILevelObject levelObject)
+        {
+            _level.Objects.Add(levelObject as D1LevelObject);
+        }
 
         protected override ITrigger ReadTrigger(BinaryReader reader)
         {
@@ -980,6 +1004,11 @@ namespace LibDescent.Data
             }
 
             _level.SecretReturnSegment = _level.Segments[_secretReturnSegmentNum];
+        }
+
+        protected override void AddObject(ILevelObject levelObject)
+        {
+            _level.Objects.Add(levelObject as D2LevelObject);
         }
 
         protected override ITrigger ReadTrigger(BinaryReader reader)
@@ -1137,6 +1166,11 @@ namespace LibDescent.Data
             }
         }
 
+        protected override void AddObject(ILevelObject levelObject)
+        {
+            _xlLevel.Objects.Add(levelObject as D2XXLLevelObject);
+        }
+
         protected override ITrigger ReadTrigger(BinaryReader reader)
         {
             return ReadXLTrigger(reader, false);
@@ -1168,7 +1202,7 @@ namespace LibDescent.Data
                 }
 
                 var objectId = reader.ReadInt16();
-                var levelObject = Level.Objects[objectId];
+                var levelObject = _xlLevel.Objects[objectId];
                 levelObject.Trigger = trigger;
                 trigger.ConnectedObjects.Add(levelObject);
             }
@@ -1842,26 +1876,26 @@ namespace LibDescent.Data
             }
         }
 
-        private void WriteObject(BinaryWriter writer, LevelObject levelObject)
+        private void WriteObject(BinaryWriter writer, ILevelObject levelObject)
         {
-            writer.Write((byte)levelObject.Type);
+            writer.Write((sbyte)levelObject.Type.Identifier);
             writer.Write(levelObject.SubtypeID);
-            writer.Write((byte)levelObject.ControlTypeID);
-            writer.Write((byte)levelObject.MoveTypeID);
-            writer.Write((byte)levelObject.RenderTypeID);
+            writer.Write((byte)levelObject.ControlType.Identifier);
+            writer.Write((byte)levelObject.MoveType.Identifier);
+            writer.Write((byte)levelObject.RenderType.Identifier);
             writer.Write(levelObject.Flags);
             if (GameDataVersion > 37)
             {
-                writer.Write((byte)(levelObject.MultiplayerOnly ? 1 : 0));
+                writer.Write((byte)((levelObject as D2XXLLevelObject).MultiplayerOnly ? 1 : 0));
             }
-            writer.Write(levelObject.Segnum);
+            writer.Write((short)Level.Segments.IndexOf(levelObject.Segment));
             WriteFixVector(writer, levelObject.Position);
             WriteFixMatrix(writer, levelObject.Orientation);
             writer.Write(levelObject.Size.value);
             writer.Write(levelObject.Shields.value);
             WriteFixVector(writer, levelObject.LastPos);
-            writer.Write((byte)levelObject.ContainsType);
-            writer.Write(levelObject.ContainsId);
+            writer.Write((sbyte)(levelObject.ContainsType?.Identifier ?? ObjectTypeID.None));
+            writer.Write(levelObject.ContainsSubtypeID);
             writer.Write(levelObject.ContainsCount);
 
             switch (levelObject.MoveType)

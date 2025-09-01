@@ -149,7 +149,7 @@ namespace LibDescent.Data
         /// <summary>
         /// A list of the objects that activate this trigger. D2X-XL only.
         /// </summary>
-        List<LevelObject> ConnectedObjects { get; }
+        List<ILevelObject> ConnectedObjects { get; }
     }
 
     /// <summary>
@@ -168,7 +168,7 @@ namespace LibDescent.Data
 
         public List<Wall> ConnectedWalls { get; } = new List<Wall>();
 
-        public List<LevelObject> ConnectedObjects => new List<LevelObject>();
+        public List<ILevelObject> ConnectedObjects => new List<ILevelObject>();
 
         public ushort Flags { get; set; }
 
@@ -192,7 +192,7 @@ namespace LibDescent.Data
 
         public List<Wall> ConnectedWalls { get; } = new List<Wall>();
 
-        public List<LevelObject> ConnectedObjects => new List<LevelObject>();
+        public List<ILevelObject> ConnectedObjects => new List<ILevelObject>();
 
         public D1TriggerFlags Flags { get; set; }
 
@@ -220,7 +220,7 @@ namespace LibDescent.Data
 
         public List<Wall> ConnectedWalls { get; } = new List<Wall>();
 
-        public List<LevelObject> ConnectedObjects => new List<LevelObject>();
+        public List<ILevelObject> ConnectedObjects => new List<ILevelObject>();
 
         public D2TriggerFlags Flags { get; set; }
 
@@ -245,7 +245,7 @@ namespace LibDescent.Data
 
         public List<Wall> ConnectedWalls { get; } = new List<Wall>();
 
-        public List<LevelObject> ConnectedObjects { get; } = new List<LevelObject>();
+        public List<ILevelObject> ConnectedObjects { get; } = new List<ILevelObject>();
 
         public D2XXLTriggerFlags Flags { get; set; }
 

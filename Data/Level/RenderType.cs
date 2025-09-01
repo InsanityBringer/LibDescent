@@ -21,11 +21,27 @@
 */
 
 using System;
-using System.Collections.Generic;
-using System.Text;
 
 namespace LibDescent.Data
 {
+    public enum RenderTypeID
+    {
+        None,
+        Polyobj,
+        Fireball,
+        Laser,
+        Hostage,
+        Powerup,
+        Morph,
+        WeaponVClip,
+        Thruster, // D2X-XL: like afterburner, but doesn't cast light
+        ExplosionBlast, // D2X-XL: white explosion light blast
+        Shrapnel, // D2X-XL
+        Particle, // D2X-XL
+        Lightning, // D2X-XL
+        Sound, // D2X-XL
+    }
+
     public abstract class RenderType
     {
         public abstract RenderTypeID Identifier { get; }
