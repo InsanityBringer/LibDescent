@@ -84,7 +84,7 @@ namespace LibDescent.Data
         /// <summary>
         /// An optional element name for editors.
         /// </summary>
-        public string Name { get; set; }
+        public string Name { get; set; } = "";
 
         public EClip Clone()
         {
