@@ -38,7 +38,7 @@ namespace LibDescent.Data
         /// </summary>
         public short NumFrames { get; set; }
         /// <summary>
-        /// Piggy indexes of each frame of this WClip.
+        /// Level texture indexes of each frame of this WClip.
         /// </summary>
         public ushort[] Frames { get; private set; } = new ushort[50];
         /// <summary>
