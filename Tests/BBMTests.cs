@@ -7,7 +7,7 @@ using System.Text;
 
 namespace LibDescent.Tests
 {
-    [TestFixtureSource("TestData")]
+    [TestFixture]
     class BBMTests
     {
         private BBMImage bbm;
