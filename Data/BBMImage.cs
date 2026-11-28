@@ -541,8 +541,8 @@ namespace LibDescent.Data
 
             bw.Write(Encoding.ASCII.GetBytes("BMHD"));
             bw.Write(20); // BMHD length
-            bw.Write(Width);
-            bw.Write(Height);
+            bw.Write((short)Width);
+            bw.Write((short)Height);
             bw.Write(0); // origin (0, 0)
             bw.Write(NumPlanes);
             bw.Write((byte)Mask);

@@ -6,7 +6,7 @@ using System.Text;
 
 namespace LibDescent.Tests
 {
-    [TestFixtureSource("TestData")]
+    [TestFixture]
     class SongListTests
     {
         private SongList sng;

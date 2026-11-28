@@ -7,7 +7,7 @@ using System.Text;
 
 namespace LibDescent.Tests
 {
-    [TestFixtureSource("TestData")]
+    [TestFixture]
     class MIDITests
     {
         private MIDISequence midi;
@@ -24,7 +24,6 @@ namespace LibDescent.Tests
             midi.Read(TestUtils.GetResourceStream("Bass_sample.mid"));
             Assert.AreEqual(2, midi.TrackCount);
 
-            int i = 0;
             List<MIDIEvent> events = new List<MIDIEvent>();
 
             MIDITrack track0 = midi.Tracks[0];
