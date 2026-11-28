@@ -55,17 +55,16 @@ namespace LibDescent.Tests
         }
 
         [Test]
-        [Ignore("Non-portable because filePath must be set manually; intended for debugging.")]
         public void TestLoadAllLevelsFromHog()
         {
-            string filePath = "";
-            using var stream = new FileStream(filePath.Replace("\"", null), FileMode.Open, FileAccess.Read);
-            var hogFile = new HOGFile(stream);
-            foreach (var lump in hogFile.Lumps)
+            string filePath = TestUtils.RequireHog();
+            using FileStream stream = new(filePath, FileMode.Open, FileAccess.Read);
+            HOGFile hogFile = new(stream);
+            foreach (HOGLump lump in hogFile.Lumps)
             {
-                if (lump.Name.ToLower().EndsWith(".rdl") || lump.Name.ToLower().EndsWith(".rl2"))
+                if (lump.Name.ToLowerInvariant().EndsWith(".rdl") || lump.Name.ToLowerInvariant().EndsWith(".rl2"))
                 {
-                    var level = LevelFactory.CreateFromStream(lump.DataAsStream);
+                    ILevel level = LevelFactory.CreateFromStream(lump.DataAsStream);
                     Assert.Greater(level.Segments.Count, 0);
                 }
             }
