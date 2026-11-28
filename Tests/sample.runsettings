@@ -1,0 +1,9 @@
+﻿<?xml version="1.0" encoding="utf-8" ?>
+<!-- Copy this file to ".runsettings" in the solution root directory and fill in the values to use it. -->
+<RunSettings>
+  <TestRunParameters>
+    <Parameter name="D1PigPath" value="" />
+    <Parameter name="D1OutputPigPath" value="" />
+    <Parameter name="HogPath" value="" />
+  </TestRunParameters>
+</RunSettings>
